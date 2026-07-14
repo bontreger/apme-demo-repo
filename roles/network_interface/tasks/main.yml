@@ -1,0 +1,118 @@
+---
+# Network Interface Check Role
+# Checks network interface status, statistics, and configuration
+- name: Initialize network interface check status
+  ansible.builtin.set_fact:
+    network_interface_errors: []
+    network_interface_interface_up: false
+    interface_mtu: "N/A"
+    network_interface_interface_ip: "N/A"
+    network_interface_rx_errors: 0
+    tx_errors: 0
+    rx_dropped: 0
+    tx_dropped: 0
+- name: Check network interface status
+  block:
+    - name: Check network interface status
+      ansible.builtin.command: ip link show {{ network_interface }}
+      register: network_interface_interface_status
+      failed_when: false
+      changed_when: false
+    - name: Parse interface status information
+      ansible.builtin.set_fact:
+        network_interface_interface_up: "{{ 'UP' in network_interface_interface_status.stdout }}"
+        interface_mtu: "{{ network_interface_interface_status.stdout | regex_search('mtu (\\d+)') | regex_replace('.*mtu (\\d+).*', '\\1') | default('N/A') }}"
+      when: network_interface_interface_status.rc == 0
+    - name: Display interface status check result
+      ansible.builtin.debug:
+        msg: "Network interface {{ network_interface }} status check {{ 'succeeded' if network_interface_interface_status.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record interface status check failure
+      ansible.builtin.set_fact:
+        network_interface_errors: "{{ network_interface_errors + ['Failed to check network interface status'] }}"
+    - name: Display interface status check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check network interface status. Continuing with other checks."
+- name: Get interface statistics
+  block:
+    - name: Get interface statistics
+      ansible.builtin.command: ethtool -S {{ network_interface }}
+      register: network_interface_interface_stats
+      failed_when: false
+      changed_when: false
+    - name: Parse error packet statistics
+      ansible.builtin.set_fact:
+        network_interface_rx_errors: >-
+          {{ network_interface_interface_stats.stdout
+             | regex_search('network_interface_rx_errors:\\s*(\\d+)')
+             | regex_replace('.*network_interface_rx_errors:\\s*(\\d+).*', '\\1')
+             | default('0') | int }}
+        tx_errors: >-
+          {{ network_interface_interface_stats.stdout
+             | regex_search('tx_errors:\\s*(\\d+)')
+             | regex_replace('.*tx_errors:\\s*(\\d+).*', '\\1')
+             | default('0') | int }}
+        rx_dropped: >-
+          {{ network_interface_interface_stats.stdout
+             | regex_search('rx_dropped:\\s*(\\d+)')
+             | regex_replace('.*rx_dropped:\\s*(\\d+).*', '\\1')
+             | default('0') | int }}
+        tx_dropped: >-
+          {{ network_interface_interface_stats.stdout
+             | regex_search('tx_dropped:\\s*(\\d+)')
+             | regex_replace('.*tx_dropped:\\s*(\\d+).*', '\\1')
+             | default('0') | int }}
+      when: network_interface_interface_stats.rc == 0
+    - name: Display statistics check result
+      ansible.builtin.debug:
+        msg: "Interface statistics check {{ 'succeeded' if network_interface_interface_stats.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record statistics check failure
+      ansible.builtin.set_fact:
+        network_interface_errors: "{{ network_interface_errors + ['Failed to get interface statistics'] }}"
+    - name: Display statistics check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to get interface statistics. Continuing with other checks."
+- name: Get IP address information
+  block:
+    - name: Get IP address information
+      ansible.builtin.command: ip addr show {{ network_interface }}
+      register: network_interface_ip_info
+      failed_when: false
+      changed_when: false
+    - name: Parse IP address
+      ansible.builtin.set_fact:
+        network_interface_interface_ip: >-
+          {{ network_interface_ip_info.stdout
+             | regex_search('inet (\d+\.\d+\.\d+\.\d+)')
+             | regex_replace('.*inet (\d+\.\d+\.\d+\.\d+).*', '\1')
+             | default('N/A') }}
+      when: network_interface_ip_info.rc == 0
+    - name: Display IP address check result
+      ansible.builtin.debug:
+        msg: "IP address check {{ 'succeeded' if network_interface_ip_info.rc == 0 else 'failed' }}"
+  rescue:
+    - name: Record IP address check failure
+      ansible.builtin.set_fact:
+        network_interface_errors: "{{ network_interface_errors + ['Failed to get IP address information'] }}"
+    - name: Display IP address check failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to get IP address information. Continuing with other checks."
+- name: Report network interface check summary
+  ansible.builtin.debug:
+    msg:
+      - "=== Network Interface Check Summary ==="
+      - "Interface: {{ network_interface }}"
+      - "{% if network_interface_interface_up %}✅ Interface Status: UP{% else %}❌ Interface Status: DOWN or Unknown{% endif %}"
+      - "MTU: {{ interface_mtu }}"
+      - "IP Address: {{ network_interface_interface_ip }}"
+      - "Receive Errors: {{ network_interface_rx_errors }}"
+      - "Transmit Errors: {{ tx_errors }}"
+      - "Receive Dropped: {{ rx_dropped }}"
+      - "Transmit Dropped: {{ tx_dropped }}"
+      - >-
+        {% if network_interface_errors | length > 0 %}
+        ⚠️  Errors encountered: {{ network_interface_errors | join('; ') }}
+        {% else %}
+        ✅ All network interface checks completed
+        {% endif %}

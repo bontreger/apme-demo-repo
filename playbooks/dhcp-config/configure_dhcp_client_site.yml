@@ -1,0 +1,55 @@
+# ============================================================================
+# Playbook: Configure DHCP Client
+# ============================================================================
+#
+# Description:
+#   Configure DHCP client using rhel-system-roles.network role.
+#   This is the Red Hat recommended standardized, cross-version network
+#   configuration method for Linux service automation.
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-06-16
+# License: Apache-2.0
+#
+# ============================================================================
+---
+- name: Configure DHCP client
+  hosts: "{{ target_hosts | default('dhcp_clients') }}"
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags: [always]
+
+    - name: Display host information for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: [debug, always]
+
+  vars:
+    # Define network connections to configure
+    network_connections:
+      # Create a connection named 'dhcp-connection' for eth1 interface
+      - name: "dhcp-connection"
+        interface_name: eth1
+        type: ethernet
+        # Enable IPv4 auto-configuration (DHCP)
+        ip:
+          dhcp4: true
+          # Enable IPv6 auto-configuration (SLAAC + DHCPv6)
+          auto6: true
+        state: up
+
+  roles:
+    - rhel-system-roles.network

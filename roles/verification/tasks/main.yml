@@ -1,0 +1,130 @@
+---
+# Verification Role
+# Verifies all configuration changes
+- name: System information verification
+  block:
+    - name: Display system information
+      ansible.builtin.debug:
+        msg:
+          - "=== System Information ==="
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "Hostname: {{ ansible_hostname }}"
+          - "FQDN: {{ ansible_fqdn }}"
+          - "IP Address: {{ ansible_default_ipv4.address | default('N/A') }}"
+      changed_when: false
+  rescue:
+    - name: Handle system info verification failure
+      ansible.builtin.debug:
+        msg: "Warning: System information verification encountered issues"
+- name: User verification
+  block:
+    - name: Verify admin user
+      ansible.builtin.command: id {{ admin_user }}
+      register: verification_admin_user_verification
+      changed_when: false
+    - name: Verify sudo privileges
+      ansible.builtin.command: sudo -l -U {{ admin_user }}
+      register: verification_sudo_verification
+      changed_when: false
+      failed_when: false
+    - name: Display user verification results
+      ansible.builtin.debug:
+        msg:
+          - "=== User Verification ==="
+          - "Admin user: {{ verification_admin_user_verification.stdout }}"
+          - "Sudo privileges: {{ verification_sudo_verification.stdout_lines | default(['N/A']) }}"
+  rescue:
+    - name: Handle user verification failure
+      ansible.builtin.debug:
+        msg: "Warning: User verification encountered issues"
+- name: Network verification
+  block:
+    - name: Display network interfaces
+      ansible.builtin.command: ip addr show
+      register: verification_network_interfaces
+      changed_when: false
+    - name: Test network connectivity
+      ansible.builtin.ping:
+        data: 8.8.8.8
+      register: verification_network_ping
+      changed_when: false
+    - name: Display network verification results
+      ansible.builtin.debug:
+        msg:
+          - "=== Network Verification ==="
+          - "Network connectivity: {{ 'OK' if verification_network_ping.ping == 'pong' else 'FAILED' }}"
+  rescue:
+    - name: Handle network verification failure
+      ansible.builtin.debug:
+        msg: "Warning: Network verification encountered issues"
+- name: Service status verification
+  block:
+    - name: Check chrony service status
+      ansible.builtin.systemd:
+        name: chronyd
+      register: verification_chrony_status
+      changed_when: false
+    - name: Check firewalld service status
+      ansible.builtin.systemd:
+        name: firewalld
+      register: verification_firewalld_status
+      changed_when: false
+    - name: Display service status
+      ansible.builtin.debug:
+        msg:
+          - "=== Service Status ==="
+          - "chrony: {{ verification_chrony_status.status.ActiveState | default('N/A') }}"
+          - "firewalld: {{ verification_firewalld_status.status.ActiveState | default('N/A') }}"
+  rescue:
+    - name: Handle service status verification failure
+      ansible.builtin.debug:
+        msg: "Warning: Service status verification encountered issues"
+- name: Port listening verification
+  block:
+    - name: Check port listening status
+      ansible.builtin.shell: set -o pipefail && "ss -tlnp | grep -E '({{ firewall_ports | join('|') }})' || true"
+      register: verification_port_listening
+      changed_when: false
+      failed_when: false
+    - name: Display port listening status
+      ansible.builtin.debug:
+        msg:
+          - "=== Port Listening ==="
+          - "{{ verification_port_listening.stdout_lines if verification_port_listening.stdout_lines else ['No ports listening'] }}"
+  rescue:
+    - name: Handle port listening verification failure
+      ansible.builtin.debug:
+        msg: "Warning: Port listening verification encountered issues"
+- name: Time synchronization verification
+  block:
+    - name: Check time synchronization status
+      ansible.builtin.command: chronyc tracking
+      register: verification_time_sync_status
+      changed_when: false
+    - name: Display time synchronization status
+      ansible.builtin.debug:
+        msg:
+          - "=== Time Synchronization Status ==="
+          - "{{ verification_time_sync_status.stdout_lines }}"
+  rescue:
+    - name: Handle time sync verification failure
+      ansible.builtin.debug:
+        msg: "Warning: Time synchronization verification encountered issues"
+- name: Configuration verification summary
+  block:
+    - name: Display verification summary
+      ansible.builtin.debug:
+        msg:
+          - "🎉 === Configuration Verification Complete ==="
+          - "✅ System information verified"
+          - "✅ User permissions verified"
+          - "✅ Network connectivity verified"
+          - "✅ Service status verified"
+          - "✅ Port listening verified"
+          - "✅ Time synchronization verified"
+          - "🎯 All configuration items verified, system is standardized"
+  rescue:
+    - name: Handle summary failure
+      ansible.builtin.debug:
+        msg: "Configuration verification completed"

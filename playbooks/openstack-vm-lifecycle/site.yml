@@ -1,0 +1,14 @@
+---
+- name: Run OpenStack vm lifecycle automation tool kit
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+
+  environment:
+    PYTHONPATH: "/home/lab-user/.local/lib/python3.12/site-packages"
+
+  roles:
+    - role: openstack_vm_manager

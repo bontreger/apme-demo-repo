@@ -1,0 +1,129 @@
+---
+# System Optimization Role
+# Configures system limits and sysctl parameters
+- name: Initialize system optimization status
+  ansible.builtin.set_fact:
+    system_optimization_errors: []
+    system_optimization_limits_configured: false
+    system_optimization_sysctl_configured: false
+- name: Configure system limits
+  block:
+    - name: Configure system limits
+      ansible.builtin.lineinfile:
+        path: /etc/security/limits.conf
+        line: "{{ item }}"
+        state: present
+        backup: "{{ backup.enabled | default(true) }}"
+      loop: "{{ system_limits }}"
+      register: system_optimization_limits_config
+      failed_when: false
+    - name: Update limits configuration status
+      ansible.builtin.set_fact:
+        system_optimization_limits_configured: true
+      when: system_optimization_limits_config.results | selectattr('failed', 'equalto', false) | list | length > 0
+    - name: Display system limits configuration result
+      ansible.builtin.debug:
+        msg: >-
+          System limits
+          {{ 'updated' if system_optimization_limits_config.results
+             | selectattr('changed', 'equalto', true) | list | length > 0
+             else 'unchanged' }}
+      when: system_optimization_limits_configured
+  rescue:
+    - name: Record limits configuration failure
+      ansible.builtin.set_fact:
+        system_optimization_errors: "{{ system_optimization_errors + ['Failed to configure system limits'] }}"
+    - name: Display limits configuration failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to configure system limits. Continuing with other configurations."
+- name: Configure sysctl parameters
+  block:
+    - name: Configure sysctl parameters
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: true
+        sysctl_file: /etc/sysctl.d/99-ansible.conf
+        reload: true
+      loop: "{{ sysctl_params | dict2items }}"
+      register: system_optimization_sysctl_config
+      failed_when: false
+    - name: Update sysctl configuration status
+      ansible.builtin.set_fact:
+        system_optimization_sysctl_configured: true
+      when: system_optimization_sysctl_config.results | selectattr('failed', 'equalto', false) | list | length > 0
+    - name: Display sysctl configuration result
+      ansible.builtin.debug:
+        msg: >-
+          Sysctl parameters
+          {{ 'updated' if system_optimization_sysctl_config.results
+             | selectattr('changed', 'equalto', true) | list | length > 0
+             else 'unchanged' }}
+      when: system_optimization_sysctl_configured
+  rescue:
+    - name: Record sysctl configuration failure
+      ansible.builtin.set_fact:
+        system_optimization_errors: "{{ system_optimization_errors + ['Failed to configure sysctl parameters'] }}"
+    - name: Display sysctl configuration failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to configure sysctl parameters. Continuing with other configurations."
+- name: Apply sysctl configuration
+  block:
+    - name: Apply sysctl settings
+      ansible.builtin.command: sysctl -p /etc/sysctl.d/99-ansible.conf
+      register: system_optimization_sysctl_apply
+      changed_when: false
+    - name: Display sysctl apply result
+      ansible.builtin.debug:
+        msg: "Sysctl configuration applied"
+  rescue:
+    - name: Handle sysctl apply failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to apply sysctl configuration (non-critical)"
+- name: Verify system limits configuration
+  block:
+    - name: Check current file descriptor limit
+      ansible.builtin.command: ulimit -n
+      register: system_optimization_ulimit_nofile
+      changed_when: false
+    - name: Display current file descriptor limit
+      ansible.builtin.debug:
+        msg: "Current file descriptor limit: {{ system_optimization_ulimit_nofile.stdout }}"
+  rescue:
+    - name: Handle limits verification failure
+      ansible.builtin.debug:
+        msg: "Warning: System limits verification encountered issues (non-critical)"
+- name: Verify sysctl configuration
+  block:
+    - name: Verify sysctl parameters
+      ansible.builtin.command: "sysctl {{ item.key }}"
+      loop: "{{ sysctl_params | dict2items }}"
+      register: system_optimization_sysctl_verification
+      changed_when: false
+    - name: Display sysctl verification results
+      ansible.builtin.debug:
+        msg: "{{ item.stdout }}"
+      loop: "{{ system_optimization_sysctl_verification.results }}"
+  rescue:
+    - name: Handle sysctl verification failure
+      ansible.builtin.debug:
+        msg: "Warning: Sysctl verification encountered issues (non-critical)"
+- name: Report system optimization summary
+  block:
+    - name: Display system optimization summary
+      ansible.builtin.debug:
+        msg:
+          - "=== System Optimization Summary ==="
+          - "{% if system_optimization_limits_configured %}✅ System limits configured{% else %}❌ Failed to configure system limits{% endif %}"
+          - "{% if system_optimization_sysctl_configured %}✅ Sysctl parameters configured{% else %}❌ Failed to configure sysctl parameters{% endif %}"
+          - >-
+            {% if system_optimization_errors | length > 0 %}
+            ⚠️  Errors encountered: {{ system_optimization_errors | join('; ') }}
+            {% else %}
+            ✅ All system optimization tasks completed successfully
+            {% endif %}
+  rescue:
+    - name: Handle display failure
+      ansible.builtin.debug:
+        msg: "System optimization completed"

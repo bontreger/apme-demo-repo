@@ -1,0 +1,22 @@
+---
+# Package management
+dhcp_server_dhcp_packages:
+  - dhcp-server
+
+# Service management
+dhcp_server_dhcp_services:
+  - dhcpd
+  - dhcpd6
+
+# Configuration files
+dhcp_server_dhcp_config_file: dhcpd.conf
+dhcp_server_dhcp6_config_file: dhcpd6.conf
+
+# SELinux context
+dhcp_server_dhcp_config_setype: dhcp_etc_t
+
+# Firewall management
+dhcp_server_dhcp_manage_firewall: true
+dhcp_server_dhcp_firewall_services:
+  - dhcp
+  - dhcpv6

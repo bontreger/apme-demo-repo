@@ -1,0 +1,78 @@
+---
+# roles/openstack_vm_manager/tasks/secgroup_manage.yml
+
+- name: Set command prefix in openstack client pod
+  ansible.builtin.set_fact:
+    openstack_vm_manager_oc_os_argv:
+      - oc
+      - exec
+      - -n
+      - openstack
+      - openstackclient
+      - --
+      - openstack
+
+# ==========================================================
+# Attach security group (Attach)
+# ==========================================================
+- name: "Check existing security group on vms"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'show', item.vm_name, '-f', 'value', '-c', 'security_groups'] }}
+  loop: "{{ secgroup_manage_list }}"
+  register: openstack_vm_manager_current_sgs
+  when: operation == 'secgroup_manage' and action_type == 'attach'
+  changed_when: false
+
+- name: "Assign security group for specified vms"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'add', 'security', 'group', item.0.vm_name, item.0.sg_name] }}
+  loop: "{{ secgroup_manage_list | zip(openstack_vm_manager_current_sgs.results) | list }}"
+  when:
+    - operation == 'secgroup_manage'
+    - action_type == 'attach'
+    - item.0.sg_name not in item.1.stdout
+  loop_control:
+    label: "{{ item.0.vm_name }} <- {{ item.0.sg_name }}"
+  changed_when: true
+
+# ==========================================================
+# Detach security group (Detach)
+# ==========================================================
+- name: "Detach security group from specified vms"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'remove', 'security', 'group', item.vm_name, item.sg_name] }}
+  loop: "{{ secgroup_manage_list }}"
+  when: operation == 'secgroup_manage' and action_type == 'detach'
+  changed_when: true
+  failed_when: false
+
+# ==========================================================
+# Verify status
+# ==========================================================
+- name: "Check vm's security group"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'show', item.vm_name, '-f', 'value', '-c', 'security_groups'] }}
+  loop: "{{ secgroup_manage_list }}"
+  register: openstack_vm_manager_sg_query
+  when: operation == 'secgroup_manage' and action_type == 'query'
+  changed_when: false
+
+- name: "Print report of security group usage"
+  ansible.builtin.debug:
+    msg:
+      - "----------------------------------------------------------------"
+      - "Virtual_Machine_Name : {{ item.item.vm_name }}"
+      - "Assigned_Security_Group : {{ item.stdout }}"
+      - "----------------------------------------------------------------"
+  loop: "{{ openstack_vm_manager_sg_query.results }}"
+  when: operation == 'secgroup_manage' and action_type == 'query'
+  loop_control:
+    label: "{{ item.item.vm_name }}"

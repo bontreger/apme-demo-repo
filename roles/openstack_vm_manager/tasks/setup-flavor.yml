@@ -1,0 +1,11 @@
+---
+- name: Make sure there is exact flavor for RHEL 9 vm (m1.medium)
+  openstack.cloud.compute_flavor:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    state: present
+    name: "m1.medium"
+    ram: 4096
+    vcpus: 4
+    disk: 30
+    is_public: true

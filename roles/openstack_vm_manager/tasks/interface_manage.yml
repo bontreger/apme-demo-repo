@@ -1,0 +1,88 @@
+---
+# roles/openstack_vm_manager/tasks/interface_manage.yml
+
+- name: Set command prefix in openstack client pod
+  ansible.builtin.set_fact:
+    openstack_vm_manager_oc_os_argv:
+      - oc
+      - exec
+      - -n
+      - openstack
+      - openstackclient
+      - --
+      - openstack
+
+# ==========================================================
+# Attach Interface (Attach - Port  Mode)
+# ==========================================================
+
+- name: "Create Neutron Port for specified vms"
+  ansible.builtin.shell: |
+    set -o pipefail
+    {{ openstack_vm_manager_oc_os_argv | join(' ') }} port show \
+      port-{{ item.vm_name }}-{{ item.fixed_ip }} -f value -c id || \
+    {{ openstack_vm_manager_oc_os_argv | join(' ') }} port create \
+      --network {{ item.network }} \
+      --fixed-ip ip-address={{ item.fixed_ip }} \
+      port-{{ item.vm_name }}-{{ item.fixed_ip }} -f value -c id
+  args:
+    executable: /bin/bash
+  loop: "{{ interface_manage_list }}"
+  register: openstack_vm_manager_port_create_info
+  when: operation == 'interface_manage' and action_type == 'attach'
+  changed_when: false
+
+- name: "Attach port to vms"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'add', 'port', item.0.vm_name, item.1.stdout] }}
+  loop: "{{ interface_manage_list | zip(openstack_vm_manager_port_create_info.results) | list }}"
+  when:
+    - operation == 'interface_manage'
+    - action_type == 'attach'
+    - item.1.stdout is defined
+  failed_when: false
+  changed_when: false
+
+# ==========================================================
+# Detach Interface (Detach)
+# ==========================================================
+- name: "Detach nic from vms and clear port"
+  ansible.builtin.shell: |
+    PORT_ID=$({{ openstack_vm_manager_oc_os_argv | join(' ') }} port list \
+      --fixed-ip ip-address={{ item.fixed_ip }} -f value -c ID)
+    if [ ! -z "$PORT_ID" ]; then
+      {{ openstack_vm_manager_oc_os_argv | join(' ') }} server remove port {{ item.vm_name }} $PORT_ID
+      {{ openstack_vm_manager_oc_os_argv | join(' ') }} port delete $PORT_ID
+    fi
+  args:
+    executable: /bin/bash
+  loop: "{{ interface_manage_list }}"
+  when: operation == 'interface_manage' and action_type == 'detach'
+  changed_when: false
+
+# ==========================================================
+# Verify Status
+# ==========================================================
+- name: "Check and list nic info from specified vms"
+  ansible.builtin.command:
+    argv: >-
+      {{ openstack_vm_manager_oc_os_argv +
+         ['server', 'show', item.vm_name, '-f', 'value', '-c', 'addresses'] }}
+  loop: "{{ interface_manage_list }}"
+  register: openstack_vm_manager_addr_status
+  when: operation == 'interface_manage' and action_type == 'query'
+  changed_when: false
+
+- name: "Check and print nic report"
+  ansible.builtin.debug:
+    msg:
+      - "----------------------------------------------------------------"
+      - "Virtual_Machine_Name : {{ item.item.vm_name }}"
+      - "IP_Address: {{ item.stdout }}"
+      - "----------------------------------------------------------------"
+  loop: "{{ openstack_vm_manager_addr_status.results }}"
+  when: operation == 'interface_manage' and action_type == 'query'
+  loop_control:
+    label: "{{ item.item.vm_name }}"

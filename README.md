@@ -16,10 +16,10 @@ acl-ready-to-use-content/
 ├── playbooks/          # One directory per scenario (e.g. dns-config/)
 │   └── <slug>/
 │       ├── site.yml
-│       ├── README.md
-│       └── roles/      # Scenario-specific roles
-├── roles/              # Shared roles used across scenarios
-│   └── report_publish/
+│       └── README.md
+├── roles/              # All roles (shared and scenario-specific)
+│   ├── report_publish/
+│   └── <role_name>/
 ├── collections/
 │   └── requirements.yml
 ├── execution_environments/

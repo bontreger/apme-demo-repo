@@ -1,0 +1,14 @@
+---
+bind_secondary_dns_bind_secondary_packages:
+  - bind
+
+bind_secondary_dns_bind_service_name: named
+
+bind_secondary_dns_bind_config_dest: /etc/named.conf
+bind_secondary_dns_bind_config_owner: root
+bind_secondary_dns_bind_config_group: named
+bind_secondary_dns_bind_config_mode: "0640"
+bind_secondary_dns_bind_config_setype: named_conf_t
+
+bind_secondary_dns_bind_manage_firewall: true
+bind_secondary_dns_bind_firewalld_service: dns

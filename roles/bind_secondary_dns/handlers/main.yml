@@ -1,0 +1,5 @@
+---
+- name: Restart named
+  ansible.builtin.service:
+    name: "{{ bind_secondary_dns_bind_service_name }}"
+    state: restarted

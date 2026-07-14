@@ -1,0 +1,25 @@
+# Default variables for Unbound caching DNS role
+---
+unbound_caching_dns_unbound_packages:
+  - unbound
+
+unbound_caching_dns_unbound_service_name: unbound
+
+# Template source and destination
+unbound_caching_dns_unbound_config_template: server.conf.j2
+unbound_caching_dns_unbound_config_dest: /etc/unbound/conf.d/ansible_generated.conf
+unbound_caching_dns_unbound_config_owner: root
+unbound_caching_dns_unbound_config_group: unbound
+unbound_caching_dns_unbound_config_mode: "0644"
+unbound_caching_dns_unbound_config_setype: named_conf_t
+
+# Firewalld
+unbound_caching_dns_unbound_manage_firewall: true
+unbound_caching_dns_unbound_firewalld_service: dns
+
+# Template variables
+unbound_caching_dns_unbound_allowed_networks:
+  - "172.25.0.0/6"
+  - "192.168.62.0/24"
+unbound_caching_dns_unbound_insecure_domain: "pvt.example.com"
+unbound_caching_dns_unbound_forwarder_ip: "172.25.254.254"

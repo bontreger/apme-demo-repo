@@ -1,0 +1,10 @@
+---
+- name: Restart named
+  ansible.builtin.service:
+    name: "{{ bind_primary_dns_bind_service_name }}"
+    state: restarted
+
+- name: Reload named
+  ansible.builtin.service:
+    name: "{{ bind_primary_dns_bind_service_name }}"
+    state: reloaded

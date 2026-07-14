@@ -1,0 +1,58 @@
+---
+# roles/openstack_vm_manager/tasks/create.yml
+
+- name: Create vms from template which set in temp_vars.yml
+  openstack.cloud.server:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    state: present
+    name: "{{ item.name }}"
+    image: "{{ vm_image }}"
+    flavor: "{{ vm_flavor }}"
+    key_name: "{{ vm_key_name }}"
+    network: "{{ item.network | default('private') }}"
+    wait: true
+    timeout: 600
+    userdata: |
+      #cloud-config
+      user: cloud-user
+      password: {{ vm_default_password }}
+      chpasswd: { expire: False }
+      ssh_pwauth: True
+      sudo: ALL=(ALL) NOPASSWD:ALL
+  loop: "{{ openstack_vm_manager_vm_list }}"
+  when: operation == 'create'
+  register: openstack_vm_manager_create_results
+
+- name: Organize vms asset information
+  ansible.builtin.set_fact:
+    openstack_vm_manager_vm_report: >-
+      {{
+        openstack_vm_manager_vm_report | default([]) +
+        [{
+          'name': item.server.name,
+          'status': item.server.status,
+          'ip': item.server.accessIPv4 | default('Getting information'),
+          'user': 'cloud-user',
+          'password': vm_default_password
+        }]
+      }}
+  loop: "{{ openstack_vm_manager_create_results.results }}"
+  when:
+    - operation == 'create'
+    - item.server is defined
+  no_log: true
+
+- name: Report
+  ansible.builtin.debug:
+    msg:
+      - "-----------------------------------------"
+      - "Virtual_Machine_Name   : {{ item.name }}"
+      - "Running_Status              : {{ item.status }}"
+      - "Login_IP                        : {{ item.ip }}"
+      - "Login_Account               : {{ item.user }}"
+      - "Initial_Password             : {{ item.password }}"
+  loop: "{{ openstack_vm_manager_vm_report }}"
+  when: operation == 'create' and openstack_vm_manager_vm_report is defined
+  loop_control:
+    label: "{{ item.name }}"

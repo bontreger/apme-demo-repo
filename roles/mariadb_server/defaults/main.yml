@@ -1,0 +1,26 @@
+---
+# Package management
+mariadb_server_mariadb_packages:
+  - mariadb-server
+  - python3-PyMySQL
+
+# Service management
+mariadb_server_mariadb_service_name: mariadb
+
+# Root password (MUST be changed in production, use Ansible Vault!)
+mariadb_server_mariadb_root_password: "YourSecureRootPassword"
+
+# General user configuration
+mariadb_server_mariadb_general_user_name: "webapp_user"
+mariadb_server_mariadb_general_user_password: "AnotherSecurePassword"
+
+# Database configuration
+mariadb_server_mariadb_database_name: "webapp_db"
+
+# Backup configuration
+mariadb_server_mariadb_backup_path: "/root"
+mariadb_server_mariadb_backup_filename: "{{ mariadb_server_mariadb_database_name }}_initial_backup.sql"
+
+# Firewall management
+mariadb_server_mariadb_manage_firewall: true
+mariadb_server_mariadb_firewall_service: mysql

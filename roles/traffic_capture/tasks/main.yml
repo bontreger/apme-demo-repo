@@ -1,0 +1,114 @@
+---
+# Traffic Capture Role
+# Captures network traffic for deep analysis using tcpdump
+- name: Initialize traffic capture status
+  ansible.builtin.set_fact:
+    traffic_capture_errors: []
+    traffic_capture_tcpdump_installed: false
+    traffic_capture_capture_file_path: ""
+- name: Check and install tcpdump
+  block:
+    - name: Check if tcpdump is available
+      ansible.builtin.command: which tcpdump
+      register: traffic_capture_tcpdump_check
+      failed_when: false
+      changed_when: false
+    - name: Install tcpdump if not installed
+      ansible.builtin.package:
+        name: tcpdump
+        state: present
+      register: traffic_capture_tcpdump_install
+      when: traffic_capture_tcpdump_check.rc != 0
+      failed_when: false
+    - name: Update tcpdump installation status
+      ansible.builtin.set_fact:
+        traffic_capture_tcpdump_installed: true
+      when: traffic_capture_tcpdump_check.rc == 0 or traffic_capture_tcpdump_install is succeeded
+    - name: Display tcpdump installation result
+      ansible.builtin.debug:
+        msg: >-
+          tcpdump
+          {{ 'already installed' if traffic_capture_tcpdump_check.rc == 0
+             else ('installed' if traffic_capture_tcpdump_install is succeeded
+             else 'installation failed') }}
+  rescue:
+    - name: Record tcpdump installation failure
+      ansible.builtin.set_fact:
+        traffic_capture_errors: "{{ traffic_capture_errors + ['Failed to install tcpdump'] }}"
+    - name: Display tcpdump installation failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to install tcpdump. Traffic capture will be skipped."
+- name: Create traffic capture directory
+  block:
+    - name: Create traffic capture directory
+      ansible.builtin.file:
+        path: "{{ traffic_capture.output_dir | default('/var/tmp') }}"
+        state: directory
+        mode: "0755"
+      register: traffic_capture_capture_dir
+      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed
+      failed_when: false
+    - name: Display directory creation result
+      ansible.builtin.debug:
+        msg: "Traffic capture directory {{ 'created' if traffic_capture_capture_dir is succeeded else 'creation failed' }}"
+  rescue:
+    - name: Record directory creation failure
+      ansible.builtin.set_fact:
+        traffic_capture_errors: "{{ traffic_capture_errors + ['Failed to create traffic capture directory'] }}"
+    - name: Display directory creation failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to create traffic capture directory. Continuing without traffic capture."
+- name: Start traffic capture
+  block:
+    - name: Start traffic capture
+      ansible.builtin.shell: |2
+
+        timeout {{ traffic_capture.duration | default(30) }} \
+          tcpdump -i {{ network_interface }} \
+          -w {{ traffic_capture.output_dir | default('/var/tmp') }}/{{ traffic_capture.filename_prefix | default('packet_capture') }}_{{ inventory_hostname
+          }}_{{ ansible_date_time.epoch }}.pcap \
+          -c {{ traffic_capture.packet_count | default(1000) }}
+      register: traffic_capture_capture_result
+      async: "{{ (traffic_capture.duration | default(30)) + 10 }}"
+      poll: 0
+      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed
+      failed_when: false
+      changed_when: false
+    - name: Store capture file path
+      ansible.builtin.set_fact:
+        traffic_capture_capture_file_path: >-
+          {{ traffic_capture.output_dir | default('/var/tmp') }}/{{ traffic_capture.filename_prefix | default('packet_capture') }}_{{ inventory_hostname }}_{{
+          ansible_date_time.epoch }}.pcap
+      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed and traffic_capture_capture_result is succeeded
+    - name: Wait for traffic capture to complete
+      ansible.builtin.async_status:
+        jid: "{{ traffic_capture_capture_result.ansible_job_id }}"
+      register: traffic_capture_capture_status
+      until: traffic_capture_capture_status.finished
+      retries: "{{ performance.retry_attempts | default(3) }}"
+      delay: 5
+      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed and traffic_capture_capture_result is succeeded
+      failed_when: false
+    - name: Display traffic capture result
+      ansible.builtin.debug:
+        msg: "Traffic capture {{ 'started' if traffic_capture_capture_result is succeeded else 'failed to start' }}"
+  rescue:
+    - name: Record traffic capture failure
+      ansible.builtin.set_fact:
+        traffic_capture_errors: "{{ traffic_capture_errors + ['Failed to start traffic capture'] }}"
+    - name: Display traffic capture failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to start traffic capture. Continuing with other tasks."
+- name: Report traffic capture summary
+  ansible.builtin.debug:
+    msg:
+      - "=== Traffic Capture Summary ==="
+      - "{% if traffic_capture.enabled | default(false) %}Traffic Capture: Enabled{% else %}Traffic Capture: Disabled{% endif %}"
+      - "{% if traffic_capture_tcpdump_installed %}✅ tcpdump installed{% else %}❌ tcpdump not installed{% endif %}"
+      - "{% if traffic_capture_capture_file_path != '' %}Capture File: {{ traffic_capture_capture_file_path }}{% else %}No capture file generated{% endif %}"
+      - >-
+        {% if traffic_capture_errors | length > 0 %}
+        ⚠️  Errors encountered: {{ traffic_capture_errors | join('; ') }}
+        {% else %}
+        ✅ Traffic capture tasks completed
+        {% endif %}

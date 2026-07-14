@@ -1,0 +1,12 @@
+---
+# roles/openstack_vm_manager/tasks/power_manage.yml
+
+- name: "Power operation for vms: {{ action_type }}"
+  openstack.cloud.server_action:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    server: "{{ item.name }}"
+    action: "{{ action_type }}"
+  loop: "{{ openstack_vm_manager_vm_list }}"
+  # action_type Must be one of: stop, start, pause, unpause, lock, unlock, suspend, reboot_soft, reboot_hard, resume, rebuild, shelve, shelve_offload
+  when: operation == 'power'

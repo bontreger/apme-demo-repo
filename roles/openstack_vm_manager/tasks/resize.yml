@@ -1,0 +1,39 @@
+---
+# roles/openstack_vm_manager/tasks/resize.yml
+
+- name: Step 1 - Trigger Resize
+  openstack.cloud.server:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    name: "{{ item.name }}"
+    image: "{{ vm_image }}"
+    flavor: "{{ new_flavor }}"
+    state: present
+    wait: false
+  loop: "{{ openstack_vm_manager_vm_list }}"
+  register: openstack_vm_manager_resize_request
+
+- name: Step 2 - Wait for entering VERIFY_RESIZE status
+  openstack.cloud.server_info:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    server: "{{ item.name }}"
+  loop: "{{ openstack_vm_manager_vm_list }}"
+  register: openstack_vm_manager_vm_info
+  until:
+    - openstack_vm_manager_vm_info.openstack_servers is defined
+    - openstack_vm_manager_vm_info.openstack_servers | length > 0
+    - openstack_vm_manager_vm_info.openstack_servers[0].status == 'VERIFY_RESIZE'
+  retries: 20
+  delay: 10
+
+- name: Step 3 - Confirm resizing
+  openstack.cloud.server_action:
+    auth: "{{ vault_os_auth }}"
+    verify: false
+    server: "{{ item.item.name }}"
+    action: confirm_resize
+  loop: "{{ openstack_vm_manager_vm_info.results }}"
+  when:
+    - item.openstack_servers is defined
+    - item.openstack_servers[0].status == 'VERIFY_RESIZE'

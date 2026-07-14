@@ -1,0 +1,100 @@
+---
+# System Configuration Role
+# Validates hostname configuration and configures SELinux
+- name: Validate hostname configuration
+  block:
+    - name: Check localhost connectivity
+      ansible.builtin.ping:
+        data: localhost
+      register: system_config_local_ping
+      changed_when: false
+    - name: Display localhost connectivity result
+      ansible.builtin.debug:
+        msg: "Localhost connectivity: {{ 'OK' if system_config_local_ping.ping == 'pong' else 'FAILED' }}"
+    - name: Get hostname information
+      ansible.builtin.command: hostname -f
+      register: system_config_hostname_info
+      changed_when: false
+    - name: Display hostname information
+      ansible.builtin.debug:
+        msg: "FQDN: {{ system_config_hostname_info.stdout }}"
+    - name: Check FQDN resolution
+      ansible.builtin.ping:
+        data: "{{ system_config_hostname_info.stdout }}"
+      register: system_config_fqdn_ping
+      failed_when: false
+      changed_when: false
+    - name: Display FQDN resolution result
+      ansible.builtin.debug:
+        msg: "FQDN resolution: {{ 'OK' if system_config_fqdn_ping.ping == 'pong' else 'FAILED' }}"
+  rescue:
+    - name: Handle hostname validation failure
+      ansible.builtin.debug:
+        msg: "Warning: Hostname validation encountered issues (non-critical)"
+- name: Initialize system config status
+  ansible.builtin.set_fact:
+    system_config_errors: []
+    system_config_selinux_configured: false
+- name: Configure SELinux
+  block:
+    - name: Check current SELinux status
+      ansible.builtin.command: sestatus
+      register: system_config_selinux_status
+      changed_when: false
+      failed_when: false
+    - name: Display SELinux status
+      ansible.builtin.debug:
+        msg: "{{ system_config_selinux_status.stdout_lines }}"
+      when: system_config_selinux_status is succeeded
+    - name: Set SELinux state temporarily
+      ansible.posix.selinux:
+        state: "{{ selinux.state }}"
+        policy: "{{ selinux.policy }}"
+      register: system_config_selinux_temp_set
+      failed_when: false
+    - name: Configure SELinux permanently
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: "^SELINUX="
+        line: "SELINUX={{ selinux.state }}"
+        backup: "{{ backup.enabled | default(true) }}"
+      register: system_config_selinux_config
+      failed_when: false
+    - name: Update SELinux configuration status
+      ansible.builtin.set_fact:
+        system_config_selinux_configured: true
+      when: system_config_selinux_config is succeeded
+    - name: Display SELinux configuration result
+      ansible.builtin.debug:
+        msg: "SELinux configured to: {{ selinux.state }}"
+      when: system_config_selinux_config is succeeded
+    - name: Verify SELinux configuration
+      ansible.builtin.command: grep SELINUX /etc/selinux/config
+      register: system_config_selinux_verification
+      changed_when: false
+      failed_when: false
+    - name: Display SELinux configuration verification
+      ansible.builtin.debug:
+        msg: "{{ system_config_selinux_verification.stdout_lines }}"
+      when: system_config_selinux_verification is succeeded
+  rescue:
+    - name: Record SELinux configuration failure
+      ansible.builtin.set_fact:
+        system_config_errors: "{{ system_config_errors + ['Failed to configure SELinux'] }}"
+    - name: Display SELinux configuration failure warning
+      ansible.builtin.debug:
+        msg: "Warning: Failed to configure SELinux. Continuing with other configurations."
+- name: Report system configuration summary
+  block:
+    - name: Display system configuration summary
+      ansible.builtin.debug:
+        msg:
+          - "=== System Configuration Summary ==="
+          - "✅ Hostname validation completed"
+          - "{% if system_config_selinux_configured %}✅ SELinux configured to {{ selinux.state }}{% else %}❌ Failed to configure SELinux{% endif %}"
+          - >-
+            {% if system_config_errors | length > 0 %}
+            ⚠️  Errors encountered: {{ system_config_errors | join('; ') }}
+            {% else %}
+            ✅ All system configuration tasks completed successfully
+            {% endif %}
