@@ -1,0 +1,68 @@
+---
+- name: Ensure report staging directory exists on execution node
+  ansible.builtin.file:
+    path: "{{ report_publish_staging_dir }}"
+    state: directory
+    mode: "0755"
+  run_once: true
+  delegate_to: localhost
+  become: false
+
+- name: Find report files on each source host
+  ansible.builtin.find:
+    paths: >-
+      {{ hostvars[item].report_local_dir
+      | default('/var/lib/ansible-reports/' ~ report_publish_namespace) }}
+    patterns: "{{ item }}-{{ report_publish_job_id }}.*"
+    file_type: file
+  loop: "{{ report_publish_source_hosts }}"
+  loop_control:
+    label: "{{ item }}"
+  register: report_publish_source_find
+  delegate_to: "{{ item }}"
+  failed_when: false
+  run_once: true
+
+- name: Fetch report files from source hosts to staging area
+  ansible.builtin.fetch:
+    src: "{{ report_file.path }}"
+    dest: >-
+      {{ report_publish_staging_dir }}/{{ source_host }}/{{ report_file.path | basename }}
+    flat: true
+  vars:
+    source_host: "{{ item.0.item }}"
+    report_file: "{{ item.1 }}"
+  loop: >-
+    {{ report_publish_source_find.results
+    | default([])
+    | subelements('files', skip_missing=True) }}
+  loop_control:
+    label: "{{ source_host }}"
+  failed_when: false
+  run_once: true
+
+- name: Find staged report files on execution node
+  ansible.builtin.find:
+    paths: "{{ report_publish_staging_dir }}"
+    patterns: "*"
+    recurse: true
+    file_type: file
+  register: report_publish_staged_find
+  run_once: true
+  delegate_to: localhost
+  become: false
+
+- name: Publish staged report files to archive web root
+  ansible.builtin.copy:
+    src: "{{ staged_file.path }}"
+    dest: >-
+      {{ report_publish_dest_dir }}/{{ staged_file.path
+      | dirname | basename }}/{{ staged_file.path | basename }}
+    mode: "0644"
+  loop: "{{ report_publish_staged_find.files | default([]) }}"
+  loop_control:
+    label: "{{ staged_file.path | basename }}"
+  vars:
+    staged_file: "{{ item }}"
+  when: report_publish_staged_find.files | default([]) | length > 0
+  run_once: true

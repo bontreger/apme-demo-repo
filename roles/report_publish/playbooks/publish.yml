@@ -1,0 +1,39 @@
+---
+# Shared publish play — import from site playbooks after report generation.
+#
+# Required job/extra var: report_archive_host (hostname or IP of the nginx archive)
+# Optional: report_publish_web_root, report_publish_url_base
+#
+# report_publish_enabled is set on localhost by Play 1 set_fact (from
+# inventory/group_vars/all/reporting.yml or survey extra vars).
+#
+# Example:
+#   - name: Publish reports to archive host
+#     ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
+#     vars:
+#       report_namespace: service_check
+#     when: hostvars['localhost'].report_publish_enabled | bool
+- name: Publish reports to archive host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    report_publish_source_hosts: "{{ hostvars['localhost'].report_source_hosts | default([]) }}"
+
+  tasks:
+    - name: Register report archive host for this job
+      ansible.builtin.add_host:
+        name: "{{ report_archive_host }}"
+        ansible_host: "{{ report_archive_host }}"
+      when:
+        - hostvars['localhost'].report_publish_enabled | bool
+        - report_archive_host | default('') | length > 0
+
+    - name: Publish reports to archive web server
+      ansible.builtin.include_role:
+        name: report_publish
+        apply:
+          delegate_to: "{{ report_archive_host }}"
+          become: true
+      when: hostvars['localhost'].report_publish_enabled | bool

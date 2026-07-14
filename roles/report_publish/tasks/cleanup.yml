@@ -1,0 +1,21 @@
+---
+- name: Find expired report job directories
+  ansible.builtin.find:
+    paths: "{{ report_publish_web_root }}"
+    patterns: "*"
+    file_type: directory
+    age: "{{ report_publish_retention_days }}d"
+    recurse: false
+  register: report_publish_expired_namespaces
+  run_once: true
+  failed_when: false
+
+- name: Remove expired namespace directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ report_publish_expired_namespaces.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  when: report_publish_expired_namespaces.files | default([]) | length > 0
+  run_once: true

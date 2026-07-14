@@ -1,0 +1,10 @@
+---
+- name: Display published report URL
+  ansible.builtin.debug:
+    msg:
+      - "Report publishing completed."
+      - "Namespace: {{ report_publish_namespace }}"
+      - "Job ID: {{ report_publish_job_id }}"
+      - "Published URL: {{ report_publish_url }}"
+      - "Archive path: {{ report_publish_dest_dir }}"
+  run_once: true

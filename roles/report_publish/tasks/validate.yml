@@ -1,0 +1,42 @@
+---
+- name: Ensure report archive hostname is defined
+  ansible.builtin.assert:
+    that:
+      - report_archive_host is defined
+      - report_archive_host | length > 0
+    fail_msg: >-
+      Set report_archive_host on the job template (extra var) to the hostname
+      or IP of the server that stores published reports.
+    success_msg: >-
+      Report archive host: {{ report_archive_host }}
+  run_once: true
+
+- name: Ensure report namespace is defined
+  ansible.builtin.assert:
+    that:
+      - report_publish_namespace is defined
+      - report_publish_namespace | length > 0
+    fail_msg: >-
+      report_namespace must be defined for report publishing.
+    success_msg: >-
+      Publishing reports for namespace {{ report_publish_namespace }}.
+  run_once: true
+
+- name: Ensure source hosts are defined
+  ansible.builtin.assert:
+    that:
+      - report_publish_source_hosts | length > 0
+    fail_msg: >-
+      No source hosts recorded. Ensure Play 1 ends with the report_source_hosts
+      set_fact task, or pass report_publish_source_hosts explicitly.
+    success_msg: >-
+      Publishing reports from {{ report_publish_source_hosts | length }} host(s).
+  when: not (report_publish_skip_collect | default(false) | bool)
+  run_once: true
+
+- name: Ensure report publish destination directory exists
+  ansible.builtin.file:
+    path: "{{ report_publish_dest_dir }}"
+    state: directory
+    mode: "0755"
+  run_once: true

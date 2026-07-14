@@ -1,0 +1,37 @@
+[rhel7]
+rhel7.example.net
+
+[rhel8]
+rhel8.example.net
+
+[rhel9]
+rhel9.example.net
+
+[rhel10]
+rhel10.example.net
+
+[all_rhel:children]
+rhel10
+rhel9
+rhel8
+rhel7
+
+[all_rhel:vars]
+remote_user=admin
+
+
+# DNS
+[primary_dns]
+[secondary_dns]
+[caching_dns]
+
+# DHCP
+[dhcp_servers]
+[dhcp_clients]
+
+# Report publishing (see inventory/group_vars/all/reporting.yml)
+#
+# Survey/extra vars override inventory defaults:
+#   report_archive_host=reports.example.net
+#   report_publish_enabled=true
+#   generate_html=true
