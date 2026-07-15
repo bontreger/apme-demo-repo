@@ -13,24 +13,33 @@ and [Red Hat COP Good Practices for Ansible (GPA)](https://redhat-cop.github.io/
 
 ```
 acl-ready-to-use-content/
-├── playbooks/          # One directory per scenario (e.g. dns-config/)
+├── playbooks/              # One directory per scenario (e.g. dns-config/)
 │   └── <slug>/
-│       ├── site.yml
+│       ├── <site>.yml
 │       └── README.md
-├── roles/              # All roles (shared and scenario-specific)
+├── roles/                  # All roles (shared and scenario-specific)
 │   ├── report_publish/
 │   └── <role_name>/
 ├── collections/
 │   └── requirements.yml
 ├── execution_environments/
-│   └── execution-environment.yml
-├── controller_config/  # AAP as-code (infra.controller_configuration)
+│   ├── execution-environment.yml
+│   ├── requirements.yml
+│   ├── requirements.txt
+│   └── bindep.txt
+├── controller_config/      # AAP as-code (infra.controller_configuration)
 │   ├── projects.yml
-│   └── job_templates.yml
+│   ├── job_templates.yml
+│   └── README.md
 ├── inventory/
+│   ├── inventory.example
 │   └── group_vars/all/reporting.yml
-├── docs/               # Reference documentation and guides
-└── .cursor/skills/     # AI assistant guidelines
+├── docs/
+│   ├── getting-started.md
+│   ├── architecture.md
+│   ├── reporting-standard.md
+│   └── vmware/
+└── .cursor/skills/         # AI assistant guidelines
 ```
 
 ## Principles
@@ -43,18 +52,25 @@ acl-ready-to-use-content/
 
 ## Getting Started
 
+See [docs/getting-started.md](docs/getting-started.md) for clone, collection install,
+inventory setup, and pilot playbook paths.
+
+Quick reference:
+
 ```bash
 # Install shared collections
 ansible-galaxy collection install -r collections/requirements.yml
 
-# Run a scenario
-ansible-playbook playbooks/<slug>/site.yml -i <inventory>
+# Run a scenario (from repo root)
+ansible-playbook playbooks/<slug>/<site>.yml -i inventory/lab.ini
 
 # Lint
 pip install -r requirements-dev.txt
 pre-commit install
 pre-commit run --all-files
 ```
+
+Architecture and migration context: [docs/architecture.md](docs/architecture.md).
 
 ## Support
 

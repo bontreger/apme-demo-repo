@@ -1,0 +1,23 @@
+---
+# Galaxy collections baked into the ACL ready-to-use content EE.
+# Kept in sync with collections/requirements.yml plus scenario-specific additions.
+
+collections:
+  - name: ansible.posix
+    version: ">=2.1.0,<3.0.0"
+  - name: ansible.windows
+    version: ">=2.0.0,<3.0.0"
+  - name: community.general
+    version: ">=8.0.0,<13.0.0"
+  - name: community.crypto
+    version: ">=2.0.0,<3.0.0"
+  - name: community.mysql
+    version: ">=3.0.0,<4.0.0"
+  - name: community.postgresql
+    version: ">=3.0.0,<4.0.0"
+  - name: openstack.cloud
+    version: ">=2.0.0,<3.0.0"
+  - name: infra.controller_configuration
+    version: ">=4.0.0,<5.0.0"
+  # Required for playbooks/dhcp-config/configure_dhcp_client_site.yml only.
+  - name: rhel-system-roles.network
