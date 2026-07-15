@@ -1,0 +1,15 @@
+---
+# AAP project for ACL ready-to-use content.
+# Replace organization and scm_* values for your controller before applying.
+
+controller_projects:
+  - name: acl-ready-to-use-content
+    description: ACL ready-to-use automation content (starter pack)
+    organization: Default
+    scm_type: git
+    scm_url: https://github.com/redhat-services-platform-team/acl-ready-to-use-content.git
+    scm_branch: main
+    scm_clean: true
+    scm_delete_on_update: false
+    scm_update_on_launch: true
+    default_environment: acl-ready-to-use-content-ee

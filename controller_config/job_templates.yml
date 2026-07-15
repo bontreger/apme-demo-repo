@@ -1,0 +1,104 @@
+---
+# Job templates for the pilot migration batch.
+# Replace organization, inventory, credentials, and execution_environment
+# placeholders before applying to a live controller.
+
+controller_templates:
+  - name: ACL_dns_bind_primary
+    description: Deploy BIND primary (authoritative) DNS server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/dns-config/deploy_bind_primary_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_dns_bind_secondary
+    description: Deploy BIND secondary (slave) DNS server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/dns-config/deploy_bind_secondary_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_dns_unbound_caching
+    description: Deploy Unbound caching DNS resolver
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/dns-config/deploy_unbound_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_dhcp_server
+    description: Deploy and configure DHCPv4/DHCPv6 server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/dhcp-config/deploy_dhcp_server_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_dhcp_client
+    description: Configure DHCP client (rhel-system-roles.network)
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/dhcp-config/configure_dhcp_client_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_mariadb_server
+    description: Deploy and configure MariaDB server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/mariadb-config/deploy_mariadb_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_rhel9_standard_config
+    description: RHEL 9 standard configuration bundle
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/rhel9-standard-config/rhel9_standardization_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_network_fault_diagnosis
+    description: Network latency diagnosis and report generation
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/network-fault-diagnosis/network_diagnosis_site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_openstack_vm_lifecycle
+    description: OpenStack VM lifecycle management
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/openstack-vm-lifecycle/site.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
