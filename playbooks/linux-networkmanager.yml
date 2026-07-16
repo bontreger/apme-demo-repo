@@ -1,0 +1,31 @@
+---
+- name: Manage NetworkManager connections and devices
+  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system."
+        success_msg: "OS check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags: [always]
+
+    - name: Construct NM connection list from survey
+      ansible.builtin.set_fact:
+        networkmanager_cli_nm_connections_to_add:
+          - name: "{{ srv_nm_name }}"
+            ifname: "{{ srv_nm_ifname }}"
+            type: "ethernet"
+            ip4: "{{ srv_nm_ip4 }}"
+            gw4: "{{ srv_nm_gw4 | default(omit) }}"
+            method: "manual"
+        networkmanager_cli_nm_connections_to_activate: "{{ [srv_nm_name] if srv_nm_action | bool else [] }}"
+      when: srv_nm_name is defined and srv_nm_name != ""
+      tags: [always]
+  roles:
+    - role: networkmanager_cli
+      tags: [view, add, modify, control, delete]

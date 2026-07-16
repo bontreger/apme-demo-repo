@@ -1,0 +1,29 @@
+---
+# List of critical services to check
+service_check_critical_services_list:
+  - sshd
+  - firewalld
+  - chronyd
+  - tuned
+  - NetworkManager
+  - rsyslog
+  - auditd
+  - crond
+  - dbus
+  - systemd-journald
+
+# -----------------------------------------------------------------------------
+# Report generation variables (repo-wide standard / Set 1)
+# -----------------------------------------------------------------------------
+# Intentionally unprefixed so playbooks, hostvars, and report_publish collect
+# use the same names documented in docs/reporting-standard.md.
+# generate_html and report_publish_enabled: inventory/group_vars/all/reporting.yml
+report_namespace: service_check  # noqa: var-naming[no-role-prefix]
+report_local_dir: "/var/lib/ansible-reports/{{ report_namespace }}"  # noqa: var-naming[no-role-prefix]
+report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"  # noqa: var-naming[no-role-prefix]
+report_text_path: >-  # noqa: var-naming[no-role-prefix]
+  {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt
+
+# Deprecated aliases used by validation tasks in this role.
+service_check_report_base_path: "{{ report_local_dir }}"
+service_check_collection_dest_path: ""

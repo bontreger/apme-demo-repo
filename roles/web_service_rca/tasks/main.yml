@@ -1,0 +1,148 @@
+---
+- name: Resolve service profile
+  ansible.builtin.set_fact:
+    _web_rca_profile: "{{ web_service_rca_profiles[web_service_rca_service] }}"
+
+- name: Assert service profile is valid
+  ansible.builtin.assert:
+    that:
+      - _web_rca_profile is defined
+      - _web_rca_profile.package is defined
+    fail_msg: >-
+      Unknown service '{{ web_service_rca_service }}'.
+      Supported values: {{ web_service_rca_profiles.keys() | list | join(', ') }}
+    quiet: true
+
+- name: Initialize diagnosis tracking facts
+  ansible.builtin.set_fact:
+    _web_rca_diagnosis_errors: []
+    _web_rca_diagnosis_warnings: []
+    _web_rca_expected_ports: >-
+      {{ (_web_rca_profile.http_ports | default([])) +
+         (_web_rca_profile.https_ports | default([])) }}
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  failed_when: false
+
+- name: Determine package installation status
+  ansible.builtin.set_fact:
+    _web_rca_package_installed: >-
+      {{ _web_rca_profile.package in (ansible_facts.packages | default({})) }}
+
+- name: Collect service facts
+  ansible.builtin.service_facts:
+  failed_when: false
+
+- name: Check service systemd status
+  ansible.builtin.systemd:
+    name: "{{ _web_rca_profile.service }}"
+  register: _web_rca_svc_status
+  changed_when: false
+  failed_when: false
+
+- name: Run configuration syntax check
+  ansible.builtin.command: "{{ _web_rca_profile.syntax_check_cmd }}"
+  register: _web_rca_syntax
+  changed_when: false
+  failed_when: false
+
+- name: Check configuration file existence
+  ansible.builtin.stat:
+    path: "{{ _web_rca_profile.config_path }}"
+  register: _web_rca_conf_stat
+
+- name: Collect listening sockets
+  ansible.builtin.command: ss -lntp
+  register: _web_rca_ss_listen
+  changed_when: false
+  failed_when: false
+
+- name: Collect SELinux mode
+  ansible.builtin.command: getenforce
+  register: _web_rca_selinux_mode
+  changed_when: false
+  failed_when: false
+
+- name: Collect SELinux boolean values
+  ansible.builtin.command: "getsebool {{ item }}"
+  loop: "{{ _web_rca_profile.selinux_booleans | default([]) }}"
+  register: _web_rca_selinux_booleans
+  changed_when: false
+  failed_when: false
+
+- name: Check firewalld state
+  ansible.builtin.systemd:
+    name: firewalld
+  register: _web_rca_firewalld_state
+  changed_when: false
+  failed_when: false
+
+- name: List firewalld allowed services
+  ansible.builtin.command: firewall-cmd --list-services
+  register: _web_rca_firewalld_services
+  changed_when: false
+  failed_when: false
+
+- name: List firewalld open ports
+  ansible.builtin.command: firewall-cmd --list-ports
+  register: _web_rca_firewalld_ports
+  changed_when: false
+  failed_when: false
+
+- name: Include service-specific checks
+  ansible.builtin.include_tasks: "{{ web_service_rca_service }}_checks.yml"
+
+- name: Collect error log tail
+  ansible.builtin.command: >-
+    tail -n {{ web_service_rca_collect_journal_lines }}
+    {{ _web_rca_profile.error_log }}
+  register: _web_rca_error_log
+  changed_when: false
+  failed_when: false
+
+- name: Collect access log tail
+  ansible.builtin.command: >-
+    tail -n {{ web_service_rca_collect_journal_lines }}
+    {{ _web_rca_profile.access_log }}
+  register: _web_rca_access_log
+  changed_when: false
+  failed_when: false
+
+- name: Collect recent journal entries
+  ansible.builtin.command: >-
+    journalctl -u {{ _web_rca_profile.service }}
+    -n {{ web_service_rca_collect_journal_lines }} --no-pager
+  register: _web_rca_journal
+  changed_when: false
+  failed_when: false
+
+- name: Attempt service start when requested
+  block:
+    - name: Start web service
+      ansible.builtin.service:
+        name: "{{ _web_rca_profile.service }}"
+        state: started
+      register: _web_rca_start_attempt
+      when: web_service_rca_attempt_service_start | bool
+  rescue:
+    - name: Record service start failure
+      ansible.builtin.debug:
+        msg: >-
+          Attempt to start {{ _web_rca_profile.service }} failed;
+          continuing with diagnostics.
+
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ web_service_rca_report_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render diagnosis report
+  ansible.builtin.template:
+    src: "{{ web_service_rca_service }}_diagnosis_report.j2"
+    dest: "{{ web_service_rca_report_text_path }}"
+    owner: root
+    group: root
+    mode: "0644"

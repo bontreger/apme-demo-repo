@@ -1,0 +1,17 @@
+Filesystem Health Check Report - {{ inventory_hostname }}
+Generated: {{ ansible_date_time.iso8601 }}
+
+Disk Usage (df -h)
+------------------
+{{ filesystem_check_df_output.stdout | default('Not available') }}
+
+Inode Usage (df -i)
+-------------------
+{{ filesystem_check_df_inode_output.stdout | default('Not available') }}
+
+Filesystem Check Results
+------------------------
+{% for item in filesystem_check_check_results.results | default([]) %}
+Mount: {{ item.item.mount | default('N/A') }} ({{ item.item.fstype | default('N/A') }})
+Return code: {{ item.rc | default('N/A') }}
+{% endfor %}

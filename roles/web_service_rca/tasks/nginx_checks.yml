@@ -1,0 +1,17 @@
+---
+- name: Check nginx config directory permissions
+  ansible.builtin.stat:
+    path: "{{ _web_rca_profile.config_dir | dirname }}"
+  register: _web_rca_nginx_conf_dir_stat
+
+- name: Check nginx work directory permissions
+  ansible.builtin.stat:
+    path: "{{ _web_rca_profile.work_dir | default('/var/lib/nginx') }}"
+  register: _web_rca_nginx_work_dir_stat
+  failed_when: false
+
+- name: Check nginx website directory permissions
+  ansible.builtin.stat:
+    path: "{{ _web_rca_profile.website_dir | default('/usr/share/nginx/html') }}"
+  register: _web_rca_nginx_website_dir_stat
+  failed_when: false

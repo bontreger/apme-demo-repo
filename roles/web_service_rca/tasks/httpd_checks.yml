@@ -1,0 +1,14 @@
+---
+- name: Check httpd SELinux boolean values
+  block:
+    - name: Parse SELinux booleans into dict
+      ansible.builtin.set_fact:
+        _web_rca_selinux_booleans_dict: >-
+          {{ _web_rca_selinux_booleans_dict | default({}) |
+             combine({item.item: item.stdout | default('unknown')}) }}
+      loop: "{{ _web_rca_selinux_booleans.results | default([]) }}"
+  rescue:
+    - name: Record SELinux boolean parse failure
+      ansible.builtin.set_fact:
+        _web_rca_diagnosis_warnings: >-
+          {{ _web_rca_diagnosis_warnings + ['Failed to parse SELinux boolean values'] }}

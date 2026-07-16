@@ -1,0 +1,22 @@
+Kernel Log Monitor Report - {{ inventory_hostname }}
+Generated: {{ ansible_date_time.iso8601 }}
+
+Critical Errors: {{ kernel_log_monitor_detected_errors.critical | default([]) | length }}
+Severe Errors: {{ kernel_log_monitor_detected_errors.severe | default([]) | length }}
+Unique Error Entries: {{ kernel_log_monitor_unique_errors | default([]) | length }}
+
+Critical Error Samples
+----------------------
+{% for error in kernel_log_monitor_detected_errors.critical | default([]) %}
+- {{ error }}
+{% else %}
+None detected
+{% endfor %}
+
+Severe Error Samples
+--------------------
+{% for error in kernel_log_monitor_detected_errors.severe | default([]) %}
+- {{ error }}
+{% else %}
+None detected
+{% endfor %}
