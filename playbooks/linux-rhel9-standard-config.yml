@@ -54,7 +54,7 @@
           - admin_password is defined
           - firewall_ports is defined
           - ntp_servers is defined
-        fail_msg: "Required variables are not defined. Please check group_vars/all.yml"
+        fail_msg: "Required variables are not defined. Check role defaults or provide via survey/extra vars."
         success_msg: "All required variables are defined"
       tags: always
   roles:

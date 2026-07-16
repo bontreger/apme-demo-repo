@@ -1,0 +1,9 @@
+---
+# Report configuration
+report_namespace: network_diagnosis
+report_local_dir: "/var/lib/ansible-reports/{{ report_namespace }}"
+report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
+report_text_path: >-
+  {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt
+report_output_dir: "{{ report_local_dir }}"
+report_filename: "{{ inventory_hostname }}-{{ report_job_id }}.txt"

@@ -1,0 +1,14 @@
+---
+# Firewall ports configuration
+firewall_ports:
+  - 50051
+  - 53
+  - 80
+  - 443
+  - 5432
+  - 6379
+  - 27199
+  - 9000
+  - 9001
+  - 9002
+  - 9003
