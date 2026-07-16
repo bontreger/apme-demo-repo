@@ -1,0 +1,39 @@
+---
+- name: Register report archive host for this job
+  ansible.builtin.add_host:
+    name: "{{ report_archive_host }}"
+    ansible_host: "{{ report_archive_host }}"
+  when:
+    - report_publish_enabled | bool
+    - report_archive_host | default('') | length > 0
+
+- name: Ensure aggregated report directory exists on archive host
+  ansible.builtin.file:
+    path: "{{ pcp_analysis_report_dest_dir }}/aggregated"
+    state: directory
+    mode: "0755"
+  delegate_to: "{{ report_archive_host }}"
+  become: true
+  failed_when: false
+
+- name: Generate Markdown format report on archive host
+  ansible.builtin.template:
+    src: pcp_report.md.j2
+    dest: "{{ pcp_analysis_report_dest_dir }}/aggregated/{{ pcp_analysis_report_filename }}"
+    mode: "0644"
+  delegate_to: "{{ report_archive_host }}"
+  become: true
+
+- name: Display report path
+  ansible.builtin.debug:
+    msg: >-
+      Performance report generated:
+      {{ pcp_analysis_report_dest_dir }}/aggregated/{{ pcp_analysis_report_filename }}
+
+- name: Publish report index on archive host
+  ansible.builtin.include_role:
+    name: report_publish
+    apply:
+      delegate_to: "{{ report_archive_host }}"
+      become: true
+  when: report_publish_enabled | bool

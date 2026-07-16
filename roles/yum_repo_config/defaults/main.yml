@@ -1,0 +1,17 @@
+---
+yum_repo_config_protocol: http
+yum_repo_config_source: iso
+yum_repo_config_document_root: /var/www/html
+
+yum_repo_config_iso_path: /data/rhel-8.10-x86_64-dvd.iso
+yum_repo_config_release: "8.10"
+yum_repo_config_relative_path: RHEL-8.10/RedHatEnterpriseLinux/x86_64
+yum_repo_config_mount_path: /mnt/RHEL-8.10/RedHatEnterpriseLinux/x86_64
+yum_repo_config_repo_name: "remote_repo_{{ yum_repo_config_release }}-{{ yum_repo_config_protocol }}"
+
+# Group names used for dynamic server discovery on client side
+yum_repo_config_server_group: "{{ repo_server_group | default('server') }}"
+yum_repo_config_client_group: "{{ repo_client_group | default('client') }}"
+
+# Mode: 'server' or 'client' - auto-detected from group membership if not set
+# yum_repo_config_mode:

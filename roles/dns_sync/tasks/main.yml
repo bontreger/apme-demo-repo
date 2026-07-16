@@ -1,0 +1,216 @@
+---
+- name: Display OS information
+  ansible.builtin.debug:
+    msg:
+      - "Distribution: {{ ansible_distribution }}"
+      - "Version: {{ ansible_distribution_version }}"
+      - "Major Version: {{ ansible_distribution_major_version }}"
+      - "Architecture: {{ ansible_architecture }}"
+  tags:
+    - validation
+    - debug
+
+- name: Validate source file path
+  ansible.builtin.assert:
+    that:
+      - dns_sync_source_file_path is defined
+      - dns_sync_source_file_path | length > 0
+    fail_msg: "dns_sync_source_file_path must be defined and non-empty"
+    success_msg: "Source file path validated: {{ dns_sync_source_file_path }}"
+  tags:
+    - validation
+    - always
+
+- name: Validate destination file path
+  ansible.builtin.assert:
+    that:
+      - dns_sync_dest_file_path is defined
+      - dns_sync_dest_file_path | length > 0
+    fail_msg: "dns_sync_dest_file_path must be defined and non-empty"
+    success_msg: "Destination file path validated: {{ dns_sync_dest_file_path }}"
+  tags:
+    - validation
+    - always
+
+- name: Check if source file exists on control node
+  ansible.builtin.stat:
+    path: "{{ dns_sync_source_file_path }}"
+  delegate_to: localhost
+  run_once: true
+  register: dns_sync_source_file_stat
+  tags:
+    - validation
+    - always
+
+- name: Validate source file exists and is readable
+  ansible.builtin.assert:
+    that:
+      - dns_sync_source_file_stat.stat.exists | default(false)
+      - dns_sync_source_file_stat.stat.isreg | default(false)
+    fail_msg: "Source file does not exist or is not a regular file: {{ dns_sync_source_file_path }}"
+    success_msg: "Source file verified: {{ dns_sync_source_file_path }}"
+  delegate_to: localhost
+  run_once: true
+  tags:
+    - validation
+    - always
+
+- name: Read source file content for DNS validation
+  ansible.builtin.slurp:
+    src: "{{ dns_sync_source_file_path }}"
+  delegate_to: localhost
+  run_once: true
+  register: dns_sync_source_file_content
+  tags:
+    - validation
+    - always
+
+- name: Validate DNS configuration format
+  ansible.builtin.assert:
+    that:
+      - dns_sync_source_file_content.content | b64decode | regex_search('^nameserver\s+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', multiline=True)
+    fail_msg: "Source file does not contain valid nameserver entries. Expected format: 'nameserver <IP_ADDRESS>'"
+    success_msg: "DNS configuration format validated successfully"
+  delegate_to: localhost
+  run_once: true
+  tags:
+    - validation
+    - always
+
+- name: Display validated parameters
+  ansible.builtin.debug:
+    msg:
+      - "Source File: {{ dns_sync_source_file_path }}"
+      - "Destination File: {{ dns_sync_dest_file_path }}"
+      - "Backup Enabled: {{ dns_sync_backup_enabled }}"
+      - "File Owner: {{ dns_sync_file_owner }}"
+      - "File Group: {{ dns_sync_file_group }}"
+      - "File Mode: {{ dns_sync_file_mode }}"
+  tags:
+    - validation
+    - debug
+
+- name: Initialize copy result variable
+  ansible.builtin.set_fact:
+    dns_sync_copy_result:
+      changed: false
+      checksum: ""
+      backup_file: ""
+
+- name: Synchronize DNS configuration file to target host
+  block:
+    - name: Check current destination file status
+      ansible.builtin.stat:
+        path: "{{ dns_sync_dest_file_path }}"
+      register: dns_sync_dest_file_stat_before
+
+    - name: Display current file status
+      ansible.builtin.debug:
+        msg:
+          - "Current file exists: {{ dns_sync_dest_file_stat_before.stat.exists | default(false) }}"
+          - "Current file mode: {{ dns_sync_dest_file_stat_before.stat.mode | default('N/A') }}"
+          - "Current file owner: {{ dns_sync_dest_file_stat_before.stat.pw_name | default('N/A') }}"
+      when: dns_sync_dest_file_stat_before.stat.exists | default(false)
+
+    - name: Copy DNS configuration file from control node to target host
+      ansible.builtin.copy:
+        src: "{{ dns_sync_source_file_path }}"
+        dest: "{{ dns_sync_dest_file_path }}"
+        owner: "{{ dns_sync_file_owner }}"
+        group: "{{ dns_sync_file_group }}"
+        mode: "{{ dns_sync_file_mode }}"
+        backup: "{{ dns_sync_backup_enabled }}"
+      register: dns_sync_copy_result
+
+    - name: Display copy operation result
+      ansible.builtin.debug:
+        msg:
+          - "File changed: {{ dns_sync_copy_result.changed | default(false) }}"
+          - "File checksum: {{ dns_sync_copy_result.checksum | default('N/A') }}"
+          - "Backup file: {{ dns_sync_copy_result.backup_file | default('No backup created') }}"
+
+    - name: Verify destination file after copy
+      ansible.builtin.stat:
+        path: "{{ dns_sync_dest_file_path }}"
+      register: dns_sync_dest_file_stat_after
+
+    - name: Validate destination file was created/updated successfully
+      ansible.builtin.assert:
+        that:
+          - dns_sync_dest_file_stat_after.stat.exists | default(false)
+          - dns_sync_dest_file_stat_after.stat.isreg | default(false)
+        fail_msg: "Destination file was not created or is not a regular file: {{ dns_sync_dest_file_path }}"
+        success_msg: "Destination file verified successfully: {{ dns_sync_dest_file_path }}"
+
+    - name: Retrieve destination file content for verification
+      ansible.builtin.slurp:
+        src: "{{ dns_sync_dest_file_path }}"
+      register: dns_sync_dest_file_content
+
+    - name: Display file change summary
+      ansible.builtin.debug:
+        msg: |
+          DNS Configuration Synchronization Completed
+          ================================================
+          Source File Hash: {{ dns_sync_copy_result.checksum | default('N/A') }}
+          Backup File: {{ dns_sync_copy_result.backup_file | default('No backup created') }}
+          New File Content Preview:
+          {{ dns_sync_dest_file_content.content | b64decode | default('N/A') }}
+
+  rescue:
+    - name: Handle DNS configuration synchronization failure
+      ansible.builtin.debug:
+        msg: "Failed to synchronize DNS configuration file. Error: {{ ansible_failed_result.msg | default('Unknown error') }}"
+
+    - name: Attempt to restore from backup if available
+      ansible.builtin.copy:
+        src: "{{ dns_sync_copy_result.backup_file }}"
+        dest: "{{ dns_sync_dest_file_path }}"
+        owner: "{{ dns_sync_file_owner }}"
+        group: "{{ dns_sync_file_group }}"
+        mode: "{{ dns_sync_file_mode }}"
+        remote_src: true
+      when:
+        - dns_sync_copy_result.backup_file is defined
+        - dns_sync_copy_result.backup_file | length > 0
+      register: dns_sync_restore_result
+      failed_when: false
+
+    - name: Display rollback status
+      ansible.builtin.debug:
+        msg: "Rollback attempted from backup: {{ dns_sync_copy_result.backup_file | default('No backup available') }}"
+      when:
+        - dns_sync_copy_result.backup_file is defined
+        - dns_sync_copy_result.backup_file | length > 0
+
+    - name: Fail on synchronization error
+      ansible.builtin.fail:
+        msg: "DNS configuration synchronization failed for {{ inventory_hostname }}. Please check the error messages above."
+
+  always:
+    - name: Display final file status
+      ansible.builtin.stat:
+        path: "{{ dns_sync_dest_file_path }}"
+      register: dns_sync_dest_file_final_stat
+
+    - name: Display final status summary
+      ansible.builtin.debug:
+        msg:
+          - "Final file exists: {{ dns_sync_dest_file_final_stat.stat.exists | default(false) }}"
+          - "Final file size: {{ dns_sync_dest_file_final_stat.stat.size | default(0) }} bytes"
+          - "Final file path: {{ dns_sync_dest_file_path }}"
+
+- name: Verify DNS configuration was not changed (idempotency check)
+  ansible.builtin.debug:
+    msg: "No file changes detected. Possible reasons: file content is identical, file has not changed"
+  when: not (dns_sync_copy_result.changed | default(false))
+  tags:
+    - verification
+    - always
+
+- name: Display completion summary
+  ansible.builtin.debug:
+    msg: "DNS configuration synchronization completed for {{ inventory_hostname }}"
+  tags:
+    - summary
+    - always

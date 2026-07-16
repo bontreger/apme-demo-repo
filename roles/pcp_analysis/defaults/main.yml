@@ -1,0 +1,10 @@
+---
+pcp_analysis_packages:
+  - pcp
+  - pcp-system-tools
+
+pcp_analysis_services:
+  - pmcd
+  - pmlogger
+
+pcp_analysis_report_namespace: os_pcp

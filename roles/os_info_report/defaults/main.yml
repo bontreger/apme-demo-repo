@@ -1,0 +1,10 @@
+---
+os_info_report_title: "System Information Report"
+os_info_report_namespace: os_info
+os_info_report_local_dir: "/var/lib/ansible-reports/{{ os_info_report_namespace }}"
+os_info_report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
+os_info_report_text_path: >-
+  {{ os_info_report_local_dir }}/{{ inventory_hostname }}-{{ os_info_report_job_id }}.txt
+os_info_report_html_path: >-
+  {{ os_info_report_local_dir }}/{{ inventory_hostname }}-{{ os_info_report_job_id }}.html
+os_info_report_generate_html: false

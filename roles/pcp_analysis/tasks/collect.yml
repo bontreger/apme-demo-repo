@@ -1,0 +1,48 @@
+---
+- name: Get PCP system overview
+  ansible.builtin.command: pcp
+  register: pcp_overview_result
+  changed_when: false
+  failed_when: false
+
+- name: Get system load and uptime
+  ansible.builtin.command: pcp uptime
+  register: pcp_uptime_result
+  changed_when: false
+  failed_when: false
+
+- name: Get memory usage (in MB)
+  ansible.builtin.command: pcp free -m
+  register: pcp_free_result
+  changed_when: false
+  failed_when: false
+
+- name: Get NUMA architecture statistics
+  ansible.builtin.command: pcp numastat
+  register: pcp_numastat_result
+  changed_when: false
+  failed_when: false
+
+- name: Get disk I/O statistics
+  ansible.builtin.command: pcp iostat -x
+  register: pcp_iostat_result
+  changed_when: false
+  failed_when: false
+
+- name: Get top 5 processes by CPU usage
+  ansible.builtin.shell: set -o pipefail && pcp pidstat -u | head -n 8
+  register: pcp_pidstat_result
+  changed_when: false
+  failed_when: false
+
+- name: Get detailed description of kernel.all.load metric
+  ansible.builtin.command: pminfo -T kernel.all.load
+  register: pminfo_load_desc_result
+  changed_when: false
+  failed_when: false
+
+- name: Extract summary from historical archive
+  ansible.builtin.command: pmlogsummary -l kernel.all.cpu.user disk.all.total
+  register: pmlogsummary_result
+  changed_when: false
+  failed_when: false

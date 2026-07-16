@@ -1,0 +1,85 @@
+---
+- name: Assert NFS shared directory is an absolute path
+  ansible.builtin.assert:
+    that:
+      - nfs_server_shared_directory is string
+      - nfs_server_shared_directory | length > 1
+      - nfs_server_shared_directory is match('^/.+')
+    fail_msg: >-
+      Variable 'nfs_server_shared_directory' must be an absolute path,
+      for example '/srv/myshare'.
+    quiet: true
+
+- name: Assert NFS export entries are defined
+  ansible.builtin.assert:
+    that:
+      - nfs_server_export_entries is iterable
+      - nfs_server_export_entries | length > 0
+    fail_msg: >-
+      Variable 'nfs_server_export_entries' must contain at least one client
+      definition such as 'client1.example.com(rw,no_root_squash)'.
+    quiet: true
+
+- name: Ensure NFS utilities are installed
+  ansible.builtin.package:
+    name:
+      - nfs-utils
+    state: present
+
+- name: Ensure NFS shared directory exists with correct permissions
+  ansible.builtin.file:
+    path: "{{ nfs_server_shared_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure NFS export with rollback safety
+  block:
+    - name: Render NFS exports configuration file
+      ansible.builtin.copy:
+        dest: "/etc/exports.d/{{ nfs_server_exports_filename }}"
+        content: "{{ nfs_server_shared_directory }} {{ nfs_server_export_entries | join(' ') }}\n"
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+      notify: Reload NFS exports
+  rescue:
+    - name: Warn about NFS export configuration failure
+      ansible.builtin.debug:
+        msg:
+          - "Failed to update /etc/exports.d/{{ nfs_server_exports_filename }}."
+          - "A backup file may exist. Please review and restore manually if needed."
+
+- name: Ensure nfs-server service is started and enabled
+  ansible.builtin.service:
+    name: nfs-server
+    state: started
+    enabled: true
+
+- name: Check if firewalld service is running
+  ansible.builtin.systemd:
+    name: firewalld
+  register: nfs_server_firewalld_state
+  changed_when: false
+  failed_when: false
+
+- name: Ensure firewall allows NFS service
+  ansible.posix.firewalld:
+    service: nfs
+    state: enabled
+    immediate: true
+    permanent: true
+  when:
+    - nfs_server_firewalld_state.status is defined
+    - nfs_server_firewalld_state.status.ActiveState == "active"
+
+- name: Refresh and list active NFS exports
+  ansible.builtin.command: exportfs -rav
+  register: nfs_server_exportfs_output
+  changed_when: "'re-exporting' in nfs_server_exportfs_output.stderr"
+
+- name: Show active NFS exports
+  ansible.builtin.debug:
+    var: nfs_server_exportfs_output.stdout_lines

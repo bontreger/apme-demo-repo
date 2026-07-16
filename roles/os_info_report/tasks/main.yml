@@ -1,0 +1,38 @@
+---
+- name: Ensure local report directory exists
+  ansible.builtin.file:
+    path: "{{ os_info_report_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Generate plaintext OS information report
+  ansible.builtin.template:
+    src: os_info_report_summary.j2
+    dest: "{{ os_info_report_text_path }}"
+    mode: "0644"
+
+- name: Generate HTML OS information report
+  ansible.builtin.template:
+    src: os_info_report_template.j2
+    dest: "{{ os_info_report_html_path }}"
+    mode: "0644"
+  when: os_info_report_generate_html | bool
+
+- name: Read plaintext OS information report for job output
+  ansible.builtin.command: cat "{{ os_info_report_text_path }}"
+  register: os_info_report_summary_output
+  become: false
+  changed_when: false
+
+- name: Output plaintext report for operators
+  ansible.builtin.debug:
+    msg: "{{ os_info_report_summary_output.stdout_lines }}"
+  become: false
+
+- name: Remember report publishing settings for publish play
+  ansible.builtin.set_fact:
+    report_source_hosts: "{{ ansible_play_hosts_all }}"
+    report_publish_enabled: "{{ report_publish_enabled }}"
+  run_once: true
+  delegate_to: localhost
+  delegate_facts: true

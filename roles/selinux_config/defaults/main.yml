@@ -1,0 +1,14 @@
+---
+selinux_config_permanent_state: "disabled"
+selinux_config_runtime_state: "permissive"
+selinux_config_path: "/etc/selinux/config"
+selinux_config_valid_states:
+  - "enforcing"
+  - "permissive"
+  - "disabled"
+selinux_config_reboot_required_msg: |
+  ===========================================================
+  [NOTICE] SELinux persistent configuration has been changed.
+  Server requires a reboot for the new configuration '%s' to take full effect.
+  Please perform a manual reboot during a scheduled maintenance window.
+  ===========================================================

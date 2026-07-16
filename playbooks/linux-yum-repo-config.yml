@@ -1,0 +1,16 @@
+---
+- name: Setup YUM repository server
+  hosts: "{{ repo_server_group | default('server') }}"
+  become: true
+  gather_facts: true
+  roles:
+    - role: yum_repo_config
+      yum_repo_config_mode: server
+
+- name: Setup YUM repository clients
+  hosts: "{{ repo_client_group | default('client') }}"
+  become: true
+  gather_facts: true
+  roles:
+    - role: yum_repo_config
+      yum_repo_config_mode: client

@@ -1,0 +1,17 @@
+---
+- name: Firewall management
+  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  become: true
+  gather_facts: true
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags: [always]
+  roles:
+    - role: firewall_management

@@ -1,0 +1,7 @@
+---
+nfs_server_shared_directory: /srv/myshare
+
+nfs_server_export_entries:
+  - "client1.example.com(rw,no_root_squash)"
+
+nfs_server_exports_filename: ansible-share.exports

@@ -1,0 +1,27 @@
+---
+- name: Install PCP packages
+  ansible.builtin.package:
+    name: "{{ pcp_analysis_packages }}"
+    state: present
+  register: _pcp_install_result
+  failed_when: false
+
+- name: Start and enable PCP services
+  block:
+    - name: Ensure PCP services are started and enabled
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop: "{{ pcp_analysis_services }}"
+  rescue:
+    - name: Handle PCP service configuration failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to configure PCP services. Some performance data collection may fail."
+      failed_when: false
+
+- name: Verify PCP installation
+  ansible.builtin.command: which pmcd
+  register: _pcp_verify_result
+  changed_when: false
+  failed_when: false
