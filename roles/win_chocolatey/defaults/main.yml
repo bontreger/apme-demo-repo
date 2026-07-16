@@ -1,0 +1,4 @@
+---
+win_chocolatey_state: present
+win_chocolatey_packages: []
+win_chocolatey_version: "1.4.0"

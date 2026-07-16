@@ -1,0 +1,6 @@
+---
+- name: Deploy and configure IIS
+  hosts: "{{ survey_target_hosts | default('all') }}"
+  gather_facts: false
+  roles:
+    - role: win_iis_deploy

@@ -1,0 +1,10 @@
+---
+- name: Manage Windows packages
+  ansible.windows.win_package:
+    path: "{{ item.path | default(omit) }}"
+    product_id: "{{ item.product_id }}"
+    arguments: "{{ item.arguments | default(omit) }}"
+    state: "{{ win_software_management_state }}"
+  loop: "{{ win_software_management_packages }}"
+  loop_control:
+    label: "{{ item.name }}"

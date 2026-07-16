@@ -1,0 +1,4 @@
+---
+win_service_management_action: check
+win_service_management_start_mode: auto
+win_service_management_services: []

@@ -1,0 +1,11 @@
+---
+- name: Ensure Chocolatey is installed
+  chocolatey.chocolatey.win_chocolatey:
+    name: chocolatey
+    version: "{{ win_chocolatey_version }}"
+    state: present
+
+- name: Manage packages via Chocolatey
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ win_chocolatey_packages }}"
+    state: "{{ win_chocolatey_state }}"

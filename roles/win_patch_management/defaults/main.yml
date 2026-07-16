@@ -1,0 +1,7 @@
+---
+win_patch_management_mode: install_all
+win_patch_management_kb_list: []
+win_patch_management_category: "*"
+win_patch_management_reboot: true
+win_patch_management_report_path: 'C:\ansible_reports'
+win_patch_management_report_dest: 'C:\inetpub\wwwroot\win_patch_report.html'

@@ -1,0 +1,6 @@
+---
+- name: Manage Windows services
+  hosts: "{{ survey_target_hosts | default('all') }}"
+  gather_facts: false
+  roles:
+    - role: win_service_management
