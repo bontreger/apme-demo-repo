@@ -1,0 +1,67 @@
+---
+- name: Query all processes with state information
+  ansible.builtin.command: ps -eo pid,ppid,state,comm,args
+  register: linux_diagnostic_rca_ps_output
+  changed_when: false
+  failed_when: false
+
+- name: Extract zombie processes from ps output
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_zombie_list: >-
+      {{ linux_diagnostic_rca_ps_output.stdout_lines | default([])
+         | select('search', ' Z ') | list }}
+
+- name: Collect parent process details for each zombie
+  ansible.builtin.shell: |
+    set -o pipefail
+    set -e
+    LINE="{{ item }}"
+    ZOMBIE_PID=$(echo "$LINE" | awk '{print $1}')
+    PARENT_PID=$(echo "$LINE" | awk '{print $2}')
+    PROCESS_STATE=$(echo "$LINE" | awk '{print $3}')
+    PROCESS_NAME=$(echo "$LINE" | awk '{for(i=4;i<=NF;i++) printf "%s ", $i; print ""}' \
+                   | sed 's/[[:space:]]*$//')
+    if [ -z "$PROCESS_NAME" ]; then
+      PROCESS_NAME="unknown"
+    fi
+    echo "Zombie PID: $ZOMBIE_PID"
+    echo "Parent PID: $PARENT_PID"
+    echo "State: $PROCESS_STATE"
+    echo "Process: $PROCESS_NAME"
+    echo "Full Command: $LINE"
+    echo ""
+    echo "Parent Process Information:"
+    if ps -p "$PARENT_PID" > /dev/null 2>&1; then
+      ps -up "$PARENT_PID" || echo "Unable to retrieve parent process details"
+    else
+      echo "Parent process (PID: $PARENT_PID) no longer exists"
+    fi
+  loop: "{{ linux_diagnostic_rca_zombie_list }}"
+  register: linux_diagnostic_rca_zombie_details
+  changed_when: false
+  failed_when: false
+  when: linux_diagnostic_rca_zombie_list | length > 0
+
+- name: Build investigation report
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_investigation_report:
+      hostname: "{{ ansible_hostname }}"
+      os_distribution: "{{ ansible_distribution }}"
+      os_version: "{{ ansible_distribution_version }}"
+      investigation_timestamp: "{{ ansible_date_time.iso8601 }}"
+      zombie_count: "{{ linux_diagnostic_rca_zombie_list | length }}"
+      zombie_processes: "{{ linux_diagnostic_rca_zombie_list }}"
+      detailed_investigation: >-
+        {{ linux_diagnostic_rca_zombie_details.results | default([])
+           | map(attribute='stdout') | list
+           if (linux_diagnostic_rca_zombie_details is defined
+               and linux_diagnostic_rca_zombie_list | length > 0)
+           else [] }}
+
+- name: Build plaintext summary
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_report_text: |
+      Zombie Process Investigation - {{ inventory_hostname }}
+      Generated: {{ ansible_date_time.iso8601 }}
+      Zombie Processes Found: {{ linux_diagnostic_rca_zombie_list | length }}
+      JSON Report: {{ linux_diagnostic_rca_report_json_path }}

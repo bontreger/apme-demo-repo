@@ -1,0 +1,59 @@
+==================== RHEL Nginx Diagnosis Report ====================
+Generated at: {{ ansible_date_time.iso8601 }}
+Target host: {{ inventory_hostname }}
+
+[Basic Information]
+- OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+- Kernel: {{ ansible_kernel }}
+- SELinux mode: {{ _web_rca_selinux_mode.stdout | default('unknown') }}
+
+[Package and Service Status]
+- nginx package installed: {{ 'yes' if _web_rca_package_installed | default(false) else 'no' }}
+- systemd active state: {{ _web_rca_svc_status.status.ActiveState | default('unknown') }}
+- systemd enabled state: {{ _web_rca_svc_status.status.UnitFileState | default('unknown') }}
+
+[Configuration Syntax Check]
+- nginx -t: rc={{ _web_rca_syntax.rc }}, output:
+{{ (_web_rca_syntax.stdout | default('') ~ ' ' ~ _web_rca_syntax.stderr | default('')) | trim }}
+
+[Configuration and Directory Permissions]
+- nginx.conf path: {{ _web_rca_profile.config_path }}
+- nginx.conf exists: {{ _web_rca_conf_stat.stat.exists | default(false) }}
+- nginx config directory ({{ _web_rca_profile.config_dir | dirname }}) mode: {{ _web_rca_nginx_conf_dir_stat.stat.mode | default('unknown') }}
+- nginx work directory ({{ _web_rca_profile.work_dir | default('/var/lib/nginx') }}) mode: {{ _web_rca_nginx_work_dir_stat.stat.mode | default('unknown') }}
+- nginx website directory ({{ _web_rca_profile.website_dir | default('/usr/share/nginx/html') }}) mode: {{ _web_rca_nginx_website_dir_stat.stat.mode | default('unknown') }}
+
+[Network Ports and Firewall]
+- Expected ports: {{ (_web_rca_expected_ports | map('string')) | join(', ') }}
+- ss -lntp (excerpt):
+{{ _web_rca_ss_listen.stdout | default('') }}
+- firewalld state: {{ _web_rca_firewalld_state.status.ActiveState | default('unknown') }}
+- firewalld services: {{ _web_rca_firewalld_services.stdout | default('') }}
+- firewalld ports: {{ _web_rca_firewalld_ports.stdout | default('') }}
+
+[SELinux Booleans]
+{% for r in _web_rca_selinux_booleans.results | default([]) %}
+- {{ r.item }}: {{ r.stdout | default('unknown') }}
+{% endfor %}
+
+[Logs]
+- Error log path: {{ _web_rca_profile.error_log | default('N/A') }}
+- Error log tail:
+{{ _web_rca_error_log.stdout | default('No error log collected or file not found.') }}
+
+- Access log path: {{ _web_rca_profile.access_log | default('N/A') }}
+- Access log tail:
+{{ _web_rca_access_log.stdout | default('No access log collected or file not found.') }}
+
+[Recent journalctl Entries for nginx]
+{{ _web_rca_journal.stdout | default('No journal entries collected.') }}
+
+[Common Troubleshooting Hints]
+- Syntax errors: Non-zero return code from "nginx -t" usually indicates configuration syntax or path issues.
+- Port conflicts: If ports 80/443 are occupied by non-nginx processes in "ss -lntp", free the ports or change the listening port.
+- SELinux: If access is denied, check AVC logs and adjust SELinux booleans or contexts accordingly.
+- Firewall: Ensure http/https services or ports are allowed in firewalld.
+- Permissions: Incorrect permissions or SELinux contexts on config, work or website directories may cause 4xx/5xx errors.
+- Processes: Verify that the nginx master and worker processes are running as expected.
+
+===============================================================================

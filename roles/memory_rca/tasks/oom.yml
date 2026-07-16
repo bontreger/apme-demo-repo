@@ -1,0 +1,74 @@
+---
+- name: Collect OOM killer logs from /var/log/messages
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep -E 'Out of memory:' /var/log/messages || true
+  register: _memory_rca_oom_logs
+  changed_when: false
+  failed_when: false
+
+- name: Collect OOM killer logs from journalctl
+  ansible.builtin.shell: |
+    set -o pipefail
+    journalctl -k | grep -i "out of memory" || true
+  register: _memory_rca_oom_journal
+  changed_when: false
+  failed_when: false
+
+- name: Collect killed process memory usage from /var/log/messages
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep -E 'total-vm' /var/log/messages || true
+  register: _memory_rca_oom_process_logs
+  changed_when: false
+  failed_when: false
+
+- name: Collect killed process info from journalctl
+  ansible.builtin.shell: |
+    set -o pipefail
+    journalctl -k | grep -i "killed process" || true
+  register: _memory_rca_oom_process_journal
+  changed_when: false
+  failed_when: false
+
+- name: Determine current SAR day for log file path
+  ansible.builtin.set_fact:
+    _memory_rca_sar_day: "{{ '%02d' | format(ansible_date_time.day | int) }}"
+
+- name: Collect SAR memory usage from today
+  ansible.builtin.shell: |
+    set -o pipefail
+    sar -r -f /var/log/sa/sa{{ _memory_rca_sar_day }} 2>/dev/null || true
+  register: _memory_rca_sar_memory
+  changed_when: false
+  failed_when: false
+
+- name: Collect SAR swap usage from today
+  ansible.builtin.shell: |
+    set -o pipefail
+    sar -S -f /var/log/sa/sa{{ _memory_rca_sar_day }} 2>/dev/null || true
+  register: _memory_rca_sar_swap
+  changed_when: false
+  failed_when: false
+
+- name: Collect SAR CPU usage from today
+  ansible.builtin.shell: |
+    set -o pipefail
+    sar -f /var/log/sa/sa{{ _memory_rca_sar_day }} 2>/dev/null || true
+  register: _memory_rca_sar_cpu
+  changed_when: false
+  failed_when: false
+
+- name: Collect vmstat real-time samples
+  ansible.builtin.command: vmstat 1 5
+  register: _memory_rca_vmstat_rt
+  changed_when: false
+  failed_when: false
+
+- name: Collect MemTotal from /proc/meminfo
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep MemTotal /proc/meminfo
+  register: _memory_rca_mem_total
+  changed_when: false
+  failed_when: false

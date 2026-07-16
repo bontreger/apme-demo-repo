@@ -1,0 +1,52 @@
+---
+- name: Validate check type parameter
+  ansible.builtin.assert:
+    that:
+      - >-
+        linux_diagnostic_rca_check_type in
+        ['zombie_process', 'disk_io', 'systemd_unit', 'privileged_account']
+    fail_msg: >-
+      Invalid check_type '{{ linux_diagnostic_rca_check_type }}'.
+      Must be one of: zombie_process, disk_io, systemd_unit, privileged_account.
+  tags: [always]
+
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ linux_diagnostic_rca_report_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Include check-specific diagnostic tasks
+  ansible.builtin.include_tasks:
+    file: "checks/{{ linux_diagnostic_rca_check_type }}.yml"
+
+- name: Save investigation report as JSON
+  ansible.builtin.copy:
+    content: "{{ linux_diagnostic_rca_investigation_report | to_nice_json }}"
+    dest: "{{ linux_diagnostic_rca_report_json_path }}"
+    mode: "0644"
+
+- name: Write plaintext summary report
+  ansible.builtin.copy:
+    content: "{{ linux_diagnostic_rca_report_text }}"
+    dest: "{{ linux_diagnostic_rca_report_text_path }}"
+    mode: "0644"
+
+- name: Read plaintext report for job output
+  ansible.builtin.command: cat "{{ linux_diagnostic_rca_report_text_path }}"
+  register: linux_diagnostic_rca_summary_output
+  become: false
+  changed_when: false
+
+- name: Output plaintext report for operators
+  ansible.builtin.debug:
+    msg: "{{ linux_diagnostic_rca_summary_output.stdout_lines }}"
+  become: false
+
+- name: Remember report publishing settings for publish play
+  ansible.builtin.set_fact:
+    report_source_hosts: "{{ ansible_play_hosts_all }}"
+    report_publish_enabled: "{{ report_publish_enabled }}"
+  run_once: true
+  delegate_to: localhost
+  delegate_facts: true

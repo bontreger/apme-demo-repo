@@ -1,0 +1,25 @@
+---
+- name: Systemd unit deep check and analysis
+  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../inventory/group_vars/all/reporting.yml
+  pre_tasks:
+    - name: Validate OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system."
+      tags: [always]
+  roles:
+    - role: linux_diagnostic_rca
+      vars:
+        linux_diagnostic_rca_check_type: systemd_unit
+
+- name: Publish reports to archive host
+  ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
+  vars:
+    report_namespace: systemd_unit_deep_check
+  when: hostvars['localhost'].report_publish_enabled | bool

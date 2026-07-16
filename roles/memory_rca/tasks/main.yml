@@ -1,0 +1,52 @@
+---
+- name: Assert valid memory RCA mode
+  ansible.builtin.assert:
+    that:
+      - memory_rca_mode in ['high_utilization', 'oom']
+    fail_msg: >-
+      Invalid memory_rca_mode '{{ memory_rca_mode }}'.
+      Supported values: high_utilization, oom
+    quiet: true
+
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ memory_rca_report_local_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check memory usage with free
+  ansible.builtin.command: free -t -m
+  register: _memory_rca_free
+  changed_when: false
+  failed_when: false
+
+- name: Read /proc/meminfo
+  ansible.builtin.command: cat /proc/meminfo
+  register: _memory_rca_meminfo
+  changed_when: false
+  failed_when: false
+
+- name: Collect hardware memory info via dmidecode
+  ansible.builtin.command: dmidecode -t memory
+  register: _memory_rca_dmidecode
+  changed_when: false
+  failed_when: false
+
+- name: Collect virtual memory statistics
+  ansible.builtin.command: vmstat -s
+  register: _memory_rca_vmstat_s
+  changed_when: false
+  failed_when: false
+
+- name: Include mode-specific checks
+  ansible.builtin.include_tasks: "{{ memory_rca_mode }}.yml"
+
+- name: Render memory diagnosis report
+  ansible.builtin.template:
+    src: "{{ memory_rca_mode }}_report.j2"
+    dest: "{{ memory_rca_report_text_path }}"
+    owner: root
+    group: root
+    mode: "0644"

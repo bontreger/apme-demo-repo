@@ -1,0 +1,76 @@
+---
+- name: Check systemctl command availability
+  ansible.builtin.command: which systemctl
+  register: linux_diagnostic_rca_systemctl_check
+  changed_when: false
+  failed_when: false
+
+- name: Check journalctl command availability
+  ansible.builtin.command: which journalctl
+  register: linux_diagnostic_rca_journalctl_check
+  changed_when: false
+  failed_when: false
+
+- name: Collect service facts
+  ansible.builtin.service_facts:
+  when: linux_diagnostic_rca_systemctl_check.rc == 0
+
+- name: Build failed units list from service facts
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_failed_unit_names: >-
+      {{ ansible_facts.services | dict2items
+         | selectattr('value.state', 'equalto', 'failed')
+         | map(attribute='key') | list }}
+  when: linux_diagnostic_rca_systemctl_check.rc == 0
+
+- name: Initialize empty failed units list when systemctl unavailable
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_failed_unit_names: []
+  when: linux_diagnostic_rca_systemctl_check.rc != 0
+
+- name: Collect status and logs for each failed unit
+  ansible.builtin.shell: |
+    UNIT_NAME="{{ item }}"
+    echo "--- Unit Status ---"
+    systemctl status "$UNIT_NAME" || true
+    echo ""
+    echo "--- Recent Logs (last {{ linux_diagnostic_rca_log_lines }} lines) ---"
+    journalctl -u "$UNIT_NAME" -n {{ linux_diagnostic_rca_log_lines }} --no-pager || true
+  loop: "{{ linux_diagnostic_rca_failed_unit_names }}"
+  register: linux_diagnostic_rca_unit_analysis
+  changed_when: false
+  failed_when: false
+  when: linux_diagnostic_rca_failed_unit_names | length > 0
+
+- name: Build investigation report
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_investigation_report:
+      hostname: "{{ ansible_hostname }}"
+      os_distribution: "{{ ansible_distribution }}"
+      os_version: "{{ ansible_distribution_version }}"
+      investigation_timestamp: "{{ ansible_date_time.iso8601 }}"
+      systemctl_available: >-
+        {{ 'Yes'
+           if (linux_diagnostic_rca_systemctl_check.rc == 0)
+           else 'No' }}
+      journalctl_available: >-
+        {{ 'Yes'
+           if (linux_diagnostic_rca_journalctl_check.rc == 0)
+           else 'No' }}
+      failed_units:
+        count: "{{ linux_diagnostic_rca_failed_unit_names | length }}"
+        unit_names: "{{ linux_diagnostic_rca_failed_unit_names }}"
+      detailed_analysis: >-
+        {{ linux_diagnostic_rca_unit_analysis.results | default([])
+           | map(attribute='stdout') | list
+           if (linux_diagnostic_rca_unit_analysis is defined
+               and linux_diagnostic_rca_failed_unit_names | length > 0)
+           else [] }}
+
+- name: Build plaintext summary
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_report_text: |
+      Systemd Unit Deep Check - {{ inventory_hostname }}
+      Generated: {{ ansible_date_time.iso8601 }}
+      Failed Units Count: {{ linux_diagnostic_rca_failed_unit_names | length }}
+      JSON Report: {{ linux_diagnostic_rca_report_json_path }}

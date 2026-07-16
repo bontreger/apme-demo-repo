@@ -1,0 +1,76 @@
+---
+- name: Validate input parameters
+  ansible.builtin.assert:
+    that:
+      - ssl_cert_check_sites is defined
+      - ssl_cert_check_sites | length > 0
+      - ssl_cert_check_warn_days | int >= 0
+      - ssl_cert_check_critical_days | int >= 0
+    fail_msg: >-
+      Invalid input. Ensure ssl_cert_check_sites is non-empty
+      and warn/critical days are non-negative integers.
+  tags: [always]
+
+- name: Fetch SSL certificates for each site
+  community.crypto.get_certificate:
+    host: "{{ item }}"
+    port: 443
+  loop: "{{ ssl_cert_check_sites }}"
+  loop_control:
+    label: "{{ item }}"
+  register: ssl_cert_check_results
+  failed_when: false
+
+- name: Initialize report rows
+  ansible.builtin.set_fact:
+    ssl_cert_check_report_rows: []
+
+- name: Build report rows from successful results
+  ansible.builtin.set_fact:
+    ssl_cert_check_report_rows: >-
+      {{ ssl_cert_check_report_rows
+         + [{'domain': item.item,
+             'expires_at': _ssl_expiry_display,
+             'days_left': _ssl_days_left,
+             'emoji': _ssl_status_emoji}] }}
+  vars:
+    _ssl_not_after_epoch: >-
+      {{ (item.not_after
+          | to_datetime('%Y%m%d%H%M%SZ')).strftime('%s') | int }}
+    _ssl_now_epoch: "{{ now(utc=true, fmt='%s') | int }}"
+    _ssl_days_left: >-
+      {{ (((_ssl_not_after_epoch | int) - (_ssl_now_epoch | int))
+          / 86400) | int }}
+    _ssl_expiry_display: >-
+      {{ lookup('pipe', 'TZ=Asia/Shanghai date -d @'
+         ~ (_ssl_not_after_epoch | int | string)
+         ~ " '+%Y-%m-%d %H:%M:%S Beijing time'") }}
+    _ssl_status_emoji: >-
+      {{ '☠️' if (_ssl_days_left | int) <= 0
+         else ('🚨' if (_ssl_days_left | int) <= ssl_cert_check_critical_days
+               else ('⚠️' if (_ssl_days_left | int) <= ssl_cert_check_warn_days
+                     else '🟢')) }}
+  loop: "{{ ssl_cert_check_results.results }}"
+  when: not (item.failed | default(false))
+
+- name: Set report timestamp
+  ansible.builtin.set_fact:
+    ssl_cert_check_created_at: >-
+      {{ lookup('pipe',
+         'TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S Beijing time"') }}
+
+- name: Write SSL certificate report
+  ansible.builtin.template:
+    src: ssl_report.md.j2
+    dest: "{{ ssl_cert_check_report_path }}"
+    mode: "0644"
+
+- name: Read generated report for publishing
+  ansible.builtin.slurp:
+    src: "{{ ssl_cert_check_report_path }}"
+  register: ssl_cert_check_report_slurp
+
+- name: Store report body for archive publishing
+  ansible.builtin.set_fact:
+    ssl_cert_check_report_body: >-
+      {{ ssl_cert_check_report_slurp.content | b64decode }}

@@ -1,0 +1,68 @@
+==================== RHEL Chronyd Diagnosis Report ====================
+Generated at: {{ ansible_date_time.iso8601 }}
+Target host: {{ inventory_hostname }}
+
+[Basic Information]
+- OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+- Kernel: {{ ansible_kernel }}
+
+[Package and Service Status]
+- chrony package installed: {{ 'yes' if _chronyd_rca_package_installed | default(false) else 'no' }}
+- systemd active state: {{ _chronyd_rca_svc_status.status.ActiveState | default('unknown') }}
+- systemd enabled state: {{ _chronyd_rca_svc_status.status.UnitFileState | default('unknown') }}
+- chronyd processes:
+{{ _chronyd_rca_ps.stdout | default('No chronyd processes found or ps command unavailable.') }}
+
+[Chrony Time Synchronization Status]
+- chronyc sources:
+{{ _chronyd_rca_sources.stdout | default('No output collected or chronyc not available.') }}
+
+- chronyc tracking:
+{{ _chronyd_rca_tracking.stdout | default('No output collected or chronyc not available.') }}
+
+- chronyc sourcestats:
+{{ _chronyd_rca_sourcestats.stdout | default('No output collected or chronyc not available.') }}
+
+- chronyc activity:
+{{ _chronyd_rca_activity.stdout | default('No output collected or chronyc not available.') }}
+
+[System Time Configuration]
+- timedatectl status:
+{{ _chronyd_rca_timedatectl_status.stdout | default('No output collected or timedatectl not available.') }}
+
+- timedatectl show:
+{{ _chronyd_rca_timedatectl_show.stdout | default('No output collected or timedatectl not available.') }}
+
+[Chrony Configuration and Directories]
+- chrony.conf path: {{ chronyd_rca_conf_path }}
+- chrony.conf exists: {{ _chronyd_rca_conf_stat.stat.exists | default(false) }}
+- chronyd --version:
+{{ (_chronyd_rca_version.stdout | default('') ~ ' ' ~ _chronyd_rca_version.stderr | default('')) | trim }}
+- chronyd configuration check (chronyd -t -f {{ chronyd_rca_conf_path }}):
+  rc={{ _chronyd_rca_conf_check.rc | default('N/A') }}
+  output:
+  {{ (_chronyd_rca_conf_check.stdout | default('') ~ ' ' ~ _chronyd_rca_conf_check.stderr | default('')) | trim }}
+- chrony log directory ({{ chronyd_rca_log_dir }}) mode: {{ _chronyd_rca_log_dir_stat.stat.mode | default('unknown') }}
+- chrony runtime directory ({{ chronyd_rca_run_dir }}) mode: {{ _chronyd_rca_run_dir_stat.stat.mode | default('unknown') }}
+
+[Network Connectivity and Firewall]
+- NTP server: {{ chronyd_rca_ntp_server }}
+- ping result:
+{{ _chronyd_rca_ntp_ping.stdout | default('No ping output collected.') }}
+- firewalld state: {{ _chronyd_rca_firewalld_state.status.ActiveState | default('unknown') }}
+- firewalld services: {{ _chronyd_rca_firewalld_services.stdout | default('') }}
+- firewalld ports: {{ _chronyd_rca_firewalld_ports.stdout | default('') }}
+
+[Recent journalctl Entries for chronyd]
+{{ _chronyd_rca_journal.stdout | default('No journal entries collected.') }}
+
+[Common Troubleshooting Hints]
+- Service not running: If systemd active state is not "active", check service configuration, dependencies and logs.
+- No time sources: If "chronyc sources" shows no usable sources, verify NTP server configuration and network connectivity.
+- Large time offset: If "chronyc tracking" reports large offsets, consider manual synchronization or investigate upstream NTP servers.
+- Configuration errors: Non-zero return code from "chronyd -t" usually indicates syntax or path issues in chrony.conf.
+- Network connectivity: If ping to the NTP server fails, check routing, DNS, and firewall rules.
+- Permissions: Incorrect permissions on {{ chronyd_rca_log_dir }} or {{ chronyd_rca_run_dir }} may prevent chronyd from writing logs or runtime data.
+- Time zone: Incorrect time zone configuration can lead to misleading timestamps in logs and monitoring systems.
+
+===============================================================================
