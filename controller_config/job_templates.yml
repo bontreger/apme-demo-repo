@@ -4,6 +4,7 @@
 # placeholders before applying to a live controller.
 
 controller_templates:
+  # --- DNS ---
   - name: ACL_linux_dns_bind_primary
     description: Deploy BIND primary (authoritative) DNS server
     organization: Default
@@ -37,6 +38,18 @@ controller_templates:
       - acl_machine_credential
     survey_enabled: false
 
+  - name: ACL_linux_dns_sync
+    description: Synchronize DNS configuration files across hosts
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-dns-sync.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  # --- DHCP ---
   - name: ACL_linux_dhcp_server
     description: Deploy and configure DHCPv4/DHCPv6 server
     organization: Default
@@ -59,6 +72,7 @@ controller_templates:
       - acl_machine_credential
     survey_enabled: false
 
+  # --- Database ---
   - name: ACL_linux_mariadb_server
     description: Deploy and configure MariaDB server
     organization: Default
@@ -70,6 +84,18 @@ controller_templates:
       - acl_machine_credential
     survey_enabled: false
 
+  - name: ACL_linux_postgresql_deploy
+    description: Deploy and configure PostgreSQL server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-postgresql-deploy.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  # --- System Configuration ---
   - name: ACL_linux_rhel9_standard_config
     description: RHEL 9 standard configuration bundle
     organization: Default
@@ -81,6 +107,173 @@ controller_templates:
       - acl_machine_credential
     survey_enabled: false
 
+  - name: ACL_linux_selinux_config
+    description: Configure SELinux state (enforcing/permissive/disabled)
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-selinux-config.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_yum_repo_config
+    description: Configure YUM/DNF repositories for RHEL 8/9
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-yum-repo-config.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_firewall_management
+    description: Manage firewalld rules and zones
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-firewall-management.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_nfs_server
+    description: Deploy and configure NFS server with exports
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-nfs-server.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_sshd_troubleshoot
+    description: Diagnose and fix SSHD configuration issues
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-sshd-troubleshoot.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_vnc_config
+    description: Configure TigerVNC server for remote desktop
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-vnc-config.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_kdump_config
+    description: Configure kdump crash dump target and settings
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-kdump-config.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_cve_patching
+    description: Query and apply CVE-based security patches
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-cve-patching.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_networkmanager
+    description: Manage NetworkManager connections (add/modify/delete)
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-networkmanager.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  # --- Inspection and Reporting ---
+  - name: ACL_linux_os_info_report
+    description: Collect OS information and generate system report
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-os-info-report.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_service_inspection
+    description: Automated inspection of Linux services
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-service-inspection.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_filesystem_check
+    description: Filesystem health check with HTML/text report
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-filesystem-check.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_kernel_log_check
+    description: Kernel log error monitoring and reporting
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-kernel-log-check.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_pcp_analysis
+    description: PCP performance data collection and analysis
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-pcp-analysis.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_ssl_cert_check
+    description: Check SSL/TLS certificate expiry dates
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-ssl-cert-check.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  # --- Network Diagnostics ---
   - name: ACL_linux_network_fault_diagnosis
     description: Network latency diagnosis and report generation
     organization: Default
@@ -92,6 +285,107 @@ controller_templates:
       - acl_machine_credential
     survey_enabled: false
 
+  # --- RCA/Diagnosis ---
+  - name: ACL_linux_web_service_rca
+    description: Root cause analysis for httpd/nginx web services
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-web-service-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_chronyd_rca
+    description: Root cause analysis for chronyd/NTP issues
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-chronyd-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_ftp_rca
+    description: Root cause analysis for FTP connectivity issues
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-ftp-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_memory_rca
+    description: Memory utilization or OOM root cause analysis
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-memory-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: true
+
+  - name: ACL_linux_zombie_process_rca
+    description: Detect and diagnose zombie/defunct processes
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-zombie-process-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_disk_io_rca
+    description: Disk I/O pressure diagnosis with iostat/pidstat
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-disk-io-rca.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_systemd_check
+    description: Deep inspection of failed systemd units
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-systemd-check.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_privileged_account_audit
+    description: Audit privileged accounts (UID 0, sudoers, empty passwords)
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-privileged-account-audit.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  - name: ACL_linux_xfs_health_check
+    description: XFS filesystem metadata and health inspection
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/linux-xfs-health-check.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_machine_credential
+    survey_enabled: false
+
+  # --- OpenStack ---
   - name: ACL_linux_openstack_vm_lifecycle
     description: OpenStack VM lifecycle management
     organization: Default
@@ -102,3 +396,59 @@ controller_templates:
     credentials:
       - acl_machine_credential
     survey_enabled: false
+
+  # --- Windows ---
+  - name: ACL_win_service_management
+    description: Start/stop/restart Windows services or set start mode
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/win-service-management.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_windows_credential
+    survey_enabled: true
+
+  - name: ACL_win_iis_deploy
+    description: Install and configure IIS web server
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/win-iis-deploy.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_windows_credential
+    survey_enabled: false
+
+  - name: ACL_win_software_management
+    description: Install or uninstall Windows software packages
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/win-software-management.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_windows_credential
+    survey_enabled: true
+
+  - name: ACL_win_chocolatey
+    description: Manage packages via Chocolatey package manager
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/win-chocolatey.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_windows_credential
+    survey_enabled: true
+
+  - name: ACL_win_patch_management
+    description: Windows Update -- install all, by KB, or generate report
+    organization: Default
+    project: acl-ready-to-use-content
+    inventory: acl_lab_inventory
+    playbook: playbooks/win-patch-management.yml
+    execution_environment: acl-ready-to-use-content-ee
+    credentials:
+      - acl_windows_credential
+    survey_enabled: true

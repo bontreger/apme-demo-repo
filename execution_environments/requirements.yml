@@ -17,7 +17,10 @@ collections:
     version: ">=3.0.0,<4.0.0"
   - name: openstack.cloud
     version: ">=2.0.0,<3.0.0"
+  - name: community.windows
+    version: ">=2.0.0,<3.0.0"
+  - name: chocolatey.chocolatey
+    version: ">=1.5.0,<2.0.0"
   - name: infra.controller_configuration
     version: ">=4.0.0,<5.0.0"
-  # Required for playbooks/dhcp-config/configure_dhcp_client_site.yml only.
   - name: rhel-system-roles.network
