@@ -1,0 +1,199 @@
+---
+- name: Set report directory path
+  ansible.builtin.set_fact:
+    sshd_troubleshoot_report_timestamp: >-
+      {{ ansible_date_time.year ~ ansible_date_time.month ~ ansible_date_time.day ~ '_'
+         ~ ansible_date_time.hour ~ ansible_date_time.minute ~ ansible_date_time.second }}
+
+- name: Build report directory path
+  ansible.builtin.set_fact:
+    sshd_troubleshoot_report_dir: >-
+      {{ sshd_troubleshoot_report_base_dir }}/{{ sshd_troubleshoot_report_prefix }}_{{ sshd_troubleshoot_report_timestamp }}
+
+- name: Validate required paths exist
+  block:
+    - name: Check hosts file path existence
+      ansible.builtin.stat:
+        path: "{{ sshd_troubleshoot_hosts_file_path }}"
+      register: _sshd_hosts_file_stat
+
+    - name: Check SSH host keys directory existence
+      ansible.builtin.stat:
+        path: "{{ sshd_troubleshoot_host_keys_path }}"
+      register: _sshd_keys_dir_stat
+
+    - name: Assert paths for hosts file and SSH host keys are valid
+      ansible.builtin.assert:
+        that:
+          - _sshd_hosts_file_stat.stat.exists
+          - _sshd_keys_dir_stat.stat.exists
+        fail_msg: "Required paths do not exist. Verify sshd_troubleshoot_hosts_file_path and sshd_troubleshoot_host_keys_path."
+        quiet: false
+
+- name: Create report directory
+  ansible.builtin.file:
+    path: "{{ sshd_troubleshoot_report_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Run initial DNS resolution test
+  ansible.builtin.command: "nslookup {{ sshd_troubleshoot_target_hostname }}"
+  register: _sshd_dns_test_before
+  failed_when: false
+  changed_when: false
+
+- name: Ensure hosts file entry for target hostname
+  block:
+    - name: Add DNS entry to hosts file
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_troubleshoot_hosts_file_path }}"
+        line: >-
+          {{ ansible_default_ipv4.address }}
+          {{ sshd_troubleshoot_target_hostname }}
+          {{ sshd_troubleshoot_target_short_name }}
+        state: present
+        backup: true
+  rescue:
+    - name: Warn when hosts file update failed
+      ansible.builtin.debug:
+        msg: >-
+          Failed to update {{ sshd_troubleshoot_hosts_file_path }}.
+          Please check permissions and file integrity.
+
+- name: Run DNS resolution test after remediation
+  ansible.builtin.command: "nslookup {{ sshd_troubleshoot_target_hostname }}"
+  register: _sshd_dns_test_after
+  failed_when: false
+  changed_when: false
+
+- name: Collect service facts
+  ansible.builtin.service_facts:
+
+- name: Ensure SSH service is running and enabled
+  ansible.builtin.service:
+    name: "{{ sshd_troubleshoot_service_name }}"
+    state: started
+    enabled: true
+
+- name: Verify SSH listening port
+  ansible.builtin.command: "ss -tlnp"
+  register: _sshd_ports
+  failed_when: false
+  changed_when: false
+
+- name: Collect SSH host key fingerprints (SHA256)
+  ansible.builtin.shell: |
+    set -o pipefail
+    for key in {{ sshd_troubleshoot_host_keys_path }}/ssh_host_*.pub; do
+      if [ -f "$key" ]; then
+        key_type=$(basename "$key" | sed 's/ssh_host_//;s/_key\.pub//')
+        fingerprint=$(ssh-keygen -lf "$key")
+        echo "$key_type: $fingerprint"
+      fi
+    done
+  register: _sshd_fingerprints
+  changed_when: false
+
+- name: Collect SSH host key fingerprints (MD5)
+  ansible.builtin.shell: |
+    set -o pipefail
+    for key in {{ sshd_troubleshoot_host_keys_path }}/ssh_host_*.pub; do
+      if [ -f "$key" ]; then
+        key_type=$(basename "$key" | sed 's/ssh_host_//;s/_key\.pub//')
+        md5_fp=$(ssh-keygen -lf "$key" -E md5)
+        echo "$key_type: $md5_fp"
+      fi
+    done
+  register: _sshd_md5_fingerprints
+  changed_when: false
+
+- name: Inspect network interfaces status
+  ansible.builtin.shell: set -o pipefail && ip addr show | grep -E "(inet.*global|link.*UP)"
+  register: _sshd_network_interfaces
+  changed_when: false
+
+- name: Inspect firewall port configuration
+  ansible.builtin.command: firewall-cmd --list-ports
+  register: _sshd_firewall_ports
+  failed_when: false
+  changed_when: false
+  when:
+    - ansible_facts.services["firewalld.service"] is defined
+    - ansible_facts.services["firewalld.service"].state == "running"
+
+- name: Generate DNS diagnostics report
+  ansible.builtin.copy:
+    content: |
+      === DNS Diagnostics Report ===
+      Time: {{ ansible_date_time.iso8601 }}
+      Host: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})
+
+      DNS test before remediation:
+      {{ _sshd_dns_test_before.stdout if _sshd_dns_test_before.rc == 0 else "DNS resolution failed" }}
+
+      DNS test after remediation:
+      {{ _sshd_dns_test_after.stdout if _sshd_dns_test_after.rc == 0 else "DNS resolution failed" }}
+    dest: "{{ sshd_troubleshoot_report_dir }}/dns_diagnosis.txt"
+    mode: "0644"
+
+- name: Generate SSH service status report
+  ansible.builtin.copy:
+    content: |
+      === SSH Service Status Report ===
+      Time: {{ ansible_date_time.iso8601 }}
+
+      SSH host key fingerprints (SHA256):
+      {{ _sshd_fingerprints.stdout }}
+
+      SSH host key fingerprints (MD5):
+      {{ _sshd_md5_fingerprints.stdout }}
+    dest: "{{ sshd_troubleshoot_report_dir }}/ssh_status.txt"
+    mode: "0644"
+
+- name: Generate client-side remediation instructions
+  ansible.builtin.copy:
+    content: |
+      === Client-Side SSH Remediation Guide ===
+      Time: {{ ansible_date_time.iso8601 }}
+      Server: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})
+
+      Steps:
+      1. Clear local SSH host key cache:
+         ssh-keygen -R {{ sshd_troubleshoot_target_hostname }}
+      2. Connect using IP:
+         ssh {{ ansible_user | default('root') }}@{{ ansible_default_ipv4.address }}
+      3. Verify SSH fingerprints match:
+         {{ _sshd_fingerprints.stdout }}
+      4. Reconnect using FQDN:
+         ssh {{ ansible_user | default('root') }}@{{ sshd_troubleshoot_target_hostname }}
+    dest: "{{ sshd_troubleshoot_report_dir }}/client_fix_instructions.txt"
+    mode: "0644"
+
+- name: Create SSH network monitoring script
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      LOGFILE="ssh_network_monitor.log"
+      while true; do
+        echo "$(date): Starting health checks..." >> "$LOGFILE"
+        if nslookup {{ sshd_troubleshoot_target_hostname }} >/dev/null 2>&1; then
+          echo "$(date): DNS resolution OK" >> "$LOGFILE"
+        else
+          echo "$(date): DNS resolution FAILED" >> "$LOGFILE"
+        fi
+        if systemctl is-active {{ sshd_troubleshoot_service_name }} >/dev/null 2>&1; then
+          echo "$(date): SSH service is active" >> "$LOGFILE"
+        else
+          echo "$(date): SSH service is NOT active" >> "$LOGFILE"
+        fi
+        sleep {{ sshd_troubleshoot_monitor_interval_seconds }}
+      done
+    dest: "{{ sshd_troubleshoot_report_dir }}/{{ sshd_troubleshoot_monitor_script_name }}"
+    mode: "0755"
+
+- name: Display remediation summary
+  ansible.builtin.debug:
+    msg:
+      - "SSH troubleshooting completed."
+      - "DNS resolution: {{ 'OK' if _sshd_dns_test_after.rc == 0 else 'Needs investigation' }}"
+      - "Report directory: {{ sshd_troubleshoot_report_dir }}"

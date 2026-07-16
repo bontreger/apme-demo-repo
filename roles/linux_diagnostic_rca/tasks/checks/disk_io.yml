@@ -1,0 +1,91 @@
+---
+- name: Check iostat command availability
+  ansible.builtin.command: which iostat
+  register: linux_diagnostic_rca_iostat_check
+  changed_when: false
+  failed_when: false
+
+- name: Check pidstat command availability
+  ansible.builtin.command: which pidstat
+  register: linux_diagnostic_rca_pidstat_check
+  changed_when: false
+  failed_when: false
+
+- name: Collect disk IO statistics via iostat
+  ansible.builtin.command: iostat -xz 1 3
+  register: linux_diagnostic_rca_iostat_result
+  changed_when: false
+  failed_when: false
+  when: linux_diagnostic_rca_iostat_check.rc == 0
+
+- name: Initialize empty iostat result when unavailable
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_iostat_result:
+      stdout: ""
+      rc: 1
+  when: linux_diagnostic_rca_iostat_check.rc != 0
+
+- name: Identify top IO-consuming processes via pidstat
+  ansible.builtin.command: pidstat -d 1 1
+  register: linux_diagnostic_rca_pidstat_result
+  changed_when: false
+  failed_when: false
+  when: linux_diagnostic_rca_pidstat_check.rc == 0
+
+- name: Initialize empty pidstat result when unavailable
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_pidstat_result:
+      stdout: ""
+      rc: 1
+  when: linux_diagnostic_rca_pidstat_check.rc != 0
+
+- name: Detect processes in disk sleep state
+  ansible.builtin.shell: >-
+    set -o pipefail && ps aux | awk '$8 == "D" {print $0}'
+  register: linux_diagnostic_rca_d_state_procs
+  changed_when: false
+  failed_when: false
+
+- name: Count D-state processes
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_d_state_count: >-
+      {{ linux_diagnostic_rca_d_state_procs.stdout_lines
+         | default([]) | length }}
+
+- name: Build investigation report
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_investigation_report:
+      hostname: "{{ ansible_hostname }}"
+      os_distribution: "{{ ansible_distribution }}"
+      os_version: "{{ ansible_distribution_version }}"
+      investigation_timestamp: "{{ ansible_date_time.iso8601 }}"
+      sysstat_available: >-
+        {{ 'Yes' if (linux_diagnostic_rca_iostat_check.rc == 0) else 'No' }}
+      io_statistics:
+        available: >-
+          {{ 'Yes'
+             if (linux_diagnostic_rca_iostat_result.rc | default(1) == 0)
+             else 'No' }}
+        data: >-
+          {{ linux_diagnostic_rca_iostat_result.stdout | default('') }}
+      high_io_processes:
+        available: >-
+          {{ 'Yes'
+             if (linux_diagnostic_rca_pidstat_result.rc | default(1) == 0)
+             else 'No' }}
+        data: >-
+          {{ linux_diagnostic_rca_pidstat_result.stdout | default('') }}
+      d_state_processes:
+        count: "{{ linux_diagnostic_rca_d_state_count | int }}"
+        data: >-
+          {{ linux_diagnostic_rca_d_state_procs.stdout | default('') }}
+        processes: >-
+          {{ linux_diagnostic_rca_d_state_procs.stdout_lines | default([]) }}
+
+- name: Build plaintext summary
+  ansible.builtin.set_fact:
+    linux_diagnostic_rca_report_text: |
+      Disk IO Pressure Investigation - {{ inventory_hostname }}
+      Generated: {{ ansible_date_time.iso8601 }}
+      Processes in D State: {{ linux_diagnostic_rca_d_state_count | int }}
+      JSON Report: {{ linux_diagnostic_rca_report_json_path }}

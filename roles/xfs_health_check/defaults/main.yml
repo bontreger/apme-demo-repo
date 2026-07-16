@@ -1,0 +1,8 @@
+---
+xfs_health_check_namespace: xfs_check
+xfs_health_check_local_dir: >-
+  /var/lib/ansible-reports/{{ xfs_health_check_namespace }}
+xfs_health_check_job_id: >-
+  {{ awx_job_id | default(ansible_date_time.epoch) }}
+xfs_health_check_report_text_path: >-
+  {{ xfs_health_check_local_dir }}/{{ inventory_hostname }}-{{ xfs_health_check_job_id }}.txt

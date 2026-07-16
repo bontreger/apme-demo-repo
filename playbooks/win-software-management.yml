@@ -1,0 +1,6 @@
+---
+- name: Manage Windows software packages
+  hosts: "{{ survey_target_hosts | default('all') }}"
+  gather_facts: false
+  roles:
+    - role: win_software_management

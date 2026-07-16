@@ -1,0 +1,8 @@
+---
+# Traffic capture configuration
+traffic_capture:
+  enabled: true
+  duration: 30
+  packet_count: 1000
+  output_dir: "/var/tmp"
+  filename_prefix: "packet_capture"

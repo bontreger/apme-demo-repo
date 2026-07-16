@@ -1,0 +1,33 @@
+---
+- name: Configure YUM repositories for BaseOS and AppStream
+  ansible.builtin.yum_repository:
+    file: "{{ yum_repo_config_repo_name }}"
+    name: "{{ item.name }}"
+    baseurl: "{{ item.baseurl }}"
+    description: "{{ item.description }}"
+    enabled: true
+    gpgcheck: false
+  loop:
+    - name: "remote-repo-baseos-{{ yum_repo_config_release }}"
+      baseurl: "{{ yum_repo_config_protocol }}://{{ hostvars[groups[yum_repo_config_server_group][0]]['ansible_default_ipv4']['address'] }}/{{ yum_repo_config_relative_path }}/BaseOS"
+      description: "Remote Repository BaseOS {{ yum_repo_config_release }}"
+    - name: "remote-repo-appstream-{{ yum_repo_config_release }}"
+      baseurl: "{{ yum_repo_config_protocol }}://{{ hostvars[groups[yum_repo_config_server_group][0]]['ansible_default_ipv4']['address'] }}/{{ yum_repo_config_relative_path }}/AppStream"
+      description: "Remote Repository AppStream {{ yum_repo_config_release }}"
+  tags: [repo, always]
+
+- name: Clean YUM cache
+  ansible.builtin.command:
+    cmd: yum clean all
+  register: _yum_repo_config_clean
+  changed_when: _yum_repo_config_clean.rc == 0
+  failed_when: _yum_repo_config_clean.rc != 0
+  tags: [verification, always]
+
+- name: Verify repository accessibility
+  ansible.builtin.dnf:
+    list: enabled
+  register: _yum_repo_config_verify
+  changed_when: false
+  failed_when: _yum_repo_config_verify.rc != 0
+  tags: [verification, always]

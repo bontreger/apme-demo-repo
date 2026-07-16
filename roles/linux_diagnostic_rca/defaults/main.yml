@@ -1,0 +1,26 @@
+---
+linux_diagnostic_rca_check_type: ""
+
+linux_diagnostic_rca_namespace_map:
+  zombie_process: zombie_process_rca
+  disk_io: disk_io_pressure_rca
+  systemd_unit: systemd_unit_deep_check
+  privileged_account: privileged_account_audit
+
+linux_diagnostic_rca_report_namespace: >-
+  {{ linux_diagnostic_rca_namespace_map[linux_diagnostic_rca_check_type]
+     | default(linux_diagnostic_rca_check_type) }}
+linux_diagnostic_rca_report_local_dir: >-
+  /var/lib/ansible-reports/{{ linux_diagnostic_rca_report_namespace }}
+linux_diagnostic_rca_report_job_id: >-
+  {{ awx_job_id | default(ansible_date_time.epoch) }}
+linux_diagnostic_rca_report_text_path: >-
+  {{ linux_diagnostic_rca_report_local_dir }}/{{ inventory_hostname }}-{{ linux_diagnostic_rca_report_job_id }}.txt
+linux_diagnostic_rca_report_json_path: >-
+  {{ linux_diagnostic_rca_report_local_dir }}/{{ inventory_hostname }}-{{ linux_diagnostic_rca_report_job_id }}.json
+
+# systemd_unit check: number of journal lines per failed unit
+linux_diagnostic_rca_log_lines: 20
+
+# privileged_account check: abort the play on critical findings
+linux_diagnostic_rca_fail_on_critical: false

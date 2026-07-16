@@ -1,0 +1,325 @@
+---
+- name: Validate kdump_config_dump_target parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_dump_target is defined
+      - kdump_config_dump_target in ["Local", "NFS", "SSH", "Raw"]
+    fail_msg: "Invalid kdump_config_dump_target. Must be one of: Local, NFS, SSH, Raw"
+    success_msg: "Dump target validated: {{ kdump_config_dump_target }}"
+  failed_when: false
+
+- name: Validate kdump_config_local_path parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_local_path is defined
+      - kdump_config_local_path | length > 0
+      - kdump_config_local_path | regex_search('^/')
+    fail_msg: "Invalid kdump_config_local_path. Must be an absolute path."
+    success_msg: "Local path validated: {{ kdump_config_local_path }}"
+  failed_when: false
+  when: kdump_config_dump_target == "Local"
+
+- name: Validate kdump_config_nfs_server parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_nfs_server is defined
+      - kdump_config_nfs_server | length > 0
+      - kdump_config_nfs_server | regex_search('^[^:]+:/')
+    fail_msg: "Invalid kdump_config_nfs_server. Must be SERVER:/PATH format."
+    success_msg: "NFS server validated: {{ kdump_config_nfs_server }}"
+  failed_when: false
+  when: kdump_config_dump_target == "NFS"
+
+- name: Validate kdump_config_ssh_server parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_ssh_server is defined
+      - kdump_config_ssh_server | length > 0
+      - kdump_config_ssh_user is defined
+      - kdump_config_ssh_user | length > 0
+    fail_msg: "Invalid SSH target. Both kdump_config_ssh_server and kdump_config_ssh_user required."
+    success_msg: "SSH target validated: {{ kdump_config_ssh_user }}@{{ kdump_config_ssh_server }}"
+  failed_when: false
+  when: kdump_config_dump_target == "SSH"
+
+- name: Validate kdump_config_raw_device parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_raw_device is defined
+      - kdump_config_raw_device | length > 0
+      - kdump_config_raw_device | regex_search('^/dev/')
+    fail_msg: "Invalid kdump_config_raw_device. Must start with /dev/"
+    success_msg: "Raw device validated: {{ kdump_config_raw_device }}"
+  failed_when: false
+  when: kdump_config_dump_target == "Raw"
+
+- name: Validate kdump_config_dump_level parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_dump_level is defined
+      - kdump_config_dump_level | int >= 0
+      - kdump_config_dump_level | int <= 31
+    fail_msg: "Invalid kdump_config_dump_level. Must be 0-31."
+    success_msg: "Dump level validated: {{ kdump_config_dump_level }}"
+  failed_when: false
+
+- name: Validate kdump_config_failure_action parameter
+  ansible.builtin.assert:
+    that:
+      - kdump_config_failure_action is defined
+      - >-
+        kdump_config_failure_action in
+        ["reboot", "halt", "poweroff", "shell", "dump_to_rootfs"]
+    fail_msg: >-
+      Invalid kdump_config_failure_action.
+      Must be one of: reboot, halt, poweroff, shell, dump_to_rootfs
+    success_msg: "Failure action validated: {{ kdump_config_failure_action }}"
+  failed_when: false
+
+- name: Install kexec-tools package
+  block:
+    - name: Ensure kexec-tools is present
+      ansible.builtin.package:
+        name: kexec-tools
+        state: present
+      register: kdump_config_kexec_result
+      failed_when: false
+
+    - name: Display kexec-tools installation status
+      ansible.builtin.debug:
+        msg: >-
+          kexec-tools
+          {{ 'installed successfully' if not kdump_config_kexec_result.failed
+             else 'installation failed' }}
+      when: kdump_config_kexec_result is defined
+  rescue:
+    - name: Handle kexec-tools installation failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to install kexec-tools. Check repository configuration."
+
+- name: Unmask kdump service
+  block:
+    - name: Ensure kdump service is unmasked
+      ansible.builtin.systemd:
+        name: kdump
+        masked: false
+      register: kdump_config_unmask_result
+      failed_when: false
+
+    - name: Display unmask status
+      ansible.builtin.debug:
+        msg: "Kdump service {{ 'unmasked' if not kdump_config_unmask_result.failed else 'unmask failed' }}"
+      when: kdump_config_unmask_result is defined
+  rescue:
+    - name: Handle kdump unmask failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to unmask kdump service."
+
+- name: Reset crashkernel memory (RHEL 9+)
+  block:
+    - name: Reset crashkernel using kdumpctl
+      ansible.builtin.command: kdumpctl reset-crashkernel --kernel=ALL
+      register: kdump_config_crashkernel_result
+      failed_when: false
+      changed_when: true
+      when: ansible_distribution_major_version | int >= 9
+
+    - name: Display crashkernel reset status
+      ansible.builtin.debug:
+        msg: >-
+          Crashkernel reset
+          {{ 'completed' if not kdump_config_crashkernel_result.failed else 'failed' }}
+      when:
+        - kdump_config_crashkernel_result is defined
+        - ansible_distribution_major_version | int >= 9
+  rescue:
+    - name: Handle crashkernel reset failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to reset crashkernel. Manual configuration may be required."
+      when: ansible_distribution_major_version | int >= 9
+
+- name: Generate and apply kdump.conf
+  block:
+    - name: Build kdump.conf content
+      ansible.builtin.set_fact:
+        kdump_config_conf_content: |
+          # Managed by Ansible
+          {% if kdump_config_dump_target == 'Local' %}
+          path {{ kdump_config_local_path }}
+          {% elif kdump_config_dump_target == 'Raw' %}
+          raw {{ kdump_config_raw_device }}
+          {% elif kdump_config_dump_target == 'NFS' %}
+          nfs {{ kdump_config_nfs_server }}
+          {% elif kdump_config_dump_target == 'SSH' %}
+          ssh {{ kdump_config_ssh_user }}@{{ kdump_config_ssh_server }}
+          {% endif %}
+          core_collector makedumpfile -c --message-level 7 -d {{ kdump_config_dump_level }}
+          default {{ kdump_config_failure_action }}
+      check_mode: false
+      failed_when: false
+
+    - name: Write configuration to /etc/kdump.conf
+      ansible.builtin.copy:
+        content: "{{ kdump_config_conf_content }}"
+        dest: /etc/kdump.conf
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+      register: kdump_config_write_result
+      failed_when: false
+      when: kdump_config_conf_content is defined
+
+    - name: Display kdump.conf write status
+      ansible.builtin.debug:
+        msg: >-
+          Kdump configuration file
+          {{ 'written successfully'
+             if (kdump_config_write_result is defined and not kdump_config_write_result.failed)
+             else 'write failed' }}
+      when: kdump_config_write_result is defined
+
+    - name: Verify kdump.conf exists
+      ansible.builtin.stat:
+        path: /etc/kdump.conf
+      register: kdump_config_conf_stat
+      failed_when: false
+  rescue:
+    - name: Handle kdump.conf generation failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to generate or write kdump.conf."
+
+- name: Propagate SSH keys for SSH dump target
+  block:
+    - name: Run kdumpctl propagate for SSH keys
+      ansible.builtin.command: kdumpctl propagate
+      register: kdump_config_propagate_result
+      failed_when: false
+      changed_when: true
+      when: kdump_config_dump_target == "SSH"
+
+    - name: Display SSH key propagation status
+      ansible.builtin.debug:
+        msg: >-
+          SSH key propagation
+          {{ 'completed' if not kdump_config_propagate_result.failed else 'failed' }}
+      when:
+        - kdump_config_propagate_result is defined
+        - kdump_config_dump_target == "SSH"
+  rescue:
+    - name: Handle SSH key propagation failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to propagate SSH keys. SSH dump target may not work."
+      when: kdump_config_dump_target == "SSH"
+
+- name: Configure kernel panic triggers
+  block:
+    - name: Build sysctl configuration list
+      ansible.builtin.set_fact:
+        kdump_config_sysctl_list: >-
+          {{ kdump_config_sysctl_list | default([]) + [item] }}
+      loop:
+        - key: "kernel.sysrq"
+          value: "1"
+          when: "{{ kdump_config_panic_triggers.system_hang | default(false) }}"
+        - key: "kernel.unknown_nmi_panic"
+          value: "1"
+          when: >-
+            {{ (kdump_config_panic_triggers.system_hang | default(false))
+               and ansible_architecture == 'x86_64' }}
+        - key: "kernel.panic_on_io_nmi"
+          value: "1"
+          when: >-
+            {{ (kdump_config_panic_triggers.system_hang | default(false))
+               and ansible_architecture == 'x86_64' }}
+        - key: "kernel.panic_on_unrecovered_nmi"
+          value: "1"
+          when: >-
+            {{ (kdump_config_panic_triggers.system_hang | default(false))
+               and ansible_architecture == 'x86_64' }}
+        - key: "vm.panic_on_oom"
+          value: "1"
+          when: "{{ kdump_config_panic_triggers.oom_killer | default(false) }}"
+        - key: "kernel.softlockup_panic"
+          value: "1"
+          when: "{{ kdump_config_panic_triggers.soft_lockup | default(false) }}"
+        - key: "kernel.hung_task_panic"
+          value: "1"
+          when: "{{ kdump_config_panic_triggers.process_d_state | default(false) }}"
+      when: item.when | default(false)
+      failed_when: false
+
+    - name: Apply sysctl parameters for panic triggers
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/90-kdump-panic.conf
+        reload: true
+        state: present
+      loop: "{{ kdump_config_sysctl_list | default([]) }}"
+      register: kdump_config_sysctl_result
+      failed_when: false
+
+    - name: Display sysctl configuration status
+      ansible.builtin.debug:
+        msg: >-
+          Sysctl panic triggers
+          {{ 'configured' if not kdump_config_sysctl_result.failed
+             else 'configuration failed' }}
+      when: kdump_config_sysctl_result is defined
+  rescue:
+    - name: Handle sysctl configuration failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to configure sysctl panic triggers."
+
+- name: Restart and enable kdump service
+  block:
+    - name: Restart kdump service
+      ansible.builtin.systemd:
+        name: kdump
+        state: restarted
+        enabled: true
+        daemon_reload: true
+      register: kdump_config_service_result
+      failed_when: false
+
+    - name: Display kdump service status
+      ansible.builtin.debug:
+        msg: >-
+          Kdump service
+          {{ 'restarted and enabled' if not kdump_config_service_result.failed
+             else 'failed to restart' }}
+      when: kdump_config_service_result is defined
+
+    - name: Verify kdump service status
+      ansible.builtin.systemd:
+        name: kdump
+      register: kdump_config_service_status
+      failed_when: false
+
+    - name: Display kdump service verification
+      ansible.builtin.debug:
+        msg:
+          - "Kdump ActiveState: {{ kdump_config_service_status.status.ActiveState | default('unknown') }}"
+          - "Kdump UnitFileState: {{ kdump_config_service_status.status.UnitFileState | default('unknown') }}"
+      when: kdump_config_service_status is defined
+  rescue:
+    - name: Handle kdump service management failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to restart kdump service. Check status manually."
+
+- name: Display kdump configuration summary
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "Kdump Service Configuration Completed"
+      - "=========================================="
+      - "Dump Target: {{ kdump_config_dump_target }}"
+      - "{% if kdump_config_dump_target == 'Local' %}Local Path: {{ kdump_config_local_path }}{% endif %}"
+      - "{% if kdump_config_dump_target == 'NFS' %}NFS Server: {{ kdump_config_nfs_server }}{% endif %}"
+      - "{% if kdump_config_dump_target == 'SSH' %}SSH Server: {{ kdump_config_ssh_user }}@{{ kdump_config_ssh_server }}{% endif %}"
+      - "{% if kdump_config_dump_target == 'Raw' %}Raw Device: {{ kdump_config_raw_device }}{% endif %}"
+      - "Dump Level: {{ kdump_config_dump_level }}"
+      - "Failure Action: {{ kdump_config_failure_action }}"
+      - "=========================================="
+  tags: [always]

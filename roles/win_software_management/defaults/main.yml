@@ -1,0 +1,11 @@
+---
+win_software_management_state: present
+win_software_management_packages: []
+# win_software_management_packages:
+#   - name: 7-Zip
+#     path: https://www.7-zip.org/a/7z2301-x64.msi
+#     product_id: "{23170F69-40C1-2702-2301-000001000000}"
+#   - name: Git
+#     path: C:\Temp\Git-Installer.exe
+#     product_id: "Git_is_installed"
+#     arguments: /VERYSILENT /NORESTART

@@ -1,0 +1,144 @@
+---
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ xfs_health_check_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Initialize report file with header
+  ansible.builtin.copy:
+    content: |
+      XFS Health Inspection Report
+      ==========================================
+      Generated on: {{ ansible_date_time.iso8601 }}
+      Host: {{ ansible_hostname }}
+      OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+      ==========================================
+    dest: "{{ xfs_health_check_report_text_path }}"
+    mode: "0644"
+
+- name: Collect XFS filesystem mount points
+  ansible.builtin.set_fact:
+    xfs_health_check_mounts: >-
+      {{ ansible_mounts | selectattr('fstype', 'equalto', 'xfs') | list }}
+
+- name: Check if xfs_db command exists
+  ansible.builtin.command: which xfs_db
+  register: xfs_health_check_xfs_db_avail
+  changed_when: false
+  failed_when: false
+
+- name: Query kernel log for XFS errors
+  ansible.builtin.shell: >-
+    set -o pipefail && dmesg | grep -i 'XFS' | tail -n 20
+  register: xfs_health_check_dmesg
+  changed_when: false
+  failed_when: false
+
+- name: Append kernel log section to report
+  ansible.builtin.lineinfile:
+    path: "{{ xfs_health_check_report_text_path }}"
+    line: |
+      ==========================================
+      Kernel Log Analysis (dmesg - Last 20 XFS entries)
+      ==========================================
+      {{ xfs_health_check_dmesg.stdout
+         if (xfs_health_check_dmesg.stdout | default('') | length > 0)
+         else 'No XFS errors found in dmesg.' }}
+    insertafter: EOF
+  failed_when: false
+
+- name: Run read-only metadata check via xfs_db
+  ansible.builtin.command: "xfs_db -c 'check' -r {{ item.device }}"
+  loop: "{{ xfs_health_check_mounts }}"
+  register: xfs_health_check_db_results
+  changed_when: false
+  failed_when: false
+  when:
+    - xfs_health_check_mounts | length > 0
+    - xfs_health_check_xfs_db_avail.rc == 0
+
+- name: Collect disk space and inode usage for XFS filesystems
+  ansible.builtin.shell: >-
+    df -h {{ item.mount }} && df -i {{ item.mount }}
+  loop: "{{ xfs_health_check_mounts }}"
+  register: xfs_health_check_usage
+  changed_when: false
+  failed_when: false
+  when: xfs_health_check_mounts | length > 0
+
+- name: Append per-filesystem details to report (with xfs_db)
+  ansible.builtin.lineinfile:
+    path: "{{ xfs_health_check_report_text_path }}"
+    line: |
+      ==========================================
+      Filesystem: {{ item.item.device }}
+      Mount Point: {{ item.item.mount }}
+      ==========================================
+      --- Metadata Consistency Check (xfs_db) ---
+      {{ item.stdout
+         if (item.stdout | default('') | length > 0)
+         else 'Metadata check passed or not supported in live mode.' }}
+      --- Storage and Inode Usage ---
+      {{ xfs_health_check_usage.results[xfs_health_check_idx].stdout
+         | default('Usage information not available') }}
+    insertafter: EOF
+  loop: "{{ xfs_health_check_db_results.results | default([]) }}"
+  loop_control:
+    index_var: xfs_health_check_idx
+  when:
+    - xfs_health_check_db_results is defined
+    - xfs_health_check_db_results.results | default([]) | length > 0
+  failed_when: false
+
+- name: Append per-filesystem details to report (without xfs_db)
+  ansible.builtin.lineinfile:
+    path: "{{ xfs_health_check_report_text_path }}"
+    line: |
+      ==========================================
+      Filesystem: {{ item.device }}
+      Mount Point: {{ item.mount }}
+      ==========================================
+      --- Metadata Consistency Check (xfs_db) ---
+      Skipped: xfs_db not available.
+      --- Storage and Inode Usage ---
+      {{ xfs_health_check_usage.results[xfs_health_check_idx].stdout
+         | default('Usage information not available') }}
+    insertafter: EOF
+  loop: "{{ xfs_health_check_mounts }}"
+  loop_control:
+    index_var: xfs_health_check_idx
+  when:
+    - xfs_health_check_db_results is not defined
+      or xfs_health_check_db_results.results | default([]) | length == 0
+    - xfs_health_check_mounts | length > 0
+  failed_when: false
+
+- name: Append report footer
+  ansible.builtin.lineinfile:
+    path: "{{ xfs_health_check_report_text_path }}"
+    line: |
+      ==========================================
+      End of Report
+      ==========================================
+    insertafter: EOF
+  failed_when: false
+
+- name: Read plaintext report for job output
+  ansible.builtin.command: cat "{{ xfs_health_check_report_text_path }}"
+  register: xfs_health_check_summary_output
+  become: false
+  changed_when: false
+
+- name: Output plaintext report for operators
+  ansible.builtin.debug:
+    msg: "{{ xfs_health_check_summary_output.stdout_lines }}"
+  become: false
+
+- name: Remember report publishing settings for publish play
+  ansible.builtin.set_fact:
+    report_source_hosts: "{{ ansible_play_hosts_all }}"
+    report_publish_enabled: "{{ report_publish_enabled }}"
+  run_once: true
+  delegate_to: localhost
+  delegate_facts: true

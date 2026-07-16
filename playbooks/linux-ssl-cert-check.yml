@@ -1,0 +1,72 @@
+---
+- name: SSL certificate expiry check and report
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - ../inventory/group_vars/all/reporting.yml
+  pre_tasks:
+    - name: Validate OS compatibility
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system."
+      tags: [always]
+  roles:
+    - role: ssl_cert_check
+
+- name: Publish SSL certificate report to archive host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../inventory/group_vars/all/reporting.yml
+  vars:
+    ssl_cert_check_namespace: ssl_expiry
+    ssl_cert_check_publish_dest_dir: >-
+      {{ report_publish_web_root
+         | default('/var/www/ansible-reports') }}/{{ ssl_cert_check_namespace }}/{{ hostvars['localhost'].ssl_cert_check_job_id
+         | default(ansible_date_time.epoch) }}
+  tasks:
+    - name: Register report archive host
+      ansible.builtin.add_host:
+        name: "{{ report_archive_host }}"
+        ansible_host: "{{ report_archive_host }}"
+      when:
+        - report_publish_enabled | bool
+        - report_archive_host | default('') | length > 0
+
+    - name: Ensure aggregated report directory exists on archive
+      ansible.builtin.file:
+        path: "{{ ssl_cert_check_publish_dest_dir }}/aggregated"
+        state: directory
+        mode: "0755"
+      delegate_to: "{{ report_archive_host }}"
+      become: true
+      when: report_publish_enabled | bool
+
+    - name: Write SSL report to archive web root
+      ansible.builtin.copy:
+        content: "{{ hostvars['localhost'].ssl_cert_check_report_body }}"
+        dest: >-
+          {{ ssl_cert_check_publish_dest_dir }}/aggregated/ssl_report.md
+        mode: "0644"
+      delegate_to: "{{ report_archive_host }}"
+      become: true
+      when:
+        - report_publish_enabled | bool
+        - hostvars['localhost'].ssl_cert_check_report_body is defined
+
+    - name: Display SSL report summary in job output
+      ansible.builtin.debug:
+        msg: "{{ hostvars['localhost'].ssl_cert_check_report_body.splitlines() }}"
+      when: hostvars['localhost'].ssl_cert_check_report_body is defined
+
+    - name: Publish report index on archive host
+      ansible.builtin.include_role:
+        name: report_publish
+        apply:
+          delegate_to: "{{ report_archive_host }}"
+          become: true
+      when: report_publish_enabled | bool

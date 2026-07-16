@@ -1,0 +1,33 @@
+---
+filesystem_check_exclude_fs_types:
+  - tmpfs
+  - devtmpfs
+  - iso9660
+  - squashfs
+  - overlay
+  - nfs
+  - cifs
+  - sysfs
+  - proc
+  - devfs
+  - autofs
+
+filesystem_check_exclude_mount_points:
+  - /
+
+# -----------------------------------------------------------------------------
+# Report generation variables (repo-wide standard / Set 1)
+# -----------------------------------------------------------------------------
+# Intentionally unprefixed — see docs/reporting-standard.md.
+# generate_html and report_publish_enabled: inventory/group_vars/all/reporting.yml
+report_namespace: filesystem_check  # noqa: var-naming[no-role-prefix]
+report_local_dir: "/var/lib/ansible-reports/{{ report_namespace }}"  # noqa: var-naming[no-role-prefix]
+report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"  # noqa: var-naming[no-role-prefix]
+report_text_path: >-  # noqa: var-naming[no-role-prefix]
+  {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt
+report_html_path: >-  # noqa: var-naming[no-role-prefix]
+  {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.html
+
+# Deprecated aliases used by validation tasks in this role.
+filesystem_check_report_base_path: "{{ report_local_dir }}"
+filesystem_check_collection_dest_path: ""

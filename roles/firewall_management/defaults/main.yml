@@ -1,0 +1,6 @@
+---
+firewall_management_package_name: firewalld
+firewall_management_service_name: firewalld
+
+# Accepts: 'start', 'stop', 'check' (default: 'check' for safety)
+firewall_management_action: "check"

@@ -1,0 +1,48 @@
+---
+- name: Ensure IIS Web Server is installed
+  ansible.windows.win_feature:
+    name: Web-Server
+    state: present
+    include_management_tools: true
+
+- name: Open firewall for HTTP (port 80)
+  community.windows.win_firewall_rule:
+    name: IIS-HTTP-Inbound
+    localport: 80
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: true
+  when: win_iis_deploy_firewall_http
+
+- name: Open firewall for HTTPS (port 443)
+  community.windows.win_firewall_rule:
+    name: IIS-HTTPS-Inbound
+    localport: 443
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: true
+  when: win_iis_deploy_firewall_https
+
+- name: Ensure IIS service is started and set to automatic
+  ansible.windows.win_service:
+    name: W3SVC
+    state: started
+    start_mode: auto
+
+- name: Create index page
+  ansible.windows.win_copy:
+    content: "{{ win_iis_deploy_index_content }}"
+    dest: '{{ win_iis_deploy_webroot }}\index.html'
+
+- name: Verify IIS is responding
+  ansible.windows.win_uri:
+    url: "http://{{ ansible_host }}/"
+  register: win_iis_deploy_http_check
+
+- name: Display IIS status
+  ansible.builtin.debug:
+    msg: "IIS responding with status {{ win_iis_deploy_http_check.status_code }}"

@@ -1,0 +1,6 @@
+---
+- name: Manage Windows patches and updates
+  hosts: "{{ survey_target_hosts | default('all') }}"
+  gather_facts: true
+  roles:
+    - role: win_patch_management

@@ -1,0 +1,48 @@
+---
+- name: FTP service fault diagnosis
+  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../inventory/group_vars/all/reporting.yml
+
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        quiet: true
+      tags: [always]
+
+  roles:
+    - role: ftp_rca
+
+  post_tasks:
+    - name: Read plaintext report for job output
+      ansible.builtin.command: cat "{{ ftp_rca_report_text_path }}"
+      register: _ftp_rca_report_output
+      become: false
+      changed_when: false
+
+    - name: Output plaintext report for operators
+      ansible.builtin.debug:
+        msg: "{{ _ftp_rca_report_output.stdout_lines }}"
+      become: false
+
+    - name: Remember report publishing settings for Play 2
+      ansible.builtin.set_fact:
+        report_source_hosts: "{{ ansible_play_hosts_all }}"
+        report_publish_enabled: "{{ report_publish_enabled }}"
+        report_text_path: "{{ ftp_rca_report_text_path }}"
+      run_once: true
+      delegate_to: localhost
+      delegate_facts: true
+
+- name: Publish reports to archive host
+  ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
+  vars:
+    report_namespace: ftp_rca
+  when: hostvars['localhost'].report_publish_enabled | bool

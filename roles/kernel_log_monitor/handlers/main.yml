@@ -1,0 +1,44 @@
+---
+# ========================================================================
+# Emergency Alert Handler (Critical Errors)
+# ========================================================================
+- name: Emergency_alert
+  ansible.builtin.command:
+    cmd: "wall 'EMERGENCY: {{ kernel_log_monitor_alert_message }}'"
+  changed_when: false
+  failed_when: false
+  tags:
+    - alert
+    - always
+
+# ========================================================================
+# Priority Alert Handler (Severe Errors)
+# ========================================================================
+- name: Priority_alert
+  block:
+    - name: Ensure kernel events log directory exists
+      ansible.builtin.file:
+        path: "{{ kernel_log_monitor_kernel_events_log | dirname }}"
+        state: directory
+        mode: "0755"
+      tags:
+        - alert
+        - always
+
+    - name: Log severe errors to kernel events log
+      ansible.builtin.lineinfile:
+        path: "{{ kernel_log_monitor_kernel_events_log }}"
+        line: "{{ ansible_date_time.iso8601 }} - PRIORITY ALERT: {{ kernel_log_monitor_alert_message }}"
+        create: true
+        mode: "0644"
+      tags:
+        - alert
+        - always
+
+  rescue:
+    - name: Handle priority alert errors
+      ansible.builtin.debug:
+        msg: "⚠️ Warning: Failed to log priority alert to {{ kernel_log_monitor_kernel_events_log }}"
+      tags:
+        - alert
+        - always

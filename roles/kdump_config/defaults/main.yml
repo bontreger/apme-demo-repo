@@ -1,0 +1,20 @@
+---
+# Local | NFS | SSH | Raw
+kdump_config_dump_target: "Local"
+
+kdump_config_local_path: "/var/crash"
+kdump_config_nfs_server: "nfs.example.com:/remote/crash/path"
+kdump_config_ssh_server: "ssh.example.com"
+kdump_config_ssh_user: "root"
+kdump_config_raw_device: "/dev/sdb1"
+
+# makedumpfile -d level: 0-31 (31 excludes all unnecessary pages)
+kdump_config_dump_level: 31
+# reboot | halt | poweroff | shell | dump_to_rootfs
+kdump_config_failure_action: "reboot"
+
+kdump_config_panic_triggers:
+  system_hang: true
+  oom_killer: true
+  soft_lockup: true
+  process_d_state: true

@@ -1,0 +1,15 @@
+---
+ssl_cert_check_sites:
+  - www.google.com
+  - github.com
+
+ssl_cert_check_warn_days: 30
+ssl_cert_check_critical_days: 10
+ssl_cert_check_namespace: ssl_expiry
+ssl_cert_check_job_id: >-
+  {{ awx_job_id | default(ansible_date_time.epoch) }}
+ssl_cert_check_report_filename: ssl_report.md
+ssl_cert_check_report_path: "/tmp/{{ ssl_cert_check_report_filename }}"
+
+# Display timezone offset in seconds (28800 = Beijing time UTC+8)
+ssl_cert_check_timezone_offset_seconds: 28800

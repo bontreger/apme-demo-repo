@@ -1,0 +1,17 @@
+---
+ftp_rca_service: vsftpd
+ftp_rca_package: vsftpd
+ftp_rca_ports:
+  - 21
+ftp_rca_conf_path: /etc/vsftpd/vsftpd.conf
+ftp_rca_collect_journal_lines: 200
+ftp_rca_attempt_service_start: false
+ftp_rca_ping_count: 2
+ftp_rca_test_timeout: 5
+
+# Reporting
+ftp_rca_report_namespace: ftp_rca
+ftp_rca_report_local_dir: "/var/lib/ansible-reports/{{ ftp_rca_report_namespace }}"
+ftp_rca_report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
+ftp_rca_report_text_path: >-
+  {{ ftp_rca_report_local_dir }}/{{ inventory_hostname }}-{{ ftp_rca_report_job_id }}.txt

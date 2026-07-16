@@ -1,0 +1,39 @@
+---
+- name: Install all available updates
+  ansible.windows.win_updates:
+    category_names: "{{ win_patch_management_category }}"
+    reboot: "{{ win_patch_management_reboot }}"
+  when: win_patch_management_mode == 'install_all'
+
+- name: Install specific KB updates
+  ansible.windows.win_updates:
+    category_names: "{{ win_patch_management_category }}"
+    accept_list: "{{ win_patch_management_kb_list }}"
+  when: win_patch_management_mode == 'install_kb'
+
+- name: Generate Windows update report
+  when: win_patch_management_mode == 'report'
+  block:
+    - name: Ensure report directory exists
+      ansible.windows.win_file:
+        path: "{{ win_patch_management_report_path }}"
+        state: directory
+
+    - name: Ensure Windows Update service is running
+      ansible.windows.win_service:
+        name: wuauserv
+        state: started
+
+    - name: Search for available updates
+      ansible.windows.win_updates:
+        category_names:
+          - "{{ win_patch_management_category }}"
+        state: searched
+      register: win_patch_management_update_result
+
+    - name: Generate HTML report
+      ansible.windows.win_template:
+        src: win_patch_report.html.j2
+        dest: "{{ win_patch_management_report_dest }}"
+      vars:
+        updates: "{{ win_patch_management_update_result.updates }}"

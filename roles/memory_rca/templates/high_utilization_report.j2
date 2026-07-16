@@ -1,0 +1,101 @@
+======== High Memory Utilization Diagnosis Report =======
+Hostname: {{ inventory_hostname }}
+Diagnosis Time: {{ ansible_date_time.date }} {{ ansible_date_time.time }}
+OS: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_architecture }})
+IP Address: {{ ansible_default_ipv4.address | default(ansible_host | default('N/A')) }}
+===============================================================================
+
+========== Memory Usage Overview (free -t -m) ==========
+{% if _memory_rca_free is defined and _memory_rca_free.stdout is defined %}
+{{ _memory_rca_free.stdout | default('N/A') }}
+{% else %}
+N/A - free command output not available
+{% endif %}
+
+========== Detailed Memory Information (/proc/meminfo) ==========
+{% if _memory_rca_meminfo is defined and _memory_rca_meminfo.stdout is defined %}
+{{ _memory_rca_meminfo.stdout | default('N/A') }}
+{% else %}
+N/A - /proc/meminfo output not available
+{% endif %}
+
+========== Virtual Memory Statistics (vmstat -s) ==========
+{% if _memory_rca_vmstat_s is defined and _memory_rca_vmstat_s.stdout is defined %}
+{{ _memory_rca_vmstat_s.stdout | default('N/A') }}
+{% else %}
+N/A - vmstat output not available
+{% endif %}
+
+========== Process Resource Usage (top) ==========
+{% if _memory_rca_top is defined and _memory_rca_top.stdout is defined %}
+{{ _memory_rca_top.stdout | default('N/A') }}
+{% else %}
+N/A - top command output not available
+{% endif %}
+
+========== Disk I/O Statistics (iostat -x) ==========
+{% if _memory_rca_iostat is defined and _memory_rca_iostat.stdout is defined %}
+{{ _memory_rca_iostat.stdout | default('N/A') }}
+{% else %}
+N/A - iostat command output not available
+{% endif %}
+
+========== Process Memory Usage Details (ps aux) ==========
+{% if _memory_rca_ps is defined and _memory_rca_ps.stdout is defined %}
+{{ _memory_rca_ps.stdout | default('N/A') }}
+{% else %}
+N/A - ps aux command output not available
+{% endif %}
+
+========== Process Hierarchy Memory Usage (ps auxH) ==========
+{% if _memory_rca_ps_h is defined and _memory_rca_ps_h.stdout is defined %}
+{{ _memory_rca_ps_h.stdout | default('N/A') }}
+{% else %}
+N/A - ps auxH command output not available
+{% endif %}
+
+========== System Performance Statistics (sar -A) ==========
+{% if _memory_rca_sar is defined and _memory_rca_sar.stdout is defined %}
+{{ _memory_rca_sar.stdout | default('N/A') }}
+{% else %}
+N/A - sar command output not available (sysstat package may not be installed)
+{% endif %}
+
+========== Open Files List (lsof) ==========
+{% if _memory_rca_lsof is defined and _memory_rca_lsof.stdout is defined %}
+{{ _memory_rca_lsof.stdout | default('N/A') }}
+{% else %}
+N/A - lsof command output not available
+{% endif %}
+
+========== Filesystem Usage (df -hT) ==========
+{% if _memory_rca_df is defined and _memory_rca_df.stdout is defined %}
+{{ _memory_rca_df.stdout | default('N/A') }}
+{% else %}
+N/A - df command output not available
+{% endif %}
+
+========== Hardware Memory Information (dmidecode) ==========
+{% if _memory_rca_dmidecode is defined and _memory_rca_dmidecode.stdout is defined %}
+{{ _memory_rca_dmidecode.stdout | default('N/A') }}
+{% else %}
+N/A - dmidecode command output not available (may require root privileges)
+{% endif %}
+
+========== Diagnostic Recommendations ==========
+[Memory Utilization Analysis Points]
+1. Check MemAvailable value, this is the most important available memory metric
+2. If MemAvailable is close to 0, it indicates severe memory shortage
+3. Check SwapTotal and SwapFree, if swap partition usage is high, it indicates insufficient physical memory
+4. Check %MEM column to identify processes consuming the most memory
+5. Check for memory leaks: continuous growth of process memory
+6. Observe disk I/O, frequent swapping will cause increased disk I/O
+
+[Common Issues and Solutions]
+1. Insufficient memory: Increase physical memory or optimize applications
+2. Memory leak: Restart related services or applications
+3. Excessive cache: Adjust kernel parameters or clear cache
+4. Frequent swapping: Optimize memory usage or increase physical memory
+
+===============================================================================
+Generated at: {{ ansible_date_time.iso8601 }}

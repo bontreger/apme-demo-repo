@@ -1,0 +1,114 @@
+========== Out of Memory (OOM) Diagnosis Report ==========
+Hostname: {{ inventory_hostname }}
+IP Address: {{ ansible_default_ipv4.address | default(ansible_host | default('N/A')) }}
+OS: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_architecture }})
+Date: {{ ansible_date_time.date }} {{ ansible_date_time.time }}
+===============================================================================
+
+========== OOM Killer Logs ==========
+--- From /var/log/messages ---
+{% if _memory_rca_oom_logs is defined and _memory_rca_oom_logs.stdout is defined and _memory_rca_oom_logs.stdout | trim != '' %}
+{{ _memory_rca_oom_logs.stdout | default('N/A') }}
+{% else %}
+N/A - No OOM killer logs found in /var/log/messages
+{% endif %}
+
+--- From journalctl (kernel logs) ---
+{% if _memory_rca_oom_journal is defined and _memory_rca_oom_journal.stdout is defined and _memory_rca_oom_journal.stdout | trim != '' %}
+{{ _memory_rca_oom_journal.stdout | default('N/A') }}
+{% else %}
+N/A - No OOM killer logs found in journalctl
+{% endif %}
+
+========== Processes Killed Memory Usage ==========
+--- From /var/log/messages ---
+{% if _memory_rca_oom_process_logs is defined and _memory_rca_oom_process_logs.stdout is defined and _memory_rca_oom_process_logs.stdout | trim != '' %}
+{{ _memory_rca_oom_process_logs.stdout | default('N/A') }}
+{% else %}
+N/A - No killed process memory usage logs found in /var/log/messages
+{% endif %}
+
+--- From journalctl (kernel logs) ---
+{% if _memory_rca_oom_process_journal is defined and _memory_rca_oom_process_journal.stdout is defined and _memory_rca_oom_process_journal.stdout | trim != '' %}
+{{ _memory_rca_oom_process_journal.stdout | default('N/A') }}
+{% else %}
+N/A - No killed process memory usage logs found in journalctl
+{% endif %}
+
+========== SAR Memory Usage (%commit) ==========
+{% if _memory_rca_sar_memory is defined and _memory_rca_sar_memory.stdout is defined and _memory_rca_sar_memory.stdout | trim != '' %}
+{{ _memory_rca_sar_memory.stdout | default('N/A') }}
+{% else %}
+N/A - SAR memory data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== SAR Swap Usage ==========
+{% if _memory_rca_sar_swap is defined and _memory_rca_sar_swap.stdout is defined and _memory_rca_sar_swap.stdout | trim != '' %}
+{{ _memory_rca_sar_swap.stdout | default('N/A') }}
+{% else %}
+N/A - SAR swap data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== SAR CPU Usage ==========
+{% if _memory_rca_sar_cpu is defined and _memory_rca_sar_cpu.stdout is defined and _memory_rca_sar_cpu.stdout | trim != '' %}
+{{ _memory_rca_sar_cpu.stdout | default('N/A') }}
+{% else %}
+N/A - SAR CPU data not available (sysstat package may not be installed or no data collected for today)
+{% endif %}
+
+========== vmstat Output (Real-time) ==========
+{% if _memory_rca_vmstat_rt is defined and _memory_rca_vmstat_rt.stdout is defined and _memory_rca_vmstat_rt.stdout | trim != '' %}
+{{ _memory_rca_vmstat_rt.stdout | default('N/A') }}
+{% else %}
+N/A - vmstat output not available
+{% endif %}
+
+========== Total Memory from /proc/meminfo ==========
+{% if _memory_rca_mem_total is defined and _memory_rca_mem_total.stdout is defined and _memory_rca_mem_total.stdout | trim != '' %}
+{{ _memory_rca_mem_total.stdout | default('N/A') }}
+{% else %}
+N/A - /proc/meminfo not accessible
+{% endif %}
+
+========== Free Memory (free -t -m) ==========
+{% if _memory_rca_free is defined and _memory_rca_free.stdout is defined and _memory_rca_free.stdout | trim != '' %}
+{{ _memory_rca_free.stdout | default('N/A') }}
+{% else %}
+N/A - free command output not available
+{% endif %}
+
+========== Memory Hardware Info (dmidecode -t memory) ==========
+{% if _memory_rca_dmidecode is defined and _memory_rca_dmidecode.stdout is defined and _memory_rca_dmidecode.stdout | trim != '' %}
+{{ _memory_rca_dmidecode.stdout | default('N/A') }}
+{% else %}
+N/A - dmidecode output not available (may require root privileges or dmidecode not installed)
+{% endif %}
+
+========== Diagnostic Recommendations ==========
+[OOM Analysis Points]
+1. Check %commit in SAR memory output: If it exceeds 100%, the system is at risk of OOM
+2. Review OOM killer logs: Identify which processes were killed and when
+3. Analyze killed process memory usage: Check total-vm and anon-rss to understand memory consumption
+4. Check swap usage: High swap usage indicates physical memory shortage
+5. Review historical trends: SAR data shows memory usage patterns over time
+6. Check for memory leaks: Compare process memory usage over time
+7. Verify hardware: Ensure all memory modules are properly detected
+
+[Common Issues and Solutions]
+1. Insufficient physical memory: Increase RAM or reduce memory usage by applications
+2. Memory leak: Identify and fix applications with memory leaks
+3. Excessive memory allocation: Optimize application memory settings
+4. Swap thrashing: High swap usage causes performance degradation - increase physical memory
+5. OOM killer too aggressive: Adjust /proc/sys/vm/oom_kill_allocating_task or /proc/sys/vm/overcommit_memory
+6. Application misconfiguration: Review application memory limits and JVM heap sizes
+
+[Prevention Strategies]
+1. Monitor %commit metric regularly - set alerts when it exceeds 80%
+2. Implement memory limits for applications (cgroups, systemd limits)
+3. Use memory monitoring tools to track memory usage trends
+4. Review and optimize application memory allocation
+5. Ensure adequate swap space (but prefer physical memory)
+6. Consider memory overcommit settings based on workload characteristics
+
+===============================================================================
+Generated at: {{ ansible_date_time.iso8601 }}

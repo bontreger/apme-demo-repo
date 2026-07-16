@@ -1,0 +1,21 @@
+---
+# Network configuration
+network:
+  allowed_subnets:
+    - 10.66.0.0/16
+    - 192.168.0.0/16
+
+# Template server configuration
+template_server:
+  host: 10.66.208.237
+  hosts_file: /etc/hosts
+
+# SELinux configuration
+selinux:
+  state: permissive
+  policy: targeted
+
+# Backup configuration
+backup:
+  enabled: true
+  suffix: ".backup.$(date +%Y%m%d_%H%M%S)"

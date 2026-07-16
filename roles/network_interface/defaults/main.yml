@@ -1,0 +1,4 @@
+---
+# Network interface configuration
+network_interface: "ens192"
+network_interface_backup: "eth0"

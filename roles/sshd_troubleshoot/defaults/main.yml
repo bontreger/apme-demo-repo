@@ -1,0 +1,28 @@
+---
+sshd_troubleshoot_target_hostname: "{{ inventory_hostname }}"
+sshd_troubleshoot_target_short_name: "{{ ansible_hostname | default(inventory_hostname) }}"
+
+sshd_troubleshoot_hosts_file_path: "/etc/hosts"
+sshd_troubleshoot_dns_resolution_targets:
+  - "{{ sshd_troubleshoot_target_hostname }}"
+  - "redhat.com"
+  - "8.8.8.8"
+
+sshd_troubleshoot_service_name: "sshd"
+sshd_troubleshoot_port: 22
+sshd_troubleshoot_host_keys_path: "/etc/ssh"
+
+sshd_troubleshoot_report_base_dir: "/tmp"
+sshd_troubleshoot_report_prefix: "ssh_network_fix"
+sshd_troubleshoot_log_retention_days: 7
+
+sshd_troubleshoot_monitor_interval_seconds: 300
+sshd_troubleshoot_monitor_script_name: "monitor_ssh_network.sh"
+
+sshd_troubleshoot_supported_os_families:
+  - "RedHat"
+  - "CentOS"
+sshd_troubleshoot_supported_os_versions:
+  - "7"
+  - "8"
+  - "9"

@@ -28,6 +28,7 @@ mock_modules:
   - ansible.windows.win_command
   - community.windows.win_firewall_rule
   - chocolatey.chocolatey.win_chocolatey
+  - community.windows.win_firewall_rule
   - community.crypto.get_certificate
   - community.general.mail
   - community.mysql.mysql_user

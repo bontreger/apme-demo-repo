@@ -1,0 +1,55 @@
+---
+- name: Validate firewall_management_action parameter
+  ansible.builtin.assert:
+    that:
+      - firewall_management_action in ['start', 'stop', 'check']
+    fail_msg: "Invalid firewall_management_action value: '{{ firewall_management_action }}'. Must be one of: start, stop, check"
+    success_msg: "Parameter validation passed: firewall_management_action='{{ firewall_management_action }}'"
+  tags: [validation, always]
+
+- name: Manage firewall service
+  when: firewall_management_action in ['start', 'stop']
+  block:
+    - name: Ensure firewall package is installed
+      ansible.builtin.package:
+        name: "{{ firewall_management_package_name }}"
+        state: present
+      tags: [package, always]
+
+    - name: Configure firewall service state
+      ansible.builtin.systemd:
+        name: "{{ firewall_management_service_name }}"
+        state: "{{ 'started' if firewall_management_action == 'start' else 'stopped' }}"
+        enabled: "{{ true if firewall_management_action == 'start' else false }}"
+      tags: [service, always]
+
+  rescue:
+    - name: Handle firewall management errors
+      ansible.builtin.fail:
+        msg: |
+          Failed to {{ firewall_management_action }} firewall service on {{ inventory_hostname }}.
+          Error details: {{ ansible_failed_result.msg | default('Unknown error') }}
+          Please check:
+          1. Package installation: yum install -y {{ firewall_management_package_name }}
+          2. Service status: systemctl status {{ firewall_management_service_name }}
+          3. System logs: journalctl -u {{ firewall_management_service_name }}
+      tags: [error_handling, always]
+
+- name: Collect service facts for status reporting
+  ansible.builtin.service_facts:
+  tags: [status, always]
+
+- name: Display firewall service status
+  ansible.builtin.debug:
+    msg: |
+      +--------------------------------------------------+
+      |          Firewall Status Report                  |
+      +--------------------------------------------------+
+      |  Host: {{ inventory_hostname }}
+      |  Action: {{ {'start': 'Start', 'stop': 'Stop', 'check': 'Check'}[firewall_management_action] }}
+      |  Service: {{ firewall_management_service_name }}
+      |  Current State: {{ ansible_facts.services[firewall_management_service_name + '.service'].state | default('unknown') }}
+      |  Enabled on Boot: {{ ansible_facts.services[firewall_management_service_name + '.service'].status | default('unknown') }}
+      |  Distribution: {{ ansible_distribution }} {{ ansible_distribution_major_version }}
+      +--------------------------------------------------+
+  tags: [status, report, always]

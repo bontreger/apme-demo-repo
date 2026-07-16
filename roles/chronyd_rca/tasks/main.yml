@@ -1,0 +1,162 @@
+---
+- name: Collect timedatectl status
+  ansible.builtin.command: timedatectl status
+  register: _chronyd_rca_timedatectl_status
+  changed_when: false
+  failed_when: false
+
+- name: Collect timedatectl detailed info
+  ansible.builtin.command: timedatectl show
+  register: _chronyd_rca_timedatectl_show
+  changed_when: false
+  failed_when: false
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+  failed_when: false
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  failed_when: false
+
+- name: Determine package installation status
+  ansible.builtin.set_fact:
+    _chronyd_rca_package_installed: >-
+      {{ chronyd_rca_package in (ansible_facts.packages | default({})) }}
+
+- name: Check chronyd service status
+  ansible.builtin.systemd:
+    name: "{{ chronyd_rca_service }}"
+  register: _chronyd_rca_svc_status
+  changed_when: false
+  failed_when: false
+
+- name: List chronyd processes
+  ansible.builtin.command: "ps -eo pid,comm,args"
+  register: _chronyd_rca_ps_raw
+  changed_when: false
+  failed_when: false
+
+- name: Filter chronyd processes
+  ansible.builtin.shell: |
+    set -o pipefail
+    ps -eo pid,comm,args | grep -E '[/ ]chronyd( |$)' || true
+  register: _chronyd_rca_ps
+  changed_when: false
+  failed_when: false
+
+- name: Collect chronyc sources
+  ansible.builtin.command: chronyc -n sources
+  register: _chronyd_rca_sources
+  changed_when: false
+  failed_when: false
+
+- name: Collect chronyc tracking
+  ansible.builtin.command: chronyc -n tracking
+  register: _chronyd_rca_tracking
+  changed_when: false
+  failed_when: false
+
+- name: Collect chronyc sourcestats
+  ansible.builtin.command: chronyc -n sourcestats
+  register: _chronyd_rca_sourcestats
+  changed_when: false
+  failed_when: false
+
+- name: Collect chronyc activity
+  ansible.builtin.command: chronyc activity
+  register: _chronyd_rca_activity
+  changed_when: false
+  failed_when: false
+
+- name: Collect chronyd version
+  ansible.builtin.command: chronyd --version
+  register: _chronyd_rca_version
+  changed_when: false
+  failed_when: false
+
+- name: Check chrony configuration file existence
+  ansible.builtin.stat:
+    path: "{{ chronyd_rca_conf_path }}"
+  register: _chronyd_rca_conf_stat
+
+- name: Validate chrony configuration syntax
+  ansible.builtin.command: "chronyd -t -f {{ chronyd_rca_conf_path }}"
+  register: _chronyd_rca_conf_check
+  changed_when: false
+  failed_when: false
+
+- name: Check chrony log directory permissions
+  ansible.builtin.stat:
+    path: "{{ chronyd_rca_log_dir }}"
+  register: _chronyd_rca_log_dir_stat
+  failed_when: false
+
+- name: Check chrony runtime directory permissions
+  ansible.builtin.stat:
+    path: "{{ chronyd_rca_run_dir }}"
+  register: _chronyd_rca_run_dir_stat
+  failed_when: false
+
+- name: Test connectivity to NTP server
+  ansible.builtin.command: "ping -c 3 {{ chronyd_rca_ntp_server }}"
+  register: _chronyd_rca_ntp_ping
+  changed_when: false
+  failed_when: false
+
+- name: Check firewalld state
+  ansible.builtin.systemd:
+    name: firewalld
+  register: _chronyd_rca_firewalld_state
+  changed_when: false
+  failed_when: false
+
+- name: List firewalld allowed services
+  ansible.builtin.command: firewall-cmd --list-services
+  register: _chronyd_rca_firewalld_services
+  changed_when: false
+  failed_when: false
+
+- name: List firewalld open ports
+  ansible.builtin.command: firewall-cmd --list-ports
+  register: _chronyd_rca_firewalld_ports
+  changed_when: false
+  failed_when: false
+
+- name: Attempt service start when requested
+  block:
+    - name: Start chronyd service
+      ansible.builtin.service:
+        name: "{{ chronyd_rca_service }}"
+        state: started
+      register: _chronyd_rca_start_attempt
+      when: chronyd_rca_attempt_service_start | bool
+  rescue:
+    - name: Record service start failure
+      ansible.builtin.debug:
+        msg: >-
+          Attempt to start {{ chronyd_rca_service }} failed;
+          continuing with diagnostics.
+
+- name: Collect recent journal entries for chronyd
+  ansible.builtin.command: >-
+    journalctl -u {{ chronyd_rca_service }}
+    -n {{ chronyd_rca_collect_journal_lines }} --no-pager
+  register: _chronyd_rca_journal
+  changed_when: false
+  failed_when: false
+
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ chronyd_rca_report_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render chronyd diagnosis report
+  ansible.builtin.template:
+    src: chronyd_diagnosis_report.j2
+    dest: "{{ chronyd_rca_report_text_path }}"
+    owner: root
+    group: root
+    mode: "0644"

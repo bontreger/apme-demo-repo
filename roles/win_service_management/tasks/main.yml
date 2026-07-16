@@ -1,0 +1,28 @@
+---
+- name: Manage Windows services
+  ansible.windows.win_service:
+    name: "{{ item }}"
+    state: "{{ _win_service_management_state_map[win_service_management_action] }}"
+    start_mode: "{{ win_service_management_start_mode }}"
+  loop: "{{ win_service_management_services }}"
+  register: win_service_management_result
+  vars:
+    _win_service_management_state_map:
+      start: started
+      stop: stopped
+      restart: restarted
+  when: win_service_management_action != 'check'
+
+- name: Check Windows services status
+  ansible.windows.win_service:
+    name: "{{ item }}"
+  loop: "{{ win_service_management_services }}"
+  register: win_service_management_result
+  when: win_service_management_action == 'check'
+
+- name: Display service status
+  ansible.builtin.debug:
+    msg: "Service {{ item.item }}: {{ item.state | default('not installed') }}"
+  loop: "{{ win_service_management_result.results }}"
+  loop_control:
+    label: "{{ item.item }}"

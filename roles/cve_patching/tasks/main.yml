@@ -1,0 +1,272 @@
+---
+- name: Set package manager based on OS version
+  ansible.builtin.set_fact:
+    cve_patching_pkg_mgr: >-
+      {{ 'yum' if ansible_distribution_major_version == '7' else 'dnf' }}
+    cve_patching_apply_bool: >-
+      {{ cve_patching_apply_patch | lower == 'yes' }}
+
+- name: Validate CVE ID format
+  ansible.builtin.assert:
+    that:
+      - cve_patching_cve_id is defined
+      - cve_patching_cve_id | trim | length > 0
+      - cve_patching_cve_id | regex_search('^CVE-[0-9]{4}-[0-9]{4,}$')
+    fail_msg: >-
+      Invalid CVE ID format. Must match CVE-YYYY-NNNN
+      (e.g. CVE-2023-42753)
+    success_msg: "CVE ID validated: {{ cve_patching_cve_id }}"
+  failed_when: false
+
+- name: Validate cve_patching_apply_patch parameter
+  ansible.builtin.assert:
+    that:
+      - cve_patching_apply_patch is defined
+      - cve_patching_apply_patch | lower in ["yes", "no"]
+    fail_msg: "Invalid cve_patching_apply_patch. Must be 'yes' or 'no'."
+    success_msg: "Apply patch parameter validated: {{ cve_patching_apply_patch }}"
+  failed_when: false
+
+- name: Validate repository configuration
+  block:
+    - name: Check package manager availability
+      ansible.builtin.command: "which {{ cve_patching_pkg_mgr }}"
+      register: cve_patching_pkg_mgr_check
+      changed_when: false
+      failed_when: false
+
+    - name: Display package manager availability
+      ansible.builtin.debug:
+        msg: >-
+          Package manager {{ cve_patching_pkg_mgr }}
+          {{ 'is available' if cve_patching_pkg_mgr_check.rc == 0
+             else 'is not available' }}
+      when: cve_patching_pkg_mgr_check is defined
+
+    - name: Check repository metadata
+      ansible.builtin.command: "{{ cve_patching_pkg_mgr }} repolist"
+      register: cve_patching_repo_check
+      changed_when: false
+      failed_when: false
+  rescue:
+    - name: Handle repository validation failure
+      ansible.builtin.debug:
+        msg: "Warning: Repository validation failed. Ensure YUM/DNF repos are configured."
+
+- name: Install required security plugins
+  block:
+    - name: Install yum-plugin-security (RHEL 7 only)
+      ansible.builtin.package:
+        name: yum-plugin-security
+        state: present
+      register: cve_patching_yum_plugin_result
+      failed_when: false
+      when:
+        - ansible_distribution == 'RedHat'
+        - ansible_distribution_major_version == '7'
+
+    - name: Verify updateinfo command availability (RHEL 8/9)
+      ansible.builtin.command: "{{ cve_patching_pkg_mgr }} updateinfo --help"
+      register: cve_patching_updateinfo_check
+      changed_when: false
+      failed_when: false
+      when:
+        - ansible_distribution == 'RedHat'
+        - ansible_distribution_major_version in ['8', '9']
+  rescue:
+    - name: Handle security plugin installation failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to install security plugins. CVE query may not work."
+
+- name: Display CVE and system information
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "CVE ID: {{ cve_patching_cve_id }}"
+      - "Host: {{ inventory_hostname }}"
+      - "RHEL Version: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "Apply Patch: {{ cve_patching_apply_bool }}"
+      - "=========================================="
+
+- name: Check for CVE-related updates
+  block:
+    - name: Query CVE-related security updates
+      ansible.builtin.command: >-
+        {{ cve_patching_pkg_mgr }} updateinfo list
+        --cve {{ cve_patching_cve_id }}
+      register: cve_patching_check_result
+      changed_when: false
+      failed_when: false
+
+    - name: Parse CVE check result
+      ansible.builtin.set_fact:
+        cve_patching_update_available: >-
+          {{ (cve_patching_check_result.stdout_lines | default([])
+              | select('match', '.*(RHSA-|\\S+\\s+.*\\S+.*)')
+              | reject('match', '^(Updating|Loaded plugins|Last metadata|updateinfo|No such CVE)')
+              | list | length) > 0 }}
+        cve_patching_affected_packages: >-
+          {{ cve_patching_check_result.stdout_lines | default([])
+             | select('match', '.*(RHSA-|\\S+\\s+.*\\S+.*)')
+             | reject('match', '^(Updating|Loaded plugins|Last metadata|updateinfo|No such CVE)')
+             | map('split', ' ') | map('first')
+             | list | default(['None']) }}
+      failed_when: false
+      when: cve_patching_check_result is defined
+
+    - name: Display CVE check result
+      ansible.builtin.debug:
+        msg:
+          - "CVE {{ cve_patching_cve_id }} check result:"
+          - "{{ cve_patching_check_result.stdout_lines | default(['No updates available']) }}"
+          - "Affected packages: {{ cve_patching_affected_packages | default(['None']) }}"
+          - "Update available: {{ cve_patching_update_available | default(false) }}"
+      when: cve_patching_check_result is defined
+  rescue:
+    - name: Handle CVE check failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check for CVE-related updates."
+
+- name: Apply CVE-specific security patches
+  block:
+    - name: Install CVE security patches (RHEL 7)
+      ansible.builtin.dnf:
+        name: "{{ cve_patching_affected_packages | reject('equalto', 'None') | list }}"
+        state: present
+        update_only: true
+        security: true
+      register: cve_patching_patch_result
+      changed_when: cve_patching_patch_result.changed | default(false)
+      failed_when: false
+      when:
+        - cve_patching_apply_bool | default(false)
+        - cve_patching_update_available | default(false)
+        - ansible_distribution_major_version == '7'
+
+    - name: Install CVE security patches (RHEL 8/9)
+      ansible.builtin.dnf:
+        name: "{{ cve_patching_affected_packages | reject('equalto', 'None') | list }}"
+        state: present
+        update_only: true
+        security: true
+      register: cve_patching_patch_result
+      changed_when: cve_patching_patch_result.changed | default(false)
+      failed_when: false
+      when:
+        - cve_patching_apply_bool | default(false)
+        - cve_patching_update_available | default(false)
+        - ansible_distribution_major_version in ['8', '9']
+
+    - name: Display patch application result
+      ansible.builtin.debug:
+        msg:
+          - "Patch application result:"
+          - "{{ cve_patching_patch_result.stdout_lines | default(['No packages were updated']) }}"
+      when:
+        - cve_patching_apply_bool | default(false)
+        - cve_patching_update_available | default(false)
+        - cve_patching_patch_result is defined
+
+    - name: Display patch application skipped message
+      ansible.builtin.debug:
+        msg: >-
+          Patch application skipped:
+          {{ 'apply_patch is false' if not cve_patching_apply_bool
+             else 'no updates available' }}
+      when: >-
+        (not cve_patching_apply_bool | default(false))
+        or (not cve_patching_update_available | default(false))
+  rescue:
+    - name: Handle patch application failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to apply security patches. Check repo config and system logs."
+
+- name: Check if reboot is required
+  when:
+    - cve_patching_apply_bool | default(false)
+    - cve_patching_update_available | default(false)
+  block:
+    - name: Ensure needs-restarting tool is installed
+      ansible.builtin.package:
+        name: "{{ 'yum-utils' if ansible_distribution_major_version == '7' else 'dnf-utils' }}"
+        state: present
+      register: cve_patching_utils_result
+      failed_when: false
+
+    - name: Check reboot requirement using needs-restarting
+      ansible.builtin.command: needs-restarting -r
+      register: cve_patching_reboot_check
+      changed_when: false
+      failed_when: false
+
+    - name: Check reboot-required file as fallback
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: cve_patching_reboot_file
+      failed_when: false
+      when: cve_patching_reboot_check.rc != 0
+
+    - name: Display reboot warning
+      ansible.builtin.debug:
+        msg:
+          - "!!! REBOOT WARNING !!!"
+          - "Host {{ inventory_hostname }} requires a reboot to apply patches."
+          - "Please manually coordinate the reboot operation."
+      when: >-
+        (cve_patching_reboot_check.rc == 1)
+        or (cve_patching_reboot_file.stat.exists | default(false))
+
+    - name: Display no reboot needed
+      ansible.builtin.debug:
+        msg: "Host {{ inventory_hostname }} does not require a reboot."
+      when:
+        - cve_patching_reboot_check.rc == 0
+        - not (cve_patching_reboot_file.stat.exists | default(false))
+  rescue:
+    - name: Handle reboot check failure
+      ansible.builtin.debug:
+        msg: "Warning: Failed to check reboot requirement. Verify manually."
+
+- name: Determine reboot status for summary
+  block:
+    - name: Set default reboot status
+      ansible.builtin.set_fact:
+        cve_patching_reboot_status: "Unknown"
+
+    - name: Evaluate reboot status from needs-restarting
+      ansible.builtin.set_fact:
+        cve_patching_reboot_status: >-
+          {{ 'Yes' if (cve_patching_reboot_check.rc | default(-1) == 1)
+             else ('No' if (cve_patching_reboot_check.rc | default(-1) == 0)
+             else 'Unknown') }}
+      when: cve_patching_reboot_check is defined
+
+    - name: Evaluate reboot status from reboot-required file
+      ansible.builtin.set_fact:
+        cve_patching_reboot_status: "Yes"
+      when:
+        - cve_patching_reboot_file is defined
+        - cve_patching_reboot_file.stat is defined
+        - cve_patching_reboot_file.stat.exists | default(false)
+  rescue:
+    - name: Handle reboot status determination failure
+      ansible.builtin.set_fact:
+        cve_patching_reboot_status: "Unknown"
+
+- name: Display CVE patching summary
+  ansible.builtin.debug:
+    msg:
+      - "=========================================="
+      - "CVE Patch Installation Summary"
+      - "=========================================="
+      - "CVE ID: {{ cve_patching_cve_id }}"
+      - "Host: {{ inventory_hostname }}"
+      - "Update Available: {{ cve_patching_update_available | default(false) }}"
+      - >-
+        Patch Applied:
+        {{ 'Yes' if (cve_patching_apply_bool | default(false)
+           and cve_patching_update_available | default(false)
+           and cve_patching_patch_result is defined) else 'No' }}
+      - "Reboot Required: {{ cve_patching_reboot_status | default('Unknown') }}"
+      - "=========================================="
+  tags: [always]

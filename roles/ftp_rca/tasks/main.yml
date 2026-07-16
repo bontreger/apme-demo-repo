@@ -1,0 +1,140 @@
+---
+- name: Gather service facts (server-side)
+  ansible.builtin.service_facts:
+  failed_when: false
+  when: "'ftp_servers' in group_names"
+
+- name: Gather package facts (server-side)
+  ansible.builtin.package_facts:
+    manager: auto
+  failed_when: false
+  when: "'ftp_servers' in group_names"
+
+- name: Determine FTP package installation status
+  ansible.builtin.set_fact:
+    _ftp_rca_package_installed: >-
+      {{ ftp_rca_package in (ansible_facts.packages | default({})) }}
+  when: "'ftp_servers' in group_names"
+
+- name: Check FTP service status
+  ansible.builtin.systemd:
+    name: "{{ ftp_rca_service }}"
+  register: _ftp_rca_svc_status
+  changed_when: false
+  failed_when: false
+  when: "'ftp_servers' in group_names"
+
+- name: Collect listening sockets
+  ansible.builtin.command: ss -tulpn
+  register: _ftp_rca_ss_listen
+  changed_when: false
+  failed_when: false
+  when: "'ftp_servers' in group_names"
+
+- name: Check firewall status
+  ansible.builtin.shell: |
+    if command -v firewall-cmd &>/dev/null; then
+      echo "firewalld active state:"
+      systemctl is-active firewalld || true
+      echo ""
+      echo "firewalld --list-all:"
+      firewall-cmd --list-all || true
+    elif command -v iptables &>/dev/null; then
+      echo "iptables -L -n output:"
+      iptables -L -n || true
+    else
+      echo "No firewall tool found (firewalld/iptables not available)."
+    fi
+  register: _ftp_rca_firewall_status
+  changed_when: false
+  failed_when: false
+  when: "'ftp_servers' in group_names"
+
+- name: Check vsftpd configuration file existence
+  ansible.builtin.stat:
+    path: "{{ ftp_rca_conf_path }}"
+  register: _ftp_rca_conf_stat
+  when: "'ftp_servers' in group_names"
+
+- name: Check vsftpd anonymous_enable setting
+  ansible.builtin.command: "grep '^anonymous_enable' {{ ftp_rca_conf_path }}"
+  register: _ftp_rca_conf_anonymous
+  changed_when: false
+  failed_when: false
+  when:
+    - "'ftp_servers' in group_names"
+    - _ftp_rca_conf_stat.stat.exists | default(false)
+
+- name: Attempt service start when requested
+  block:
+    - name: Start FTP service
+      ansible.builtin.service:
+        name: "{{ ftp_rca_service }}"
+        state: started
+      register: _ftp_rca_start_attempt
+      when:
+        - ftp_rca_attempt_service_start | bool
+        - "'ftp_servers' in group_names"
+  rescue:
+    - name: Record FTP service start failure
+      ansible.builtin.debug:
+        msg: >-
+          Attempt to start {{ ftp_rca_service }} failed;
+          continuing with diagnostics.
+
+- name: Prepare FTP server address list for client tests
+  ansible.builtin.set_fact:
+    _ftp_rca_server_list: >-
+      {{ (groups['ftp_servers'] | default([]))
+         | map('extract', hostvars, 'ansible_host')
+         | map('default', '')
+         | list }}
+  when: "'ftp_clients' in group_names"
+
+- name: Client ping test to each FTP server
+  ansible.builtin.command: >-
+    ping -c {{ ftp_rca_ping_count }}
+    {{ hostvars[item].ansible_host | default(item) }}
+  loop: "{{ groups['ftp_servers'] | default([]) }}"
+  loop_control:
+    label: "{{ item }}"
+  register: _ftp_rca_client_ping
+  changed_when: false
+  failed_when: false
+  when: "'ftp_clients' in group_names"
+
+- name: Client TCP connectivity test to each FTP server
+  ansible.builtin.shell: >-
+    timeout {{ ftp_rca_test_timeout }} bash -c
+    'cat < /dev/null > /dev/tcp/{{ hostvars[item].ansible_host | default(item) }}/{{ ftp_rca_ports[0] | int }}'
+    && echo "Connected"
+    || echo "Failed"
+  loop: "{{ groups['ftp_servers'] | default([]) }}"
+  loop_control:
+    label: "{{ item }}"
+  register: _ftp_rca_client_tcp
+  changed_when: false
+  failed_when: false
+  when: "'ftp_clients' in group_names"
+
+- name: Collect recent journal entries for FTP service
+  ansible.builtin.command: >-
+    journalctl -u {{ ftp_rca_service }}
+    -n {{ ftp_rca_collect_journal_lines }} --no-pager
+  register: _ftp_rca_journal
+  changed_when: false
+  failed_when: false
+
+- name: Ensure report directory exists
+  ansible.builtin.file:
+    path: "{{ ftp_rca_report_local_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render FTP diagnosis report
+  ansible.builtin.template:
+    src: ftp_diagnosis_report.j2
+    dest: "{{ ftp_rca_report_text_path }}"
+    owner: root
+    group: root
+    mode: "0644"
