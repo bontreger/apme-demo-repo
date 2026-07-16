@@ -1,0 +1,5 @@
+---
+# CVE ID to query and patch (e.g. CVE-2023-42753)
+cve_patching_cve_id: ""
+# Whether to apply patches: "yes" or "no"
+cve_patching_apply_patch: "yes"

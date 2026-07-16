@@ -1,0 +1,10 @@
+---
+vnc_config_user: "admin01"
+vnc_config_geometry: "1280x1024"
+vnc_config_display_number: "2"
+vnc_config_desktop_session: "gnome"
+# Encrypt with ansible-vault in production
+vnc_config_password: ""
+vnc_config_packages:
+  - tigervnc-server
+  - "@workstation"
