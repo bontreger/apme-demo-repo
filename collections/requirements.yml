@@ -24,5 +24,6 @@ collections:
     version: ">=2.0.0,<3.0.0"
   - name: chocolatey.chocolatey
     version: ">=1.5.0,<2.0.0"
-  - name: infra.aap_configuration
-    version: ">=4.0.0,<5.0.0"
+  # infra.aap_configuration is NOT listed here -- it is only needed on the
+  # workstation running controller_config/configure_aap.yml, not inside AAP.
+  # Install it separately: ansible-galaxy collection install infra.aap_configuration
