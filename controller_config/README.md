@@ -12,8 +12,7 @@ how operators launch migrated content from AAP (projects, job templates, etc.).
 |------|-------------|
 | `projects.yml` | Projects (link to this Git repo) |
 | `job_templates.yml` | Job templates for all 40 playbooks |
-| `inventories.yml` | Inventory, hosts, and groups |
-| `credentials.yml` | Credential renames to match job template references |
+| `inventories.yml` | Inventory definition (empty — add hosts via AAP UI or API) |
 | `configure_aap.yml` | Dispatch playbook that applies all config |
 | `controller_auth.yml` | **Local only** (gitignored) — AAP hostname |
 
@@ -38,7 +37,13 @@ ansible-playbook controller_config/configure_aap.yml \
 
 ## What gets created
 
-1. **Credentials** — renames existing credentials to `acl_machine_credential` / `acl_windows_credential`
-2. **Inventory** — `acl_lab_inventory` with hosts and groups (`all_rhel`, `all_windows`)
-3. **Project** — `acl-ready-to-use-content` pointing to this Git repo
-4. **Job templates** — 40 templates (35 Linux, 5 Windows)
+1. **Inventory** — `acl_lab_inventory` (empty — add hosts and credentials separately)
+2. **Project** — `acl-ready-to-use-content` pointing to this Git repo
+3. **Job templates** — 40 templates (35 Linux, 5 Windows)
+
+## Prerequisites (manual or API)
+
+Before running job templates, configure these in AAP:
+
+- **Credentials** named `acl_machine_credential` (Machine) and `acl_windows_credential` (Machine)
+- **Hosts** added to `acl_lab_inventory` in groups `all_rhel` and `all_windows`

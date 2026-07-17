@@ -12,7 +12,6 @@
   gather_facts: false
 
   vars_files:
-    - credentials.yml
     - inventories.yml
     - projects.yml
     - job_templates.yml
@@ -29,8 +28,6 @@
           -e controller_oauthtoken=YOUR_PAT
 
   roles:
-    - role: infra.controller_configuration.credentials
-      when: controller_credentials is defined
     - role: infra.controller_configuration.inventories
       when: controller_inventories is defined
     - role: infra.controller_configuration.hosts
