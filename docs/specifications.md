@@ -197,4 +197,4 @@ in `docs/reporting-standard.md`:
 |----------|--------|
 | 200 -- VMware + OCP-V | ADUC-level complexity |
 | 301 -- Convert2RHEL | ADUC-level complexity |
-| 101/102/103 -- VMware docs | Docs only; already in `docs/vmware/` |
+| 101/102/103 -- VMware docs | Removed; belongs in a future ADUC VMware repo |
