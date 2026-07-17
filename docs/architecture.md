@@ -78,12 +78,14 @@ Reporting follows [reporting-standard.md](reporting-standard.md).
 
 ## Configuration as Code (`controller_config/`)
 
-`controller_config/` holds YAML consumed by `infra.controller_configuration` to
-provision AAP objects (projects, job templates). It ships **with** the content
-so job template playbook paths stay in sync with migrated playbooks.
+`controller_config/` holds YAML consumed by `infra.aap_configuration` to
+provision AAP objects (projects, job templates, inventories). It ships **with**
+the content so job template playbook paths stay in sync with migrated playbooks.
 
-Pilot job templates are defined in `controller_config/job_templates.yml`.
-Placeholder org/inventory/credential names must be replaced per site.
+All site-specific values (AAP hostname, credentials, repo URL) are provided
+via `controller_config/site_config.yml` (copied from `site_config.yml.example`).
+See [aap-deployment-guide.md](aap-deployment-guide.md) and
+[specifications.md](specifications.md) for full details.
 
 ## Execution environments
 

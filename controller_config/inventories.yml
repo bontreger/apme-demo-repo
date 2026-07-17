@@ -1,5 +1,9 @@
 ---
+# AAP inventory for ACL ready-to-use content.
+# All site-specific values are provided by site_config.yml.
+
 controller_inventories:
-  - name: acl_lab_inventory
-    organization: Default
-    description: ACL lab hosts for testing ready-to-use content
+  - name: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
+    organization: "{{ acl_organization | default('Default') }}"
+    description: ACL hosts for running ready-to-use content
+    variables: {}

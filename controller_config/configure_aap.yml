@@ -1,10 +1,16 @@
 ---
 # Push ACL ready-to-use content configuration to AAP controller.
 #
+# Prerequisites:
+#   1. Copy site_config.yml.example to site_config.yml and fill in your values
+#   2. Pre-create Machine credentials in AAP (see docs/aap-deployment-guide.md)
+#   3. Install CaC collection:
+#        ansible-galaxy collection install infra.aap_configuration
+#
 # Usage:
 #   ansible-playbook controller_config/configure_aap.yml \
-#     -e @controller_config/controller_auth.yml \
-#     -e controller_oauthtoken=YOUR_PAT_HERE
+#     -e @controller_config/site_config.yml \
+#     -e aap_token=YOUR_PAT_HERE
 
 - name: Configure AAP controller for ACL ready-to-use content
   hosts: localhost
@@ -17,24 +23,23 @@
     - job_templates.yml
 
   pre_tasks:
-    - name: Validate controller connection variables
+    - name: Validate required site configuration
       ansible.builtin.assert:
         that:
-          - controller_hostname is defined
-          - controller_oauthtoken is defined
+          - aap_hostname is defined
+          - aap_token is defined
+          - acl_project_scm_url is defined
+          - acl_linux_credential is defined
+          - acl_windows_credential is defined
         fail_msg: >-
-          Missing controller auth variables. Run with:
-          -e @controller_config/controller_auth.yml
-          -e controller_oauthtoken=YOUR_PAT
+          Missing required variables. Copy site_config.yml.example to
+          site_config.yml, fill in your values, then run with:
+          -e @controller_config/site_config.yml -e aap_token=YOUR_PAT
 
   roles:
-    - role: infra.controller_configuration.inventories
+    - role: infra.aap_configuration.controller_inventories
       when: controller_inventories is defined
-    - role: infra.controller_configuration.hosts
-      when: controller_hosts is defined
-    - role: infra.controller_configuration.groups
-      when: controller_groups is defined
-    - role: infra.controller_configuration.projects
+    - role: infra.aap_configuration.controller_projects
       when: controller_projects is defined
-    - role: infra.controller_configuration.job_templates
+    - role: infra.aap_configuration.controller_job_templates
       when: controller_templates is defined

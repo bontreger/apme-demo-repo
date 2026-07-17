@@ -55,30 +55,15 @@ Reporting toggles live in `inventory/group_vars/all/reporting.yml`
 
 ```bash
 # Example: MariaDB
-ansible-playbook playbooks/mariadb-config/deploy_mariadb_site.yml -i inventory/lab.ini
+ansible-playbook playbooks/linux-mariadb-config.yml -i inventory/lab.ini
 
 # Example: BIND primary DNS
-ansible-playbook playbooks/dns-config/deploy_bind_primary_site.yml -i inventory/lab.ini
+ansible-playbook playbooks/linux-dns-primary.yml -i inventory/lab.ini
 ```
 
-## Pilot batch (lab validation)
-
-Migrated playbooks available for testing:
-
-| Scenario | Playbook path |
-|----------|---------------|
-| DNS — BIND primary | `playbooks/dns-config/deploy_bind_primary_site.yml` |
-| DNS — BIND secondary | `playbooks/dns-config/deploy_bind_secondary_site.yml` |
-| DNS — Unbound | `playbooks/dns-config/deploy_unbound_site.yml` |
-| DHCP — server | `playbooks/dhcp-config/deploy_dhcp_server_site.yml` |
-| DHCP — client | `playbooks/dhcp-config/configure_dhcp_client_site.yml` |
-| MariaDB | `playbooks/mariadb-config/deploy_mariadb_site.yml` |
-| RHEL 9 standard config | `playbooks/rhel9-standard-config/rhel9_standardization_site.yml` |
-| Network fault diagnosis | `playbooks/network-fault-diagnosis/network_diagnosis_site.yml` |
-| OpenStack VM lifecycle | `playbooks/openstack-vm-lifecycle/site.yml` |
-
-Each directory under `playbooks/<slug>/` has a README with variables,
-limitations, and troubleshooting.
+All playbooks are flat `.yml` files directly under `playbooks/` with a
+`linux-` or `win-` prefix. Each playbook's corresponding role contains a
+`README.md` with variables, limitations, and troubleshooting.
 
 ## Execution environment (optional)
 
@@ -90,12 +75,10 @@ ansible-builder build \
   -t acl-ready-to-use-content-ee
 ```
 
-## AAP job templates (optional)
+## AAP deployment (optional)
 
-CaC definitions for AAP live in `controller_config/`. See
-[controller_config/README.md](../controller_config/README.md). Replace
-placeholder inventory, credential, and organization names before applying to
-a controller.
+CaC definitions for AAP live in `controller_config/`. For full deployment
+instructions see [docs/aap-deployment-guide.md](aap-deployment-guide.md).
 
 ## Lint
 
@@ -107,6 +90,8 @@ pre-commit run --all-files
 
 ## Further reading
 
-- [architecture.md](architecture.md) — repo layout and migration model
-- [reporting-standard.md](reporting-standard.md) — report publishing pattern
-- Per-scenario READMEs under `playbooks/<slug>/README.md`
+- [architecture.md](architecture.md) -- repo layout and migration model
+- [specifications.md](specifications.md) -- all architectural decisions
+- [aap-deployment-guide.md](aap-deployment-guide.md) -- AAP CaC deployment
+- [reporting-standard.md](reporting-standard.md) -- report publishing pattern
+- Per-role READMEs under `roles/<name>/README.md`
