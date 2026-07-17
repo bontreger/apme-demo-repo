@@ -11,7 +11,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dns-primary.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -22,7 +22,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dns-secondary.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -33,7 +33,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dns-unbound.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -44,7 +44,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dns-sync.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -56,7 +56,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dhcp-server.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -67,7 +67,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-dhcp-client.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -79,7 +79,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-mariadb-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -90,7 +90,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-postgresql-deploy.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -102,7 +102,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-rhel9-standard-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -113,7 +113,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-selinux-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -124,7 +124,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-yum-repo-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -135,7 +135,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-firewall-management.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -146,7 +146,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-nfs-server.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -157,7 +157,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-sshd-troubleshoot.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -168,7 +168,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-vnc-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -179,7 +179,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-kdump-config.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -190,7 +190,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-cve-patching.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -201,7 +201,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-networkmanager.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -213,7 +213,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-os-info-report.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -224,7 +224,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-service-inspection.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -235,7 +235,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-filesystem-check.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -246,7 +246,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-kernel-log-check.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -257,7 +257,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-pcp-analysis.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -268,7 +268,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-ssl-cert-check.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -280,7 +280,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-network-fault-diagnosis.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -292,7 +292,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-web-service-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -303,7 +303,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-chronyd-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -314,7 +314,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-ftp-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -325,7 +325,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-memory-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: true
@@ -336,7 +336,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-zombie-process-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -347,7 +347,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-disk-io-rca.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -358,7 +358,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-systemd-check.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -369,7 +369,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-privileged-account-audit.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -380,7 +380,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-xfs-health-check.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -392,7 +392,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/linux-openstack-vm-lifecycle.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_machine_credential
     survey_enabled: false
@@ -404,7 +404,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/win-service-management.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_windows_credential
     survey_enabled: true
@@ -415,7 +415,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/win-iis-deploy.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_windows_credential
     survey_enabled: false
@@ -426,7 +426,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/win-software-management.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_windows_credential
     survey_enabled: true
@@ -437,7 +437,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/win-chocolatey.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_windows_credential
     survey_enabled: true
@@ -448,7 +448,7 @@ controller_templates:
     project: acl-ready-to-use-content
     inventory: acl_lab_inventory
     playbook: playbooks/win-patch-management.yml
-    execution_environment: acl-ready-to-use-content-ee
+    execution_environment: Default execution environment
     credentials:
       - acl_windows_credential
     survey_enabled: true

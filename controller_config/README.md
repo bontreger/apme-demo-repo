@@ -11,32 +11,34 @@ how operators launch migrated content from AAP (projects, job templates, etc.).
 | File | AAP objects |
 |------|-------------|
 | `projects.yml` | Projects (link to this Git repo) |
-| `job_templates.yml` | Job templates for migrated pilot playbooks |
+| `job_templates.yml` | Job templates for all 40 playbooks |
+| `inventories.yml` | Inventory, hosts, and groups |
+| `credentials.yml` | Credential renames to match job template references |
+| `configure_aap.yml` | Dispatch playbook that applies all config |
+| `controller_auth.yml` | **Local only** (gitignored) — AAP hostname |
 
-Grow incrementally: add `inventories.yml`, `credentials.yml`, and
-`organizations.yml` when a target AAP instance is known.
-
-## Placeholder values
-
-Job templates reference **placeholder** organization, inventory, credential, and
-execution environment names. Replace these with site-specific values before
-applying to a controller:
-
-- `organization` — your AAP organization
-- `inventory` — lab or customer inventory configured in AAP
-- `credentials` — machine credential for managed hosts
-- `execution_environment` — EE built from `execution_environments/`
-
-## Apply (example)
-
-From a control host with `infra.controller_configuration` installed and AAP
-credentials configured:
+## Quick start
 
 ```bash
-# Dispatch pattern — adjust playbook and auth to your environment.
-ansible-playbook configure_controller.yml \
-  -e "{controller_configuration_projects_async: false}"
+# One-time: install the collection
+ansible-galaxy collection install infra.controller_configuration
+
+# Create controller_auth.yml (gitignored, not committed):
+cat > controller_config/controller_auth.yml <<EOF
+---
+controller_hostname: https://your-aap-host.example.com
+controller_validate_certs: false
+EOF
+
+# Push all config to AAP
+ansible-playbook controller_config/configure_aap.yml \
+  -e @controller_config/controller_auth.yml \
+  -e controller_oauthtoken=YOUR_PAT_HERE
 ```
 
-See [docs/getting-started.md](../docs/getting-started.md) and
-[docs/architecture.md](../docs/architecture.md) for the repo layout and CaC model.
+## What gets created
+
+1. **Credentials** — renames existing credentials to `acl_machine_credential` / `acl_windows_credential`
+2. **Inventory** — `acl_lab_inventory` with hosts and groups (`all_rhel`, `all_windows`)
+3. **Project** — `acl-ready-to-use-content` pointing to this Git repo
+4. **Job templates** — 40 templates (35 Linux, 5 Windows)

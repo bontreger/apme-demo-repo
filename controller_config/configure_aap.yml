@@ -1,0 +1,43 @@
+---
+# Push ACL ready-to-use content configuration to AAP controller.
+#
+# Usage:
+#   ansible-playbook controller_config/configure_aap.yml \
+#     -e @controller_config/controller_auth.yml \
+#     -e controller_oauthtoken=YOUR_PAT_HERE
+
+- name: Configure AAP controller for ACL ready-to-use content
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - credentials.yml
+    - inventories.yml
+    - projects.yml
+    - job_templates.yml
+
+  pre_tasks:
+    - name: Validate controller connection variables
+      ansible.builtin.assert:
+        that:
+          - controller_hostname is defined
+          - controller_oauthtoken is defined
+        fail_msg: >-
+          Missing controller auth variables. Run with:
+          -e @controller_config/controller_auth.yml
+          -e controller_oauthtoken=YOUR_PAT
+
+  roles:
+    - role: infra.controller_configuration.credentials
+      when: controller_credentials is defined
+    - role: infra.controller_configuration.inventories
+      when: controller_inventories is defined
+    - role: infra.controller_configuration.hosts
+      when: controller_hosts is defined
+    - role: infra.controller_configuration.groups
+      when: controller_groups is defined
+    - role: infra.controller_configuration.projects
+      when: controller_projects is defined
+    - role: infra.controller_configuration.job_templates
+      when: controller_templates is defined

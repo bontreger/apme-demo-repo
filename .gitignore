@@ -1,6 +1,9 @@
 # Ansible runtime artifacts
 .ansible/
 
+# Site-specific AAP controller auth (token passed at runtime)
+controller_config/controller_auth.yml
+
 # Galaxy-installed collections (install from requirements.yml)
 **/collections/ansible_collections/
 **/collections/*.info/

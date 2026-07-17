@@ -1,0 +1,21 @@
+---
+controller_inventories:
+  - name: acl_lab_inventory
+    organization: Default
+    description: ACL lab hosts for testing ready-to-use content
+
+controller_hosts:
+  - name: testrhel2.local.jmb
+    inventory: acl_lab_inventory
+  - name: win10client.local.jmb
+    inventory: acl_lab_inventory
+
+controller_groups:
+  - name: all_rhel
+    inventory: acl_lab_inventory
+    hosts:
+      - testrhel2.local.jmb
+  - name: all_windows
+    inventory: acl_lab_inventory
+    hosts:
+      - win10client.local.jmb
