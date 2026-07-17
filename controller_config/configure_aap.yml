@@ -22,6 +22,10 @@
     - projects.yml
     - job_templates.yml
 
+  vars:
+    aap_configuration_async_retries: 120
+    aap_configuration_async_delay: 2
+
   pre_tasks:
     - name: Validate required site configuration
       ansible.builtin.assert:

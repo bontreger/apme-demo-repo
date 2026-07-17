@@ -25,7 +25,11 @@ aap_validate_certs: true
 # ---------------------------------------------------------------------------
 
 # Git URL of the acl-ready-to-use-content repository.
-acl_project_scm_url: https://github.com/your-org/acl-ready-to-use-content.git
+# Use SSH if authenticating with an SSH key credential:
+#   git@github.com:your-org/acl-ready-to-use-content.git
+# Use HTTPS if authenticating with a token or if the repo is public:
+#   https://github.com/your-org/acl-ready-to-use-content.git
+acl_project_scm_url: git@github.com:your-org/acl-ready-to-use-content.git
 
 # Branch for AAP to track (default: main).
 acl_project_scm_branch: main
