@@ -107,12 +107,33 @@ The CaC playbook creates an empty inventory. Add hosts via the AAP UI or API:
 AAP UI > Inventories > acl_lab_inventory > Hosts > Add
 ```
 
-Recommended host groups:
+Playbooks target inventory groups directly -- hosts must belong to the
+correct group or they will not be matched. Use AAP's **limit** field at
+launch time to narrow down to specific hosts within a group.
+
+**Required groups** (most playbooks need these):
 
 | Group | Used by |
 |-------|---------|
-| `all_rhel` | Most Linux playbooks |
-| `all_windows` | All Windows playbooks |
+| `all_rhel` | Most Linux playbooks (RCA, inspection, config, security) |
+| `all_windows` | All Windows playbooks (service, IIS, patching, software) |
+
+**Specialized groups** (only needed if you use the corresponding playbooks):
+
+| Group | Playbook(s) |
+|-------|-------------|
+| `primary_dns` | `linux-dns-primary.yml` |
+| `secondary_dns` | `linux-dns-secondary.yml` |
+| `caching_dns` | `linux-dns-unbound.yml` |
+| `dhcp_servers` | `linux-dhcp-server.yml` |
+| `dhcp_clients` | `linux-dhcp-client.yml` |
+| `postgres_servers` | `linux-postgresql-deploy.yml` |
+| `pcp_servers` | `linux-pcp-analysis.yml` (second play) |
+| `server` | `linux-yum-repo-config.yml` (repo server play) |
+| `client` | `linux-yum-repo-config.yml` (repo client play) |
+
+A host can belong to multiple groups (e.g., a RHEL host in both `all_rhel`
+and `postgres_servers`).
 
 ### Step 4 -- Verify project sync
 

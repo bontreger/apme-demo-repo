@@ -15,7 +15,7 @@
 # ============================================================================
 ---
 - name: Deploy and configure Unbound caching DNS servers
-  hosts: "{{ survey_target_hosts | default('caching_dns') }}"
+  hosts: caching_dns
   become: true
   gather_facts: true
 

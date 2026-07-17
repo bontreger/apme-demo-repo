@@ -1,6 +1,6 @@
 ---
 - name: Simple PostgreSQL deployment
-  hosts: "{{ survey_target_hosts | default('postgres_servers') }}"
+  hosts: postgres_servers
   become: true
   gather_facts: true
 

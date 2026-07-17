@@ -15,7 +15,7 @@
 # ============================================================================
 ---
 - name: Deploy and configure DHCPv4 and DHCPv6 servers
-  hosts: "{{ target_hosts | default('dhcp_servers') }}"
+  hosts: dhcp_servers
   become: true
   gather_facts: true
 

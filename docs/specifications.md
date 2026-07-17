@@ -57,9 +57,11 @@ Key layout rules:
 - **Thin entry points.** Playbooks contain minimal logic: host targeting,
   `become`, `gather_facts`, an optional RHEL version assert in `pre_tasks`,
   and a `roles:` list. All task logic lives in the role.
-- **Survey-friendly variables.** Playbooks reference variables like
-  `survey_target_hosts` so AAP surveys can override host patterns at launch
-  time.
+- **Static host groups.** Playbooks use hardcoded `hosts:` values
+  (`all_rhel`, `all_windows`, or service-specific groups like `primary_dns`).
+  Operators narrow scope at launch time using AAP's **limit** field
+  (`ask_limit_on_launch: true` on all templates). No Jinja2 indirection in
+  the `hosts:` directive.
 - **No `import_playbook` across scenarios.** Each playbook is self-contained
   (may call shared utility roles like `report_publish`).
 

@@ -1,6 +1,6 @@
 ---
 - name: Monitor kernel logs for errors and generate reports
-  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  hosts: all_rhel
   become: true
   gather_facts: true
   vars_files:

@@ -15,7 +15,7 @@
 # ============================================================================
 ---
 - name: Configure DHCP client
-  hosts: "{{ target_hosts | default('dhcp_clients') }}"
+  hosts: dhcp_clients
   become: true
   gather_facts: true
 

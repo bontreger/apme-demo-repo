@@ -1,6 +1,6 @@
 ---
 - name: "Install and configure PCP"
-  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  hosts: all_rhel
   become: true
   gather_facts: true
   vars_files:
@@ -21,7 +21,7 @@
     - role: pcp_analysis
 
 - name: "Collect PCP performance data"
-  hosts: "{{ survey_target_hosts | default('pcp_servers') }}"
+  hosts: pcp_servers
   become: true
   gather_facts: false
   tasks:

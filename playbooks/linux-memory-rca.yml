@@ -1,6 +1,6 @@
 ---
 - name: Memory diagnosis (high utilization / OOM)
-  hosts: "{{ survey_target_hosts | default('all_rhel') }}"
+  hosts: all_rhel
   become: true
   gather_facts: true
   vars_files:
