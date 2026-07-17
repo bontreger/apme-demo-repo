@@ -34,7 +34,7 @@
         name: "{{ report_archive_host }}"
         ansible_host: "{{ report_archive_host }}"
       when:
-        - report_publish_enabled | bool
+        - (report_publish_enabled | default(false)) | bool
         - report_archive_host | default('') | length > 0
 
     - name: Ensure aggregated report directory exists on archive
@@ -44,7 +44,7 @@
         mode: "0755"
       delegate_to: "{{ report_archive_host }}"
       become: true
-      when: report_publish_enabled | bool
+      when: (report_publish_enabled | default(false)) | bool
 
     - name: Write SSL report to archive web root
       ansible.builtin.copy:
@@ -55,7 +55,7 @@
       delegate_to: "{{ report_archive_host }}"
       become: true
       when:
-        - report_publish_enabled | bool
+        - (report_publish_enabled | default(false)) | bool
         - hostvars['localhost'].ssl_cert_check_report_body is defined
 
     - name: Display SSL report summary in job output
@@ -69,4 +69,4 @@
         apply:
           delegate_to: "{{ report_archive_host }}"
           become: true
-      when: report_publish_enabled | bool
+      when: (report_publish_enabled | default(false)) | bool

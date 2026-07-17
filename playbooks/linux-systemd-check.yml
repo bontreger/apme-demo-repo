@@ -22,4 +22,4 @@
   ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
   vars:
     report_namespace: systemd_unit_deep_check
-  when: hostvars['localhost'].report_publish_enabled | bool
+  when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool
