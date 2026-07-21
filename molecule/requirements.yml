@@ -1,0 +1,10 @@
+---
+# Collections needed only by the molecule test infrastructure (molecule/utils/).
+# Install: ansible-galaxy collection install -r molecule/requirements.yml
+collections:
+  - name: amazon.aws
+    version: ">=9.0.0,<11.0.0"
+  - name: kubernetes.core
+    version: ">=5.0.0,<7.0.0"
+  - name: community.crypto
+    version: ">=2.0.0,<3.0.0"

@@ -1,0 +1,164 @@
+---
+# Create KubeVirt VirtualMachines for a molecule scenario. The root disk is
+# cloned from a DataSource resolved per host (molecule_kubevirt_data_source_name
+# host or group var — OpenShift Virtualization ships golden rhel9/rhel10
+# DataSources); SSH access goes through a per-VM NodePort Service on the first
+# cluster node's InternalIP. Configuration comes from molecule_kubevirt_* vars
+# in the shared or scenario inventory.
+- name: Create KubeVirt instances
+  hosts: localhost
+  gather_facts: false
+  vars:
+    _ephemeral_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}"
+    _ssh_key_path: "{{ _ephemeral_dir }}/identity_file"
+  tasks:
+    - name: Generate SSH key pair
+      community.crypto.openssh_keypair:
+        path: "{{ _ssh_key_path }}"
+        type: ed25519
+      register: _keypair
+
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ molecule_kubevirt_namespace }}"
+
+    - name: Create VirtualMachine
+      vars:
+        _cloud_init: |
+          #cloud-config
+          users:
+            - name: {{ molecule_kubevirt_ssh_user }}
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              groups: wheel
+              ssh_authorized_keys:
+                - {{ _keypair.public_key }}
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ item }}"
+            namespace: "{{ molecule_kubevirt_namespace }}"
+            labels:
+              owner: molecule
+          spec:
+            runStrategy: Always
+            dataVolumeTemplates:
+              - metadata:
+                  name: "{{ item }}-root"
+                spec:
+                  sourceRef:
+                    kind: DataSource
+                    name: "{{ hostvars[item].molecule_kubevirt_data_source_name }}"
+                    namespace: "{{ molecule_kubevirt_data_source_namespace }}"
+                  storage:
+                    resources:
+                      requests:
+                        storage: "{{ molecule_kubevirt_disk_size }}"
+            template:
+              metadata:
+                labels:
+                  kubevirt.io/domain: "{{ item }}"
+              spec:
+                domain:
+                  memory:
+                    guest: "{{ molecule_kubevirt_memory }}"
+                  devices:
+                    disks:
+                      - name: root
+                        disk:
+                          bus: virtio
+                      - name: cloudinit
+                        disk:
+                          bus: virtio
+                    interfaces:
+                      - name: default
+                        masquerade: {}
+                networks:
+                  - name: default
+                    pod: {}
+                volumes:
+                  - name: root
+                    dataVolume:
+                      name: "{{ item }}-root"
+                  - name: cloudinit
+                    cloudInitNoCloud:
+                      userData: "{{ _cloud_init }}"
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Create NodePort SSH service per VM
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: "{{ item }}"
+            namespace: "{{ molecule_kubevirt_namespace }}"
+          spec:
+            type: NodePort
+            selector:
+              kubevirt.io/domain: "{{ item }}"
+            ports:
+              - port: 22
+                protocol: TCP
+                targetPort: 22
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Look up cluster nodes
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Node
+      register: _nodes
+
+    - name: Choose first node InternalIP
+      ansible.builtin.set_fact:
+        _node_ip: >-
+          {{ (_nodes.resources[0].status.addresses
+              | selectattr('type', 'equalto', 'InternalIP') | first).address }}
+
+    - name: Read assigned NodePort per VM
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Service
+        name: "{{ item }}"
+        namespace: "{{ molecule_kubevirt_namespace }}"
+      register: _services
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Build runtime inventory entries
+      ansible.builtin.set_fact:
+        _runtime_hosts: >-
+          {{ _runtime_hosts | default({}) | combine({
+               item.item: {
+                 'ansible_host': _node_ip,
+                 'ansible_port': item.resources[0].spec.ports[0].nodePort,
+                 'ansible_user': molecule_kubevirt_ssh_user,
+                 'ansible_ssh_private_key_file': _ssh_key_path,
+                 'ansible_ssh_common_args': '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+               }
+             }) }}
+      loop: "{{ _services.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Ensure ephemeral inventory directory exists
+      ansible.builtin.file:
+        path: "{{ _ephemeral_dir }}/inventory"
+        state: directory
+        mode: "0755"
+
+    - name: Write runtime connection inventory
+      ansible.builtin.copy:
+        content: "{{ {'all': {'hosts': _runtime_hosts}} | to_nice_yaml }}"
+        dest: "{{ _ephemeral_dir }}/inventory/molecule_runtime.yml"
+        mode: "0600"
+
+    - name: Refresh inventory
+      ansible.builtin.meta: refresh_inventory

@@ -1,0 +1,37 @@
+---
+# Shared molecule base configuration, auto-discovered by molecule and
+# deep-merged UNDER every scenario's molecule.yml (scenario keys win; lists
+# are replaced wholesale, so a scenario restating e.g. the ansible_playbook
+# args list or test_sequence replaces it entirely).
+#
+# Relative paths resolve per scenario directory (molecule/<scenario>/):
+#   ../inventory/  — shared inventory (hosts + group_vars) for all scenarios
+#   inventory/     — optional scenario-local overrides, layered on top
+# Platform is selected at runtime: PROVISIONER=aws (default) or
+# PROVISIONER=kubevirt.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../inventory/
+        - --inventory=inventory/
+        - --inventory=${MOLECULE_EPHEMERAL_DIRECTORY}/inventory/
+  playbooks:
+    create: ../utils/${PROVISIONER:-aws}/create.yml
+    destroy: ../utils/${PROVISIONER:-aws}/destroy.yml
+    prepare: ../utils/${PROVISIONER:-aws}/prepare.yml
+    converge: converge.yml
+    verify: verify.yml
+
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+verifier:
+  name: ansible

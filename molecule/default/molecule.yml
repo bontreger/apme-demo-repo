@@ -1,0 +1,5 @@
+---
+# All configuration comes from the shared base config
+# (.config/molecule/config.yml) and shared inventory (molecule/inventory/).
+# Scenario-specific overrides go here; an override of a list key (e.g.
+# scenario.test_sequence or the executor args) replaces the whole list.
