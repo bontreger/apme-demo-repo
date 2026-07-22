@@ -4,6 +4,9 @@
 # Site-specific AAP configuration (token passed at runtime)
 controller_config/site_config.yml
 
+# Credentials emitted by hack/create-molecule-iam-user.yml
+hack/molecule-iam.env
+
 # Galaxy-installed collections (install from requirements.yml)
 **/collections/ansible_collections/
 **/collections/*.info/

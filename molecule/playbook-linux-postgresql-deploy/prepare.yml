@@ -1,0 +1,12 @@
+---
+# Test-harness prerequisites missing from the stock AMIs. Not part of the
+# content under test.
+- name: Prepare instances
+  hosts: postgres_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install acl (setfacl, needed for unprivileged become on RHEL 10)
+      ansible.builtin.dnf:
+        name: acl
+        state: present

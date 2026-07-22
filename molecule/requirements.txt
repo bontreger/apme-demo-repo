@@ -1,5 +1,5 @@
 # Python dependencies for running molecule scenarios.
 # Install: pip install -r molecule/requirements.txt
 molecule>=25.7.0
-boto3          # amazon.aws (PROVISIONER=aws)
-kubernetes     # kubernetes.core (PROVISIONER=kubevirt)
+boto3          # amazon.aws / community.aws
+pywinrm        # WinRM connection plugin (Windows guests)

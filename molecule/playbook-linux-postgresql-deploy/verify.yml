@@ -1,0 +1,35 @@
+---
+- name: Verify
+  hosts: postgres_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Check database cluster is initialized
+      ansible.builtin.stat:
+        path: /var/lib/pgsql/data/PG_VERSION
+      register: pg_version
+
+    - name: Assert database cluster is initialized
+      ansible.builtin.assert:
+        that:
+          - pg_version.stat.exists
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert postgresql service is running and enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['postgresql.service'].state == 'running'
+          - ansible_facts.services['postgresql.service'].status == 'enabled'
+
+    - name: Wait for PostgreSQL to listen on its configured port
+      ansible.builtin.wait_for:
+        port: 5432
+        timeout: 30
+
+    - name: Query the server through the configured socket directory
+      ansible.builtin.command: psql -h /var/lib/pgsql/data -p 5432 -c 'SELECT 1'
+      become: true
+      become_user: postgres
+      changed_when: false
