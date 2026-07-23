@@ -1,0 +1,11 @@
+---
+# Smoke test both OS inventories: opt in to Windows by restating the stack
+# with the windows layer (the args list replaces the base config's wholesale).
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=../utils/inventory/linux/
+        - --inventory=../utils/inventory/windows/
+        - --inventory=inventory/

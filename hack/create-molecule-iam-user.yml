@@ -1,0 +1,241 @@
+---
+# Bootstrap a minimally scoped IAM user for the molecule AWS provisioners
+# (molecule/utils/provisioners/aws/). Run it with your privileged sandbox
+# credentials; it emits an env file with keys for a user that can only:
+#   - launch EC2 instances tagged molecule_scenario=molecule-* at creation,
+#     from the AMI publishers used by molecule/utils/inventory/, in one
+#     region, and only instance types of at most 4 vCPUs
+#   - terminate instances and delete network resources carrying that tag
+#   - manage molecule-* key pairs and the throwaway VPC plumbing
+# It gets no IAM permissions at all — in particular no iam:PassRole, so it
+# cannot launch instances with an instance profile.
+#
+# Reruns are idempotent for the user/policy; any existing access keys are
+# deleted before a fresh one is minted, so the env file always holds the
+# user's only valid key.
+#
+# Usage:
+#   ansible-playbook hack/create-molecule-iam-user.yml
+#   source hack/molecule-iam.env
+# Tear everything down again with hack/destroy-molecule-iam-user.yml.
+- name: Create minimally scoped molecule IAM user
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    molecule_iam_user_name: molecule-provisioner
+    molecule_iam_policy_name: molecule-aws-provisioner
+    molecule_iam_region: "{{ lookup('env', 'AWS_REGION') | default('us-east-2', true) }}"
+    molecule_iam_credentials_file: "{{ playbook_dir }}/molecule-iam.env"
+    # AMI publishers RunInstances may launch from; must cover every
+    # molecule_aws_ami_owner used in molecule/utils/inventory/.
+    molecule_iam_ami_owners:
+      - "309956199498" # Red Hat
+      - "801119661308" # Amazon (Windows Server AMIs)
+      - amazon
+    # IAM has no vCPU-count condition key, so the per-launch CPU cap is an
+    # instance-type allowlist; largest entry is 4 vCPUs. Must cover every
+    # molecule_aws_instance_type used by the inventories (default t3.medium).
+    molecule_iam_instance_types:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge # 4 vCPU
+    _ec2_arn: "arn:aws:ec2:{{ molecule_iam_region }}:{{ _caller.account }}"
+    _in_region:
+      StringEquals:
+        aws:RequestedRegion: "{{ molecule_iam_region }}"
+    _policy:
+      Version: "2012-10-17"
+      Statement:
+        # Describe* has no resource-level scoping; GetPasswordData is the
+        # Windows Administrator password read (ec2_win_password).
+        - Sid: ReadOnly
+          Effect: Allow
+          Action:
+            - ec2:Describe*
+            - ec2:GetPasswordData
+          Resource: "*"
+          Condition: "{{ _in_region }}"
+        # The instance must be tagged molecule_scenario=molecule-* at launch
+        # (create.yml always does); TagOnCreate below authorizes the tagging.
+        - Sid: RunInstancesTagged
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource: "{{ _ec2_arn }}:instance/*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+              ec2:InstanceType: "{{ molecule_iam_instance_types }}"
+            StringLike:
+              aws:RequestTag/molecule_scenario: molecule-*
+        - Sid: RunInstancesResources
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource:
+            - "{{ _ec2_arn }}:network-interface/*"
+            - "{{ _ec2_arn }}:volume/*"
+            - "{{ _ec2_arn }}:subnet/*"
+            - "{{ _ec2_arn }}:security-group/*"
+            - "{{ _ec2_arn }}:key-pair/molecule-*"
+          Condition: "{{ _in_region }}"
+        - Sid: RunInstancesImages
+          Effect: Allow
+          Action: ec2:RunInstances
+          Resource: "arn:aws:ec2:{{ molecule_iam_region }}::image/*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+              ec2:Owner: "{{ molecule_iam_ami_owners }}"
+        - Sid: TerminateOwn
+          Effect: Allow
+          Action: ec2:TerminateInstances
+          Resource: "{{ _ec2_arn }}:instance/*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+            StringLike:
+              ec2:ResourceTag/molecule_scenario: molecule-*
+        - Sid: KeyPairs
+          Effect: Allow
+          Action:
+            - ec2:ImportKeyPair
+            - ec2:DeleteKeyPair
+          Resource: "{{ _ec2_arn }}:key-pair/molecule-*"
+          Condition: "{{ _in_region }}"
+        # Tag-on-create only: cannot re-tag foreign resources into
+        # molecule_scenario to make them terminatable/deletable.
+        - Sid: TagOnCreate
+          Effect: Allow
+          Action: ec2:CreateTags
+          Resource: "*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+              ec2:CreateAction:
+                - RunInstances
+                - CreateVpc
+                - CreateSubnet
+                - CreateInternetGateway
+                - CreateRouteTable
+                - CreateSecurityGroup
+                - ImportKeyPair
+        # Tag reconciliation on reruns, for resources already owned (never
+        # instances, so the terminate scope cannot be widened).
+        - Sid: RetagOwn
+          Effect: Allow
+          Action: ec2:CreateTags
+          Resource:
+            - "{{ _ec2_arn }}:vpc/*"
+            - "{{ _ec2_arn }}:subnet/*"
+            - "{{ _ec2_arn }}:internet-gateway/*"
+            - "{{ _ec2_arn }}:route-table/*"
+            - "{{ _ec2_arn }}:security-group/*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+            StringLike:
+              ec2:ResourceTag/molecule_scenario: molecule-*
+        # Attach/associate/rule actions have patchy resource-level and tag
+        # support across the VPC APIs, so these stay region-scoped only;
+        # the destructive deletes below are tag-scoped.
+        - Sid: NetworkLifecycle
+          Effect: Allow
+          Action:
+            - ec2:CreateVpc
+            - ec2:ModifyVpcAttribute
+            - ec2:CreateSubnet
+            - ec2:ModifySubnetAttribute
+            - ec2:CreateInternetGateway
+            - ec2:AttachInternetGateway
+            - ec2:DetachInternetGateway
+            - ec2:CreateRouteTable
+            - ec2:CreateRoute
+            - ec2:AssociateRouteTable
+            - ec2:DisassociateRouteTable
+            - ec2:CreateSecurityGroup
+            - ec2:AuthorizeSecurityGroupIngress
+            - ec2:AuthorizeSecurityGroupEgress
+            - ec2:RevokeSecurityGroupIngress
+            - ec2:RevokeSecurityGroupEgress
+          Resource: "*"
+          Condition: "{{ _in_region }}"
+        - Sid: NetworkDeleteOwn
+          Effect: Allow
+          Action:
+            - ec2:DeleteVpc
+            - ec2:DeleteSubnet
+            - ec2:DeleteInternetGateway
+            - ec2:DeleteRouteTable
+            - ec2:DeleteSecurityGroup
+          Resource:
+            - "{{ _ec2_arn }}:vpc/*"
+            - "{{ _ec2_arn }}:subnet/*"
+            - "{{ _ec2_arn }}:internet-gateway/*"
+            - "{{ _ec2_arn }}:route-table/*"
+            - "{{ _ec2_arn }}:security-group/*"
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: "{{ molecule_iam_region }}"
+            StringLike:
+              ec2:ResourceTag/molecule_scenario: molecule-*
+  tasks:
+    - name: Look up sandbox account
+      amazon.aws.aws_caller_info:
+      register: _caller
+
+    # Customer-managed rather than inline: the policy exceeds the 2048-char
+    # inline-user-policy quota (managed policies allow 6144, non-whitespace).
+    - name: Create least-privilege managed policy
+      amazon.aws.iam_managed_policy:
+        name: "{{ molecule_iam_policy_name }}"
+        policy: "{{ _policy | to_json }}"
+        make_default: true
+        only_version: true
+        state: present
+
+    - name: Create IAM user with the policy attached
+      amazon.aws.iam_user:
+        name: "{{ molecule_iam_user_name }}"
+        managed_policies:
+          - "{{ molecule_iam_policy_name }}"
+        state: present
+
+    - name: Look up existing access keys
+      amazon.aws.iam_access_key_info:
+        user_name: "{{ molecule_iam_user_name }}"
+      register: _existing_keys
+
+    - name: Delete existing access keys
+      amazon.aws.iam_access_key:
+        user_name: "{{ molecule_iam_user_name }}"
+        id: "{{ item.access_key_id }}"
+        state: absent
+      loop: "{{ _existing_keys.access_keys }}"
+      loop_control:
+        label: "{{ item.access_key_id }}"
+
+    - name: Mint access key
+      amazon.aws.iam_access_key:
+        user_name: "{{ molecule_iam_user_name }}"
+        state: present
+      register: _key
+      no_log: true
+
+    - name: Write credentials env file
+      ansible.builtin.copy:
+        content: |
+          export AWS_ACCESS_KEY_ID={{ _key.access_key.access_key_id }}
+          export AWS_SECRET_ACCESS_KEY={{ _key.secret_access_key }}
+          export AWS_REGION={{ molecule_iam_region }}
+        dest: "{{ molecule_iam_credentials_file }}"
+        mode: "0600"
+      no_log: true
+
+    - name: Show result
+      ansible.builtin.debug:
+        msg: >-
+          Credentials for {{ molecule_iam_user_name }} written to
+          {{ molecule_iam_credentials_file }} (gitignored) — `source` it,
+          then run molecule.

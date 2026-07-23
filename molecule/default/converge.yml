@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: molecule
+  gather_facts: true
+  tasks:
+    - name: Say hello
+      ansible.builtin.debug:
+        msg: >-
+          Hello from {{ inventory_hostname }}
+          ({{ ansible_distribution }} {{ ansible_distribution_version }})

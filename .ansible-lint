@@ -9,49 +9,14 @@ exclude_paths:
   - .ansible-lint
   - collections/
 
-offline: true
+offline: false
 
-mock_modules:
-  - ansible.posix.firewalld
-  - ansible.posix.selinux
-  - ansible.posix.sysctl
-  - ansible.windows.win_service
-  - ansible.windows.win_feature
-  - ansible.windows.win_package
-  - ansible.windows.win_updates
-  - ansible.windows.win_file
-  - ansible.windows.win_uri
-  - ansible.windows.win_copy
-  - ansible.windows.win_template
-  - ansible.windows.win_stat
-  - ansible.windows.win_get_url
-  - ansible.windows.win_command
-  - community.windows.win_firewall_rule
-  - chocolatey.chocolatey.win_chocolatey
-  - community.windows.win_firewall_rule
-  - community.crypto.get_certificate
-  - community.general.mail
-  - community.mysql.mysql_user
-  - community.mysql.mysql_db
-  - community.vmware.vmware_guest
-  - community.vmware.vmware_guest_info
-  - community.vmware.vmware_guest_powerstate
-  - community.vmware.vmware_guest_snapshot
-  - community.vmware.vmware_guest_snapshot_info
-  - kubernetes.core.k8s
-  - kubernetes.core.k8s_info
-  - kubernetes.core.k8s_json_patch
-  - openstack.cloud.server
-  - openstack.cloud.server_info
-  - openstack.cloud.server_action
-  - openstack.cloud.floating_ip
-  - openstack.cloud.port
-  - openstack.cloud.port_info
-  - openstack.cloud.security_group
-  - openstack.cloud.security_group_rule
-  - openstack.cloud.volume
-  - openstack.cloud.image_info
-  - openstack.cloud.compute_flavor_info
+# No mock_modules: ansible-lint writes mock stubs OVER the real module files in
+# ~/.ansible/collections, breaking every mocked module at runtime ("Unsupported
+# parameters ... Supported parameters include: ."). Install the real
+# collections instead before linting:
+#   ansible-galaxy collection install -r collections/requirements.yml
+#   ansible-galaxy collection install -r molecule/requirements.yml
 
 mock_roles:
   - rhel-system-roles.network

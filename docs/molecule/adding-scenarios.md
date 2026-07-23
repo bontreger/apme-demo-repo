@@ -1,0 +1,184 @@
+# Adding molecule scenarios
+
+Step-by-step guides for adding a scenario that tests a playbook or a role.
+Background on how the base config and inventories compose is in
+[configuration-inheritance.md](configuration-inheritance.md).
+
+## Prerequisites
+
+```bash
+pip install -r molecule/requirements.txt
+ansible-galaxy collection install -r molecule/requirements.yml
+# AWS credentials + AWS_REGION in the environment; a minimally scoped IAM
+# user for the tests can be minted per aws-iam-user.md
+```
+
+## Naming convention
+
+- Playbook test: `playbook-<playbook-name-without-file-extension>`
+  (`playbooks/linux-yum-repo-config.yml` → `playbook-linux-yum-repo-config`)
+- Role test: `role-<name-of-role>`
+  (`roles/postgresql_server` → `role-postgresql-server`)
+
+## Anatomy of a scenario
+
+```text
+molecule/<scenario>/
+├── molecule.yml    # usually empty — inherits the base config
+├── converge.yml    # applies the content under test
+├── verify.yml      # asserts the outcomes
+├── prepare.yml     # optional: test-harness prerequisites (skipped when absent)
+└── inventory/      # optional: group mappings / extra vars for this scenario
+    └── hosts.yml
+```
+
+Every scenario automatically gets: the shared Linux instances
+(`utils/inventory/linux/` = `rhel10`/`rhel9`), create/destroy lifecycle
+(create waits for guest connectivity), an optional scenario-local
+`prepare.yml` hook (skipped when absent), and repo role resolution by name. Windows
+(`utils/inventory/windows/` = `win2022`, WinRM) is opt-in: declare the inventory
+stack in the scenario's `molecule.yml` with the windows layer — the utils
+provision exactly the hosts the loaded inventories declare (see
+[configuration-inheritance.md](configuration-inheritance.md)).
+
+## Walkthrough: testing a playbook
+
+Example: `playbooks/linux-yum-repo-config.yml`, whose plays target
+`hosts: server` and `hosts: client`.
+
+```bash
+mkdir -p molecule/playbook-linux-yum-repo-config/inventory
+printf -- '---\n' > molecule/playbook-linux-yum-repo-config/molecule.yml
+```
+
+`converge.yml` — import the playbook; paths are relative to the scenario
+directory:
+
+```yaml
+---
+- name: Converge
+  ansible.builtin.import_playbook: ../../playbooks/linux-yum-repo-config.yml
+```
+
+`inventory/hosts.yml` — map the shared instances into the groups the playbook
+targets (check its `hosts:` lines). Group membership is additive, so the hosts
+remain in `molecule` for the lifecycle playbooks:
+
+```yaml
+---
+all:
+  children:
+    server:
+      hosts:
+        rhel10:
+    client:
+      hosts:
+        rhel9:
+```
+
+Playbook vars (survey defaults, repo-specific overrides) can be set in the
+same file per host, or in `inventory/group_vars/<group>.yml`.
+
+`verify.yml` — assert what the playbook is supposed to have done, not that
+Ansible modules work:
+
+```yaml
+---
+- name: Verify
+  hosts: client
+  gather_facts: false
+  tasks:
+    - name: Read configured repos
+      ansible.builtin.command: dnf repolist --enabled
+      changed_when: false
+      register: repolist
+
+    - name: Assert the repo the playbook configures is enabled
+      ansible.builtin.assert:
+        that:
+          - "'remote_repo' in repolist.stdout"
+```
+
+Run it:
+
+```bash
+molecule test -s playbook-linux-yum-repo-config
+```
+
+## Walkthrough: testing a role
+
+Example: `roles/postgresql_server`.
+
+```bash
+mkdir molecule/role-postgresql-server
+printf -- '---\n' > molecule/role-postgresql-server/molecule.yml
+```
+
+`converge.yml` — apply the role by name (`ANSIBLE_ROLES_PATH` from the base
+config resolves the repo's `roles/`); role vars go under `vars:`:
+
+```yaml
+---
+- name: Converge
+  hosts: molecule
+  become: true
+  vars:
+    postgresql_server_port: 5432
+  roles:
+    - role: postgresql_server
+```
+
+`verify.yml` — assert the role's contract:
+
+```yaml
+---
+- name: Verify
+  hosts: molecule
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert postgresql is enabled and running
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['postgresql.service'].state == 'running'
+          - ansible_facts.services['postgresql.service'].status == 'enabled'
+
+    - name: Assert postgresql is listening
+      ansible.builtin.wait_for:
+        port: 5432
+        timeout: 10
+```
+
+Run it:
+
+```bash
+molecule test -s role-postgresql-server
+```
+
+## Iterating
+
+`molecule test` destroys instances at the end (and on failure via cleanup).
+While developing, run the phases separately so instances persist between
+edits:
+
+```bash
+molecule create -s <scenario>     # provision once (create + prepare)
+molecule converge -s <scenario>   # re-run after each edit
+molecule verify -s <scenario>     # re-run assertions
+molecule destroy -s <scenario>    # tear down when done
+```
+
+Cheap checks that need no credentials or instances:
+
+```bash
+molecule syntax -s <scenario>     # config + playbook syntax through molecule
+ansible-lint molecule/<scenario>/
+```
+
+If a scenario needs different molecule settings (extra test steps, different
+hosts), override only those keys in its `molecule.yml` — see the examples in
+[configuration-inheritance.md](configuration-inheritance.md). Never copy the
+whole base config into a scenario.

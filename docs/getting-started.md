@@ -7,7 +7,7 @@ Ansible Automation Platform (AAP).
 
 - Ansible 2.14+ (or current AAP-supported ansible-core)
 - SSH access to lab hosts
-- Supported targets: RHEL 7/8/9 in a supportable state (scenario-specific;
+- Supported targets: RHEL 7/8/9/10 in a supportable state (scenario-specific;
   see each playbook README)
 
 ## Clone and install collections

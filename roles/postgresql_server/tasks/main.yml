@@ -5,6 +5,7 @@
       - postgresql-server
       - postgresql
     state: present
+    update_cache: true
   tags: [installation]
 
 - name: Check if PostgreSQL is already initialized
@@ -32,13 +33,13 @@
     - ansible_distribution_major_version == "7"
   tags: [configuration]
 
-- name: Initialize PostgreSQL database (RHEL 8/9)
+- name: Initialize PostgreSQL database (RHEL 8+)
   ansible.builtin.command: postgresql-setup --initdb
   args:
     creates: "{{ postgresql_server_data_dir }}/PG_VERSION"
   when:
     - not _pg_version_check.stat.exists
-    - ansible_distribution_major_version in ["8", "9"]
+    - ansible_distribution_major_version in ["8", "9", "10"]
   tags: [configuration]
 
 - name: Verify PostgreSQL initialization

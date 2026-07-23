@@ -1,0 +1,32 @@
+---
+# Tear down everything hack/create-molecule-iam-user.yml made: the IAM user
+# (the module deletes its access keys and detaches policies first), the
+# managed policy, and the local credentials env file. Run with privileged
+# sandbox credentials; override the names with -e if they were customized
+# at create time.
+#
+# Usage:
+#   ansible-playbook hack/destroy-molecule-iam-user.yml
+- name: Destroy molecule IAM user
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    molecule_iam_user_name: molecule-provisioner
+    molecule_iam_policy_name: molecule-aws-provisioner
+    molecule_iam_credentials_file: "{{ playbook_dir }}/molecule-iam.env"
+  tasks:
+    - name: Delete IAM user (including access keys)
+      amazon.aws.iam_user:
+        name: "{{ molecule_iam_user_name }}"
+        state: absent
+
+    - name: Delete managed policy
+      amazon.aws.iam_managed_policy:
+        name: "{{ molecule_iam_policy_name }}"
+        state: absent
+
+    - name: Remove local credentials env file
+      ansible.builtin.file:
+        path: "{{ molecule_iam_credentials_file }}"
+        state: absent

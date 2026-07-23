@@ -1,0 +1,15 @@
+---
+- name: Verify
+  hosts: molecule
+  gather_facts: true
+  tasks:
+    - name: Assert expected OS family
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == molecule_expected_os_family
+
+    - name: Assert expected distribution major version
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution_major_version == molecule_expected_major
+      when: molecule_expected_major is defined
