@@ -10,14 +10,15 @@
 # Windows is opt-in — a scenario restates this list in its molecule.yml with
 # ../utils/inventory/windows/ added (lists are replaced wholesale on merge);
 # inventory/ is an optional scenario-local overlay.
-# Install both python and collection deps on every run (fast no-op once
+# Dependency install is left to the operator (see molecule/README.md Setup).
+# Re-enable to install python + collection deps on every run (fast no-op once
 # satisfied). Paths are repo-root-relative: the command inherits molecule's
 # cwd, and molecule is invoked from the repo root.
-dependency:
-  name: shell
-  command: >-
-    pip install -r molecule/requirements.txt
-    && ansible-galaxy collection install -r molecule/requirements.yml
+#dependency:
+#  name: shell
+#  command: >-
+#    pip install -r molecule/requirements.txt
+#    && ansible-galaxy collection install -r molecule/requirements.yml
 
 ansible:
   # Molecule generates its own ansible.cfg, so the repo's roles_path does not
