@@ -1,0 +1,33 @@
+---
+- name: List enabled repositories
+  ansible.builtin.command:
+    cmd: "{{ ansible_pkg_mgr }} repolist --enabled"
+  register: __yum_repo_client_repolist
+  changed_when: false
+  check_mode: false
+  tags:
+    - yum_repo_client
+    - yum_repo_client_verify
+
+- name: Assert configured present repos appear when enabled
+  ansible.builtin.assert:
+    that:
+      - >-
+        __yum_repo_client_repolist.stdout_lines
+        | select('match', '^' ~ (item.name | regex_escape) ~ '(\\s|$)')
+        | list
+        | length > 0
+    fail_msg: >-
+      Expected enabled repository '{{ item.name }}' not found as a
+      leading repo id in {{ ansible_pkg_mgr }} repolist --enabled
+      output.
+    success_msg: "Repository '{{ item.name }}' is queryable."
+  loop: "{{ yum_repo_client_repositories }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed') }}"
+  when:
+    - (item.state | default('present')) == 'present'
+    - (item.enabled | default(true)) | bool
+  tags:
+    - yum_repo_client
+    - yum_repo_client_verify

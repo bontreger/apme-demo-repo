@@ -12,7 +12,7 @@ scenario, so `win_*` content is testable the same way as Linux content.
                             # scenario's molecule.yml (scenario keys win)
 molecule/
 ├── default/                # Smoke-test scenario — see its README.md
-├── playbook-linux-yum-repo-config/   # example: tests playbooks/linux-yum-repo-config.yml
+├── playbook-linux-postgresql-deploy/ # example: tests playbooks/linux-postgresql-deploy.yml
 ├── role-postgresql-server/           # example: tests roles/postgresql_server
 ├── utils/                  # Shared test infrastructure (not a scenario)
 │   ├── inventory/          # Shared inventory layers
@@ -29,7 +29,7 @@ molecule/
 
 Content scenarios follow a naming convention: a scenario testing a playbook is
 named `playbook-<playbook-name-without-file-extension>` (e.g.
-`playbook-linux-yum-repo-config` for `playbooks/linux-yum-repo-config.yml`),
+`playbook-linux-postgresql-deploy` for `playbooks/linux-postgresql-deploy.yml`),
 and a scenario testing a role is named `role-<name-of-role>` (e.g.
 `role-postgresql-server` for `roles/postgresql_server`).
 
@@ -94,8 +94,8 @@ ansible:
 Scenario name: `playbook-<playbook-name-without-file-extension>`.
 
 ```bash
-mkdir -p molecule/playbook-linux-yum-repo-config/inventory
-printf -- '---\n' > molecule/playbook-linux-yum-repo-config/molecule.yml
+mkdir -p molecule/playbook-linux-postgresql-deploy/inventory
+printf -- '---\n' > molecule/playbook-linux-postgresql-deploy/molecule.yml
 ```
 
 `converge.yml` imports the playbook under test:
@@ -103,23 +103,21 @@ printf -- '---\n' > molecule/playbook-linux-yum-repo-config/molecule.yml
 ```yaml
 ---
 - name: Converge
-  ansible.builtin.import_playbook: ../../playbooks/linux-yum-repo-config.yml
+  ansible.builtin.import_playbook: ../../playbooks/linux-postgresql-deploy.yml
 ```
 
-Repo playbooks target their own groups (this one has `hosts: server` and
-`hosts: client` plays), so map the test instances into those groups with a
-scenario-local `inventory/hosts.yml` — membership is additive, the hosts stay
-in `molecule` for the lifecycle playbooks:
+Repo playbooks target their own groups (this one uses `hosts: postgres_servers`),
+so map the test instances into those groups with a scenario-local
+`inventory/hosts.yml` — membership is additive, the hosts stay in
+`molecule` for the lifecycle playbooks:
 
 ```yaml
 ---
 all:
   children:
-    server:
+    postgres_servers:
       hosts:
         rhel10:
-    client:
-      hosts:
         rhel9:
 ```
 

@@ -129,8 +129,6 @@ launch time to narrow down to specific hosts within a group.
 | `dhcp_clients` | `linux-dhcp-client.yml` |
 | `postgres_servers` | `linux-postgresql-deploy.yml` |
 | `pcp_servers` | `linux-pcp-analysis.yml` (second play) |
-| `server` | `linux-yum-repo-config.yml` (repo server play) |
-| `client` | `linux-yum-repo-config.yml` (repo client play) |
 
 A host can belong to multiple groups (e.g., a RHEL host in both `all_rhel`
 and `postgres_servers`).
