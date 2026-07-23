@@ -84,7 +84,7 @@ No warnings
 [Root Cause Analysis Summary]
 {% if not _web_rca_package_installed | default(false) %}
 ROOT CAUSE: Httpd package is not installed
-   -> Solution: Install httpd package using 'yum install httpd' or 'dnf install httpd'
+   -> Solution: Install httpd package using 'dnf install httpd'
 {% elif _web_rca_svc_status.status.ActiveState | default('unknown') == 'inactive' %}
 ROOT CAUSE: Httpd service is not running
    -> Solution: Start service using 'systemctl start httpd'

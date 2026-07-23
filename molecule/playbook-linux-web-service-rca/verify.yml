@@ -1,0 +1,39 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # Role defaults are not loaded outside the role; mirror the pinned path
+    # from inventory (web_service_rca_report_job_id: molecule).
+    web_rca_report_path: >-
+      /var/lib/ansible-reports/httpd_rca/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the diagnosis report
+      ansible.builtin.stat:
+        path: "{{ web_rca_report_path }}"
+      register: web_rca_report
+
+    - name: Assert diagnosis report was written
+      ansible.builtin.assert:
+        that:
+          - web_rca_report.stat.exists
+          - web_rca_report.stat.isreg
+          - web_rca_report.stat.size | int > 0
+
+    - name: Read diagnosis report
+      ansible.builtin.slurp:
+        src: "{{ web_rca_report_path }}"
+      register: web_rca_report_content
+
+    - name: Assert report contains expected diagnostic sections
+      ansible.builtin.assert:
+        that:
+          - "'Httpd Service Diagnosis Report' in report_text"
+          - "'[Package and Service Status]' in report_text"
+          - "'[Configuration Syntax Check]' in report_text"
+          - "'[Port Listening and Firewall]' in report_text"
+          - "'[SELinux Boolean Values]' in report_text"
+          - "'[Configuration and Logs]' in report_text"
+      vars:
+        report_text: "{{ web_rca_report_content.content | b64decode }}"
