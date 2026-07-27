@@ -50,7 +50,8 @@ Key layout rules:
 | AAP job template names | `ACL_<platform>_<use_case>` | `ACL_linux_dns_bind_primary`, `ACL_win_iis_deploy` |
 | AAP credential names | `acl_<purpose>` | `acl_machine_credential`, `acl_windows_credential` |
 | AAP inventory name | `acl_lab_inventory` (default, overridable) | -- |
-| Role variables | `<rolename>_<variable>` prefix per GPA | `selinux_config_state`, `win_chocolatey_packages` |
+| Role public variables | `{rolename}_*` prefix per GPA | `selinux_config_state`, `win_chocolatey_packages` |
+| Role internal variables | `__{rolename}_*` (double underscore) per GPA | `__web_service_rca_profile`, `__memory_rca_diagnosis` |
 
 ## 4. Playbook Design
 
@@ -72,8 +73,12 @@ Key layout rules:
 - **Parameterized.** Where multiple legacy playbooks did the same thing with
   minor variations, they are consolidated into one role with a mode/action
   parameter (e.g. `win_service_action: start | stop | restart | check`).
-- **GPA variable naming.** All role defaults are prefixed with the role name
-  to avoid collisions (e.g. `firewall_management_zones`, not `zones`).
+- **GPA variable naming.** Follow Red Hat COP Good Practices for Ansible:
+  - **Public API** (defaults, extra vars, survey parameters): `{rolename}_*`
+    (e.g. `firewall_management_zones`, not `zones`).
+  - **Internal / private** (facts, computed values, registered results kept
+    inside the role): `__{rolename}_*` — **double underscore**
+    (e.g. `__web_service_rca_profile`, not `_web_rca_profile`).
 - **Scenario `group_vars` absorbed.** Any `group_vars/` from legacy scenarios
   are merged into `roles/<role>/defaults/main.yml` during migration.
 
