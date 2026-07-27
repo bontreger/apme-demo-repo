@@ -48,7 +48,10 @@ web_service_rca_profiles:
 
 # Reporting
 web_service_rca_report_namespace: "{{ web_service_rca_service }}_rca"
-web_service_rca_report_local_dir: "/var/lib/ansible-reports/{{ web_service_rca_report_namespace }}"
-web_service_rca_report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
+web_service_rca_report_local_dir: >-
+  /var/lib/ansible-reports/{{ web_service_rca_report_namespace }}
+web_service_rca_report_job_id: >-
+  {{ awx_job_id | default(ansible_date_time.epoch) }}
 web_service_rca_report_text_path: >-
-  {{ web_service_rca_report_local_dir }}/{{ inventory_hostname }}-{{ web_service_rca_report_job_id }}.txt
+  {{ web_service_rca_report_local_dir }}/{{ inventory_hostname
+  }}-{{ web_service_rca_report_job_id }}.txt

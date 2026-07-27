@@ -3,6 +3,7 @@
   ansible.builtin.stat:
     path: "{{ _web_rca_profile.config_dir | dirname }}"
   register: _web_rca_nginx_conf_dir_stat
+  failed_when: false
 
 - name: Check nginx work directory permissions
   ansible.builtin.stat:

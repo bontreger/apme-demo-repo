@@ -5,7 +5,8 @@ Performs root-cause analysis on a failed web service (httpd or nginx) by checkin
 ## Requirements
 
 - No special requirements beyond ansible-core 2.15+.
-- Collection `ansible.posix` (for SELinux/firewall checks).
+  SELinux and firewall state are gathered via `ansible.builtin.command`
+  (`getenforce`, `getsebool`, `firewall-cmd`); no extra collections.
 
 ## Role Variables
 
