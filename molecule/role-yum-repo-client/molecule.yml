@@ -1,0 +1,3 @@
+---
+# Inherits create/destroy, Linux inventory, and roles_path from
+# .config/molecule/config.yml — do not duplicate base config here.

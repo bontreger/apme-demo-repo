@@ -38,7 +38,7 @@ acl-ready-to-use-content/
 │   ├── linux-os-info-report.yml       # from 01
 │   ├── linux-dns-sync.yml             # from 02
 │   ├── linux-selinux-config.yml       # from 03
-│   ├── linux-yum-repo-config.yml      # from 04
+│   ├── linux-yum-repo-client.yml      # from 04 (client-only)
 │   ├── linux-firewall-management.yml  # from 05
 │   ├── linux-service-inspection.yml   # from 06
 │   ├── linux-filesystem-check.yml     # from 07
@@ -71,7 +71,7 @@ acl-ready-to-use-content/
 │   ├── os_info_report/
 │   ├── dns_sync/
 │   ├── selinux_config/
-│   ├── yum_repo_config/
+│   ├── yum_repo_client/
 │   ├── firewall_management/
 │   ├── service_inspection/
 │   ├── filesystem_check/
@@ -168,13 +168,17 @@ These source scenarios have no roles -- all logic is in one monolithic playbook.
 | `23_postgresql_server_deploy` | `linux-postgresql-deploy.yml` | `postgresql_server` | PostgreSQL simple deployment |
 | `24_os_pcp` | `linux-pcp-analysis.yml` | `pcp_analysis` | PCP performance analysis |
 
-**Special case -- `04_yum_config` (3 playbooks -> 1 parameterized role):**
+**Special case -- `04_yum_config` (client path extracted):**
 
-Source has `yum_repo_server_tasks.yml`, `yum_repo_client_tasks.yml`, `yum_repo_deployment.yml`. These differ by whether they configure a yum repo server, client, or run full deployment.
+Source had `yum_repo_server_tasks.yml`, `yum_repo_client_tasks.yml`,
+`yum_repo_deployment.yml`. The client path is now a dedicated function role;
+server hosting is deferred.
 
-- **Role**: `yum_repo_config` with `yum_repo_config_mode: server | client | deploy`
-- **Playbook**: `playbooks/linux-yum-repo-config.yml`
-- Mode selects which task file to include: `tasks/server.yml`, `tasks/client.yml`, `tasks/deploy.yml`
+- **Role**: `yum_repo_client` with `yum_repo_client_repositories` (list of
+  `yum_repository` dicts)
+- **Playbook**: `playbooks/linux-yum-repo-client.yml`
+- Server ISO/httpd hosting is out of scope for this role (follow-up
+  `yum_repo_server` if retained).
 
 ---
 

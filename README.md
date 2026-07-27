@@ -92,7 +92,7 @@ Run each playbook from the repository root so `ansible.cfg` resolves `roles_path
 | Playbook | Description |
 |----------|-------------|
 | [linux-selinux-config.yml](playbooks/linux-selinux-config.yml) | Configure SELinux state and related settings |
-| [linux-yum-repo-config.yml](playbooks/linux-yum-repo-config.yml) | Configure YUM/DNF repository server and clients |
+| [linux-yum-repo-client.yml](playbooks/linux-yum-repo-client.yml) | Configure yum/dnf repository entries on RHEL clients |
 | [linux-firewall-management.yml](playbooks/linux-firewall-management.yml) | Manage firewalld zones, services, and ports |
 | [linux-nfs-server.yml](playbooks/linux-nfs-server.yml) | Deploy and configure an NFS server and exports |
 | [linux-mariadb-config.yml](playbooks/linux-mariadb-config.yml) | Deploy and configure MariaDB with hardening and backup |

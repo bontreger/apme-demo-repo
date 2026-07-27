@@ -1,0 +1,38 @@
+---
+- name: Converge yum_repo_client
+  hosts: molecule
+  become: true
+  gather_facts: true
+  vars:
+    yum_repo_client_clean_metadata: true
+    yum_repo_client_verify: true
+    yum_repo_client_repositories:
+      - name: acl_test_baseos
+        description: ACL molecule BaseOS file repo
+        file: acl_yum_repo_client_test
+        baseurl: file:///var/tmp/yum_repo_client_test/baseos
+        enabled: true
+        gpgcheck: false
+        priority: "99"
+        skip_if_unavailable: true
+
+      - name: acl_test_appstream
+        description: ACL molecule AppStream file repo
+        file: acl_yum_repo_client_test
+        baseurl: file:///var/tmp/yum_repo_client_test/appstream
+        enabled: true
+        gpgcheck: false
+        exclude:
+          - nonexistent-pkg-*
+        sslverify: false
+
+      - name: acl_test_metalink_shape
+        description: ACL molecule metalink-shaped entry (disabled)
+        metalink: >-
+          https://mirrors.fedoraproject.org/metalink?repo=epel-{{ ansible_distribution_major_version }}&arch=$basearch
+        enabled: false
+        gpgcheck: false
+        countme: false
+        skip_if_unavailable: true
+  roles:
+    - role: yum_repo_client

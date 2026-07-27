@@ -84,7 +84,7 @@ Key layout rules:
 | Web service RCA | 17 (httpd) + 18 (nginx) | 1 role `web_service_rca` | `web_service_rca_service: httpd \| nginx` |
 | Memory RCA | 21 (high mem) + 22 (OOM) | 1 role `memory_rca` | `memory_rca_mode: high_utilization \| oom` |
 | Diagnostic RCA | 29, 30, 31, 32 | 1 role `linux_diagnostic_rca` | `diagnostic_check_type: zombie_process \| disk_io \| systemd_unit \| privileged_account` |
-| Yum repo config | 04 (3 playbooks) | 1 role `yum_repo_config` | `yum_repo_config_mode: server \| client \| deploy` |
+| Yum repo client | 04 (client path) | 1 role `yum_repo_client` | `yum_repo_client_repositories` (list of `yum_repository` dicts) |
 | Win service mgmt | 81 (6 playbooks) | 1 role `win_service_management` | `win_service_action: check \| start \| stop \| restart` |
 | Win software | 83 (2 playbooks) | 1 role `win_software_management` | `win_software_state: present \| absent` |
 | Win Chocolatey | 84 (2 playbooks) | 1 role `win_chocolatey` | `win_chocolatey_state: present \| absent` |

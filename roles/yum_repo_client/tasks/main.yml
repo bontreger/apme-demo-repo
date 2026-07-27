@@ -1,0 +1,96 @@
+---
+- name: Validate OS compatibility (RHEL 8/9/10)
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == 'RedHat'
+      - ansible_distribution_major_version in ['8', '9', '10']
+    fail_msg: >-
+      Unsupported operating system. This role supports RHEL 8, 9, and 10.
+      Current OS: {{ ansible_distribution }}
+      {{ ansible_distribution_major_version }}
+    success_msg: >-
+      OS compatibility check passed:
+      {{ ansible_distribution }} {{ ansible_distribution_major_version }}
+  tags:
+    - yum_repo_client
+    - yum_repo_client_validate
+
+- name: Assert yum_repo_client_repositories is a list
+  ansible.builtin.assert:
+    that:
+      - yum_repo_client_repositories is sequence
+      - yum_repo_client_repositories is not string
+    fail_msg: >-
+      yum_repo_client_repositories must be a list of repository dicts,
+      got {{ yum_repo_client_repositories | type_debug }}.
+  tags:
+    - yum_repo_client
+    - yum_repo_client_validate
+
+- name: Skip configure when repository list is empty
+  ansible.builtin.debug:
+    msg: >-
+      yum_repo_client_repositories is empty; nothing to configure
+      (successful no-op).
+    verbosity: 1
+  when: yum_repo_client_repositories | length == 0
+  tags:
+    - yum_repo_client
+    - yum_repo_client_validate
+
+- name: Validate each repository entry
+  when: yum_repo_client_repositories | length > 0
+  tags:
+    - yum_repo_client
+    - yum_repo_client_validate
+  block:
+    - name: Assert required keys for present repositories
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.name | length > 0
+          - item.description is defined
+          - item.description | length > 0
+          - >-
+            item.baseurl is defined
+            or item.metalink is defined
+            or item.mirrorlist is defined
+        fail_msg: >-
+          Repository entry {{ loop_index }} (name={{ item.name | default('unnamed') }})
+          with state=present requires name, description, and at least one of
+          baseurl, metalink, or mirrorlist.
+      loop: "{{ yum_repo_client_repositories }}"
+      loop_control:
+        index_var: loop_index
+        label: "{{ item.name | default('unnamed') }}"
+      when: (item.state | default('present')) == 'present'
+
+    - name: Assert required keys for absent repositories
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.name | length > 0
+        fail_msg: >-
+          Repository entry {{ loop_index }} with state=absent requires name.
+      loop: "{{ yum_repo_client_repositories }}"
+      loop_control:
+        index_var: loop_index
+        label: "{{ item.name | default('unnamed') }}"
+      when: (item.state | default('present')) == 'absent'
+
+- name: Include configure tasks
+  ansible.builtin.include_tasks: configure.yml
+  when: yum_repo_client_repositories | length > 0
+  tags:
+    - yum_repo_client
+    - yum_repo_client_configure
+    - yum_repo_client_clean
+
+- name: Include verify tasks
+  ansible.builtin.include_tasks: verify.yml
+  when:
+    - yum_repo_client_repositories | length > 0
+    - yum_repo_client_verify | bool
+  tags:
+    - yum_repo_client
+    - yum_repo_client_verify
