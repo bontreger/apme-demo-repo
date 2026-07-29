@@ -1,0 +1,37 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    chronyd_rca_report_path: >-
+      /var/lib/ansible-reports/chronyd_rca/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the diagnosis report
+      ansible.builtin.stat:
+        path: "{{ chronyd_rca_report_path }}"
+      register: chronyd_rca_report
+
+    - name: Assert diagnosis report was written
+      ansible.builtin.assert:
+        that:
+          - chronyd_rca_report.stat.exists
+          - chronyd_rca_report.stat.isreg
+          - chronyd_rca_report.stat.size | int > 0
+
+    - name: Read diagnosis report
+      ansible.builtin.slurp:
+        src: "{{ chronyd_rca_report_path }}"
+      register: chronyd_rca_report_content
+
+    - name: Assert report contains expected diagnostic sections
+      ansible.builtin.assert:
+        that:
+          - "'Chronyd Diagnosis Report' in report_text"
+          - "'[Package and Service Status]' in report_text"
+          - "'[Chrony Time Synchronization Status]' in report_text"
+          - "'[System Time Configuration]' in report_text"
+          - "'[Chrony Configuration and Directories]' in report_text"
+          - "'[Network Connectivity and Firewall]' in report_text"
+      vars:
+        report_text: "{{ chronyd_rca_report_content.content | b64decode }}"
