@@ -1,0 +1,5 @@
+---
+__win_service_management_state_map:
+  start: started
+  stop: stopped
+  restart: restarted

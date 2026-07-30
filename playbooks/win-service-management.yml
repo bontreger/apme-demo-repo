@@ -4,3 +4,5 @@
   gather_facts: false
   roles:
     - role: win_service_management
+      tags:
+        - win_service_management
