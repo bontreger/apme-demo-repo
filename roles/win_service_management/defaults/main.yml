@@ -1,5 +1,4 @@
 ---
 win_service_management_action: check
-# Empty leaves the existing startup type untouched.
-win_service_management_start_mode: ""
+win_service_management_start_mode: auto
 win_service_management_services: []
