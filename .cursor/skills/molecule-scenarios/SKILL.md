@@ -55,11 +55,31 @@ running the tests is documented in `docs/molecule/aws-iam-user.md`.
    available (AWS creds); it provisions real instances and
    destroys them at the end.
 
+## Windows scenarios
+
+Worked examples: `molecule/playbook-win-*` (five of them, one per `win-*`
+playbook). Beyond the inventory opt-in in step 2:
+
+- The `win-*` playbooks all target `hosts: all_windows` — map `win2022` into
+  that group in the scenario's `inventory/hosts.yml`.
+- Every `win_*` role defaults to an empty package/service list, so a converge
+  on defaults is a no-op. Supply the role vars in the scenario's inventory.
+- NO `become: true` — WinRM connects as Administrator already, and `become` on
+  Windows is a different mechanism (`runas`).
+- Verify from inside the guest (e.g. `win_uri` against `http://localhost/`) so
+  assertions don't depend on the security group. Useful info modules:
+  `ansible.windows.win_service_info`, `win_feature_info`, `win_stat`,
+  `win_reg_stat`, `win_powershell`, `chocolatey.chocolatey.win_chocolatey_facts`.
+- Content that serves traffic needs the port opened on the test security group:
+  set `molecule_aws_extra_ports` (group-wide, default `[]`) in the scenario's
+  `inventory/group_vars/all.yml` — `create.yml` reads it on `localhost`.
+
 ## Rules
 
 - Do NOT edit `molecule/utils/inventory/` (shared) or `.config/molecule/config.yml`
   for scenario-specific needs — use the scenario's own `inventory/` and
-  `molecule.yml`.
+  `molecule.yml`. Generic, defaulted extension points (e.g.
+  `molecule_aws_extra_ports`) are the exception, not scenario-specific values.
 - Do NOT copy base-config keys into a scenario `molecule.yml`; override only
   what differs. Merged lists are replaced wholesale (e.g. overriding
   `scenario.test_sequence` must state the full sequence).

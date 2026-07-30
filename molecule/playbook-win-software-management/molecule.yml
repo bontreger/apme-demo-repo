@@ -1,0 +1,11 @@
+---
+# Windows-only scenario: restate the inventory stack with the windows layer
+# and without the linux one (merged lists replace the base config's
+# wholesale), so only win2022 is provisioned.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=../utils/inventory/windows/
+        - --inventory=inventory/

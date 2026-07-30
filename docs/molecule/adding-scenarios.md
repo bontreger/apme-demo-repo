@@ -9,9 +9,18 @@ Background on how the base config and inventories compose is in
 ```bash
 pip install -r molecule/requirements.txt
 ansible-galaxy collection install -r molecule/requirements.yml
+# Collections the content under test needs (ansible.windows, community.windows,
+# chocolatey.chocolatey, community.postgresql, ...). Install to the galaxy
+# default path, NOT the repo's collections/ tree: molecule generates its own
+# ansible.cfg and a converge playbook's playbook_dir is the scenario directory,
+# so <repo>/collections would not be discovered.
+ansible-galaxy collection install -r collections/requirements.yml
 # AWS credentials + AWS_REGION in the environment; a minimally scoped IAM
 # user for the tests can be minted per aws-iam-user.md
 ```
+
+The `dependency` step runs all three of these on every molecule run, so this
+is only needed to pre-install or to lint outside molecule.
 
 ## Naming convention
 

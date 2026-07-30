@@ -1,0 +1,27 @@
+---
+- name: Verify
+  hosts: all_windows
+  gather_facts: false
+  tasks:
+    - name: Collect the managed services
+      ansible.windows.win_service_info:
+        name: "{{ item }}"
+      register: managed_services
+      loop: "{{ win_service_management_services }}"
+
+    - name: Assert each managed service is running and starts automatically
+      ansible.builtin.assert:
+        # exists is asserted first on purpose: assert stops at the first false
+        # condition, so services[0] is only dereferenced once it is known to
+        # be there.
+        that:
+          - item.exists
+          - item.services[0].state == 'started'
+          - item.services[0].start_mode == 'auto'
+        fail_msg: >-
+          {{ item.item }}:
+          state={{ item.services | map(attribute='state') | list | join(',') }}
+          start_mode={{ item.services | map(attribute='start_mode') | list | join(',') }}
+      loop: "{{ managed_services.results }}"
+      loop_control:
+        label: "{{ item.item }}"

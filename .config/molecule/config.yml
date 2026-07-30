@@ -13,11 +13,20 @@
 # Install both python and collection deps on every run (fast no-op once
 # satisfied). Paths are repo-root-relative: the command inherits molecule's
 # cwd, and molecule is invoked from the repo root.
+#
+# collections/requirements.yml carries the collections the CONTENT under test
+# needs (ansible.windows, community.windows, chocolatey.chocolatey,
+# community.postgresql, ...). It is installed to the galaxy default path
+# rather than the repo's collections/ tree on purpose: molecule generates its
+# own ansible.cfg, and a converge playbook's playbook_dir is the scenario
+# directory, so neither the repo ansible.cfg nor adjacent-collections
+# discovery would find <repo>/collections.
 dependency:
   name: shell
   command: >-
     pip install -r molecule/requirements.txt
     && ansible-galaxy collection install -r molecule/requirements.yml
+    && ansible-galaxy collection install -r collections/requirements.yml
 
 ansible:
   # Molecule generates its own ansible.cfg, so the repo's roles_path does not
@@ -25,6 +34,13 @@ ansible:
   # converge playbooks that reference roles by name.
   env:
     ANSIBLE_ROLES_PATH: ../../roles
+    # macOS only, no-op elsewhere: ansible runs each host in a forked worker,
+    # and connection plugins that reach into CoreFoundation from the child
+    # (pywinrm -> requests -> urllib -> SystemConfiguration proxy lookup) make
+    # the ObjC runtime abort the process. The symptom is a "Python quit
+    # unexpectedly" dialog and "A worker was found in a dead state" at the
+    # first task that talks to a guest.
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"
   executor:
     args:
       ansible_playbook:
