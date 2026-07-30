@@ -1,31 +1,28 @@
 ---
 - name: Manage Windows services
   ansible.windows.win_service:
-    name: "{{ __win_service_management_service }}"
-    state: "{{ __win_service_management_state_map[win_service_management_action] }}"
-    # Omitted when win_service_management_start_mode is empty, so the existing
-    # startup type is left alone unless the caller asks for a specific one.
-    start_mode: "{{ win_service_management_start_mode | default(omit, true) }}"
+    name: "{{ item }}"
+    state: "{{ _win_service_management_state_map[win_service_management_action] }}"
+    start_mode: "{{ win_service_management_start_mode }}"
   loop: "{{ win_service_management_services }}"
-  loop_control:
-    loop_var: __win_service_management_service
+  register: win_service_management_result
+  vars:
+    _win_service_management_state_map:
+      start: started
+      stop: stopped
+      restart: restarted
   when: win_service_management_action != 'check'
 
-- name: Collect Windows service status
-  ansible.windows.win_service_info:
-    name: "{{ __win_service_management_service }}"
+- name: Check Windows services status
+  ansible.windows.win_service:
+    name: "{{ item }}"
   loop: "{{ win_service_management_services }}"
-  loop_control:
-    loop_var: __win_service_management_service
-  register: __win_service_management_info
+  register: win_service_management_result
+  when: win_service_management_action == 'check'
 
 - name: Display service status
   ansible.builtin.debug:
-    msg: >-
-      Service {{ item['__win_service_management_service'] }}:
-      {{ item.services | map(attribute='state') | first | default('not installed') }}
-      (start_mode
-      {{ item.services | map(attribute='start_mode') | first | default('n/a') }})
-  loop: "{{ __win_service_management_info.results }}"
+    msg: "Service {{ item.item }}: {{ item.state | default('not installed') }}"
+  loop: "{{ win_service_management_result.results }}"
   loop_control:
-    label: "{{ item['__win_service_management_service'] }}"
+    label: "{{ item.item }}"
