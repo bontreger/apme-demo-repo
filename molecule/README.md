@@ -12,6 +12,8 @@ scenario, so `win_*` content is testable the same way as Linux content.
                             # scenario's molecule.yml (scenario keys win)
 molecule/
 ├── default/                # Smoke-test scenario — see its README.md
+├── playbook-linux-yum-repo-config/   # example: tests playbooks/linux-yum-repo-config.yml
+├── role-postgresql-server/           # example: tests roles/postgresql_server
 ├── playbook-linux-postgresql-deploy/  # tests playbooks/linux-postgresql-deploy.yml
 ├── playbook-win-chocolatey/           # tests playbooks/win-chocolatey.yml
 ├── playbook-win-iis-deploy/           # tests playbooks/win-iis-deploy.yml
