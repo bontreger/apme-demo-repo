@@ -117,9 +117,8 @@ The five `playbook-win-*` scenarios are the worked examples: each drops the
 linux layer (Windows-only, so only `win2022` gets provisioned), maps `win2022`
 into the `all_windows` group the `win-*` playbooks target, and supplies the
 role vars the content needs — every `win_*` role defaults to an empty
-package/service list, so a converge on defaults would be a no-op (or, for
-`win_service_management`, an explicit failure). Notes worth carrying into new
-Windows scenarios:
+package/service list, so a converge on defaults would be a no-op. Notes worth
+carrying into new Windows scenarios:
 
 - Do **not** add `become: true` the way the Linux role examples do. WinRM
   already connects as Administrator, and `become` on Windows is a different
