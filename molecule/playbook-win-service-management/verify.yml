@@ -9,12 +9,15 @@
       register: managed_services
       loop: "{{ win_service_management_services }}"
 
-    - name: Assert each managed service is running with its startup type untouched
+    - name: Assert each managed service is running and starts automatically
       ansible.builtin.assert:
+        # exists is asserted first on purpose: assert stops at the first false
+        # condition, so services[0] is only dereferenced once it is known to
+        # be there.
         that:
           - item.exists
           - item.services[0].state == 'started'
-          - item.services[0].start_mode == 'manual'
+          - item.services[0].start_mode == 'auto'
         fail_msg: >-
           {{ item.item }}:
           state={{ item.services | map(attribute='state') | list | join(',') }}
