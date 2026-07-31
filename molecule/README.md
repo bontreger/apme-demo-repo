@@ -83,10 +83,10 @@ a scenario-local `inventory/` — the default scenario's
 
 Group-wide values are overridden the same way, in a scenario-local
 `inventory/group_vars/all.yml`. `molecule_aws_extra_ports` (default `[]`) is
-the one most scenarios reach for: inbound TCP ports added to the test security
-group on top of 22 and 5986, needed when the content serves traffic — see
-[playbook-win-iis-deploy](playbook-win-iis-deploy/inventory/group_vars/all.yml).
-It has to be group-wide because `create.yml` reads it on `localhost`.
+the one to know about: inbound TCP ports added to the test security group on
+top of 22 and 5986, for content that has to be reached from the controller. It
+has to be group-wide because `create.yml` reads it on `localhost`. No scenario
+needs it today — verify from inside the guest where you can.
 
 ## Adding a scenario
 

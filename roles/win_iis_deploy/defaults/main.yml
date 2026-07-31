@@ -3,3 +3,4 @@ win_iis_deploy_firewall_http: true
 win_iis_deploy_firewall_https: true
 win_iis_deploy_index_content: "<h1>IIS is live via Ansible</h1>"
 win_iis_deploy_webroot: 'C:\inetpub\wwwroot'
+win_iis_deploy_reboot: false

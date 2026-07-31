@@ -4,6 +4,13 @@
     name: Web-Server
     state: present
     include_management_tools: true
+  register: __win_iis_deploy_feature
+
+- name: Reboot if the feature installation requires it
+  ansible.windows.win_reboot:
+  when:
+    - __win_iis_deploy_feature.reboot_required
+    - win_iis_deploy_reboot
 
 - name: Open firewall for HTTP (port 80)
   community.windows.win_firewall_rule:
@@ -38,11 +45,15 @@
     content: "{{ win_iis_deploy_index_content }}"
     dest: '{{ win_iis_deploy_webroot }}\index.html'
 
+# Checked from the guest so the result reflects IIS, not the network path
+# between the controller and the host.
 - name: Verify IIS is responding
   ansible.windows.win_uri:
-    url: "http://{{ ansible_host }}/"
-  register: win_iis_deploy_http_check
+    url: http://localhost/
+  register: __win_iis_deploy_http_check
+  when: not ansible_check_mode
 
 - name: Display IIS status
   ansible.builtin.debug:
-    msg: "IIS responding with status {{ win_iis_deploy_http_check.status_code }}"
+    msg: "IIS responding with status {{ __win_iis_deploy_http_check.status_code }}"
+  when: not ansible_check_mode
