@@ -5,18 +5,23 @@
     reboot: "{{ win_patch_management_reboot }}"
   when: win_patch_management_mode == 'install_all'
 
+# An empty accept_list matches every update, so the KB list has to be non-empty
+# for this mode to mean anything.
 - name: Install specific KB updates
   ansible.windows.win_updates:
     category_names: "{{ win_patch_management_category }}"
     accept_list: "{{ win_patch_management_kb_list }}"
-  when: win_patch_management_mode == 'install_kb'
+    reboot: "{{ win_patch_management_reboot }}"
+  when:
+    - win_patch_management_mode == 'install_kb'
+    - win_patch_management_kb_list | length > 0
 
 - name: Generate Windows update report
   when: win_patch_management_mode == 'report'
   block:
     - name: Ensure report directory exists
       ansible.windows.win_file:
-        path: "{{ win_patch_management_report_path }}"
+        path: "{{ win_patch_management_report_dest | win_dirname }}"
         state: directory
 
     - name: Ensure Windows Update service is running
@@ -29,11 +34,13 @@
         category_names:
           - "{{ win_patch_management_category }}"
         state: searched
-      register: win_patch_management_update_result
+      register: __win_patch_management_update_result
 
     - name: Generate HTML report
       ansible.windows.win_template:
         src: win_patch_report.html.j2
         dest: "{{ win_patch_management_report_dest }}"
       vars:
-        updates: "{{ win_patch_management_update_result.updates }}"
+        updates: "{{ __win_patch_management_update_result.updates | default({}) }}"
+        filtered_updates: "{{ __win_patch_management_update_result.filtered_updates | default({}) }}"
+        reboot_required: "{{ __win_patch_management_update_result.reboot_required | default(false) }}"

@@ -11,12 +11,26 @@ Manages Windows Update patching with support for installing all updates, targeti
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `win_patch_management_mode` | `install_all` | Operation mode: `install_all`, `install_kb`, or `report` |
-| `win_patch_management_kb_list` | `[]` | List of specific KB article IDs to install (used with `install_kb` mode) |
+| `win_patch_management_mode` | `report` | Operation mode: `report`, `install_all`, or `install_kb` |
+| `win_patch_management_kb_list` | `[]` | Update titles or KB numbers, matched as regular expressions. Required by `install_kb` |
 | `win_patch_management_category` | `*` | Windows Update category filter (e.g. `SecurityUpdates`, `*` for all) |
-| `win_patch_management_reboot` | `true` | Whether to automatically reboot after installing updates |
-| `win_patch_management_report_path` | `C:\ansible_reports` | Directory to store patch report files |
-| `win_patch_management_report_dest` | `C:\inetpub\wwwroot\win_patch_report.html` | Full path for the generated HTML report |
+| `win_patch_management_reboot` | `true` | Reboot automatically when updates require it. Applies to both installing modes |
+| `win_patch_management_report_path` | `C:\ansible_reports` | Base directory for reports; the default `report_dest` is placed here |
+| `win_patch_management_report_dest` | `{{ win_patch_management_report_path }}\win_patch_report.html` | Full path for the generated HTML report. Its parent directory is created |
+
+## Behaviour
+
+- **`report` is the default mode** because it is the only read-only one.
+  `install_all` and `install_kb` patch the host and may reboot it, so they have
+  to be asked for explicitly.
+- **`install_kb` does nothing when `win_patch_management_kb_list` is empty.**
+  An empty accept list matches *every* update in `win_updates`, so an empty
+  list would install everything rather than the specific KBs the mode implies.
+- **Reports are not idempotent.** The HTML is rewritten on every run, so report
+  mode always reports `changed`.
+- **An unrecognised mode does nothing** and the run reports success.
+- **Patching can take hours.** `win_updates` runs the Windows Update API on the
+  host; set job timeouts accordingly.
 
 ## Dependencies
 
