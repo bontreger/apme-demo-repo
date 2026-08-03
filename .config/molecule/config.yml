@@ -10,23 +10,15 @@
 # Windows is opt-in — a scenario restates this list in its molecule.yml with
 # ../utils/inventory/windows/ added (lists are replaced wholesale on merge);
 # inventory/ is an optional scenario-local overlay.
-# Install both python and collection deps on every run (fast no-op once
+# Dependency install is left to the operator (see molecule/README.md Setup).
+# Re-enable to install python + collection deps on every run (fast no-op once
 # satisfied). Paths are repo-root-relative: the command inherits molecule's
 # cwd, and molecule is invoked from the repo root.
-#
-# collections/requirements.yml carries the collections the CONTENT under test
-# needs (ansible.windows, community.windows, chocolatey.chocolatey,
-# community.postgresql, ...). It is installed to the galaxy default path
-# rather than the repo's collections/ tree on purpose: molecule generates its
-# own ansible.cfg, and a converge playbook's playbook_dir is the scenario
-# directory, so neither the repo ansible.cfg nor adjacent-collections
-# discovery would find <repo>/collections.
-dependency:
-  name: shell
-  command: >-
-    pip install -r molecule/requirements.txt
-    && ansible-galaxy collection install -r molecule/requirements.yml
-    && ansible-galaxy collection install -r collections/requirements.yml
+#dependency:
+#  name: shell
+#  command: >-
+#    pip install -r molecule/requirements.txt
+#    && ansible-galaxy collection install -r molecule/requirements.yml
 
 ansible:
   # Molecule generates its own ansible.cfg, so the repo's roles_path does not

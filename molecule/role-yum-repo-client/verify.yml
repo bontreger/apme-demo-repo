@@ -1,0 +1,105 @@
+---
+- name: Verify yum_repo_client contract
+  hosts: molecule
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Stat managed repo file
+      ansible.builtin.stat:
+        path: /etc/yum.repos.d/acl_yum_repo_client_test.repo
+      register: repo_file
+
+    - name: Assert repo file exists
+      ansible.builtin.assert:
+        that:
+          - repo_file.stat.exists
+          - repo_file.stat.isreg
+
+    - name: Slurp repo file contents
+      ansible.builtin.slurp:
+        src: /etc/yum.repos.d/acl_yum_repo_client_test.repo
+      register: repo_slurp
+
+    - name: Decode repo file
+      ansible.builtin.set_fact:
+        repo_text: "{{ repo_slurp.content | b64decode }}"
+
+    - name: Assert expected sections and parameters were written
+      ansible.builtin.assert:
+        that:
+          - "'[acl_test_baseos]' in repo_text"
+          - "'[acl_test_appstream]' in repo_text"
+          - "'file:///var/tmp/yum_repo_client_test/baseos' in repo_text"
+          # yum_repository uses ConfigParser.write → "key = value"
+          - "'priority = 99' in repo_text"
+          - "'gpgcheck = 0' in repo_text"
+          - "'enabled = 1' in repo_text"
+
+    - name: List enabled repositories
+      ansible.builtin.command:
+        cmd: dnf repolist --enabled
+      register: repolist
+      changed_when: false
+
+    - name: Assert test repos appear in dnf repolist
+      ansible.builtin.assert:
+        that:
+          - "'acl_test_baseos' in repolist.stdout"
+          - "'acl_test_appstream' in repolist.stdout"
+
+    - name: Re-apply role to confirm idempotency
+      ansible.builtin.include_role:
+        name: yum_repo_client
+      vars:
+        yum_repo_client_clean_metadata: false
+        yum_repo_client_verify: false
+        yum_repo_client_repositories:
+          - name: acl_test_baseos
+            description: ACL molecule BaseOS file repo
+            file: acl_yum_repo_client_test
+            baseurl: file:///var/tmp/yum_repo_client_test/baseos
+            enabled: true
+            gpgcheck: false
+            priority: "99"
+            skip_if_unavailable: true
+          - name: acl_test_appstream
+            description: ACL molecule AppStream file repo
+            file: acl_yum_repo_client_test
+            baseurl: file:///var/tmp/yum_repo_client_test/appstream
+            enabled: true
+            gpgcheck: false
+            exclude:
+              - nonexistent-pkg-*
+            sslverify: false
+
+    # Pair with a second `molecule converge` during iteration and confirm
+    # changed=0 in the log (test plan M2).
+
+    - name: Remove metalink-shaped repo via state absent
+      ansible.builtin.include_role:
+        name: yum_repo_client
+      vars:
+        yum_repo_client_clean_metadata: false
+        yum_repo_client_verify: false
+        yum_repo_client_repositories:
+          - name: acl_test_metalink_shape
+            state: absent
+
+    - name: Confirm metalink-shaped repo file absent or section gone
+      ansible.builtin.shell: |
+        set -o pipefail
+        if [ -f /etc/yum.repos.d/acl_test_metalink_shape.repo ]; then
+          ! grep -q '^\[acl_test_metalink_shape\]' \
+            /etc/yum.repos.d/acl_test_metalink_shape.repo
+        else
+          true
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Empty-list no-op succeeds
+      ansible.builtin.include_role:
+        name: yum_repo_client
+      vars:
+        yum_repo_client_repositories: []

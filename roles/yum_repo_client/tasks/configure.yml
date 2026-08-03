@@ -1,0 +1,30 @@
+---
+- name: Ensure yum repositories are configured
+  ansible.builtin.yum_repository: "{{ item }}"
+  loop: "{{ yum_repo_client_repositories }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed') }}"
+  no_log: >-
+    {{
+      (yum_repo_client_repositories
+       | selectattr('password', 'defined')
+       | list
+       | length > 0)
+      or
+      (yum_repo_client_repositories
+       | selectattr('proxy_password', 'defined')
+       | list
+       | length > 0)
+    }}
+  tags:
+    - yum_repo_client
+    - yum_repo_client_configure
+
+- name: Clean package manager metadata cache
+  ansible.builtin.command:
+    cmd: "{{ ansible_pkg_mgr }} clean all"
+  changed_when: false
+  when: yum_repo_client_clean_metadata | bool
+  tags:
+    - yum_repo_client
+    - yum_repo_client_clean

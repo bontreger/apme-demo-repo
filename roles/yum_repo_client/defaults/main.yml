@@ -1,0 +1,11 @@
+---
+# List of repository definitions. Each dict maps 1:1 to
+# ansible.builtin.yum_repository arguments.
+# Empty list → successful no-op.
+yum_repo_client_repositories: []
+
+# After applying repos, run dnf/yum clean all (never reports changed).
+yum_repo_client_clean_metadata: true
+
+# After applying repos, assert enabled repos are queryable.
+yum_repo_client_verify: true

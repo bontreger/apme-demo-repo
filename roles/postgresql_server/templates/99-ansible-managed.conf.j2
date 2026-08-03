@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+# Managed settings for the postgresql_server role. Loaded via include_dir.
+
+port = {{ postgresql_server_port }}
+unix_socket_directories = '{{ postgresql_server_unix_socket_directories }}'

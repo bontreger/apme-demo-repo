@@ -7,13 +7,15 @@
     - ../inventory/group_vars/all/reporting.yml
 
   pre_tasks:
-    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+    - name: Validate OS compatibility (RHEL/CentOS 8/9/10)
       ansible.builtin.assert:
         that:
           - ansible_os_family == "RedHat"
           - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
-          - ansible_distribution_major_version in ["7", "8", "9"]
-        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+          - ansible_distribution_major_version in ["8", "9", "10"]
+        fail_msg: >-
+          Unsupported operating system.
+          This playbook is not available for the current OS.
         quiet: true
       tags: [always]
 

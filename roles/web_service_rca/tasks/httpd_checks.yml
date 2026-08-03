@@ -11,4 +11,5 @@
     - name: Record SELinux boolean parse failure
       ansible.builtin.set_fact:
         _web_rca_diagnosis_warnings: >-
-          {{ _web_rca_diagnosis_warnings + ['Failed to parse SELinux boolean values'] }}
+          {{ _web_rca_diagnosis_warnings +
+             ['Failed to parse SELinux boolean values'] }}

@@ -1,0 +1,7 @@
+---
+- name: Configure yum/dnf repositories on clients
+  hosts: all_rhel
+  become: true
+  gather_facts: true
+  roles:
+    - role: yum_repo_client

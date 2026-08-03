@@ -1,0 +1,27 @@
+---
+- name: Prepare local file repos for yum_repo_client tests
+  hosts: molecule
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Ensure local repo directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /var/tmp/yum_repo_client_test/baseos
+        - /var/tmp/yum_repo_client_test/appstream
+
+    - name: Install createrepo_c for local metadata
+      ansible.builtin.dnf:
+        name: createrepo_c
+        state: present
+
+    - name: Generate empty repodata for test repos
+      ansible.builtin.command:
+        cmd: createrepo_c "{{ item }}"
+        creates: "{{ item }}/repodata/repomd.xml"
+      loop:
+        - /var/tmp/yum_repo_client_test/baseos
+        - /var/tmp/yum_repo_client_test/appstream

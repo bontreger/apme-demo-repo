@@ -12,7 +12,7 @@ scenario, so `win_*` content is testable the same way as Linux content.
                             # scenario's molecule.yml (scenario keys win)
 molecule/
 ├── default/                # Smoke-test scenario — see its README.md
-├── playbook-linux-yum-repo-config/   # example: tests playbooks/linux-yum-repo-config.yml
+├── playbook-linux-postgresql-deploy/ # example: tests playbooks/linux-postgresql-deploy.yml
 ├── role-postgresql-server/           # example: tests roles/postgresql_server
 ├── playbook-linux-postgresql-deploy/  # tests playbooks/linux-postgresql-deploy.yml
 ├── playbook-win-chocolatey/           # tests playbooks/win-chocolatey.yml
@@ -44,7 +44,7 @@ molecule generates its own `ansible.cfg`, and a converge playbook's
 
 Content scenarios follow a naming convention: a scenario testing a playbook is
 named `playbook-<playbook-name-without-file-extension>` (e.g.
-`playbook-linux-yum-repo-config` for `playbooks/linux-yum-repo-config.yml`),
+`playbook-linux-postgresql-deploy` for `playbooks/linux-postgresql-deploy.yml`),
 and a scenario testing a role is named `role-<name-of-role>` (e.g.
 `role-postgresql-server` for `roles/postgresql_server`).
 
@@ -139,8 +139,8 @@ carrying into new Windows scenarios:
 Scenario name: `playbook-<playbook-name-without-file-extension>`.
 
 ```bash
-mkdir -p molecule/playbook-linux-yum-repo-config/inventory
-printf -- '---\n' > molecule/playbook-linux-yum-repo-config/molecule.yml
+mkdir -p molecule/playbook-linux-postgresql-deploy/inventory
+printf -- '---\n' > molecule/playbook-linux-postgresql-deploy/molecule.yml
 ```
 
 `converge.yml` imports the playbook under test:
@@ -148,23 +148,21 @@ printf -- '---\n' > molecule/playbook-linux-yum-repo-config/molecule.yml
 ```yaml
 ---
 - name: Converge
-  ansible.builtin.import_playbook: ../../playbooks/linux-yum-repo-config.yml
+  ansible.builtin.import_playbook: ../../playbooks/linux-postgresql-deploy.yml
 ```
 
-Repo playbooks target their own groups (this one has `hosts: server` and
-`hosts: client` plays), so map the test instances into those groups with a
-scenario-local `inventory/hosts.yml` — membership is additive, the hosts stay
-in `molecule` for the lifecycle playbooks:
+Repo playbooks target their own groups (this one uses `hosts: postgres_servers`),
+so map the test instances into those groups with a scenario-local
+`inventory/hosts.yml` — membership is additive, the hosts stay in
+`molecule` for the lifecycle playbooks:
 
 ```yaml
 ---
 all:
   children:
-    server:
+    postgres_servers:
       hosts:
         rhel10:
-    client:
-      hosts:
         rhel9:
 ```
 
@@ -202,11 +200,12 @@ override cookbook, and how base-config/inventory inheritance works — are in
 
 ## Setup
 
-Molecule itself must be installed (`pip install molecule`); everything else —
-python deps and collections — is installed automatically by the `dependency`
-step on every run (a ~1s no-op once satisfied). To pre-install manually:
+Install Molecule and the scenario dependencies before the first run. The shared
+base config does not auto-install them (the `dependency` shell step in
+`.config/molecule/config.yml` is commented out).
 
 ```bash
+pip install molecule
 pip install -r molecule/requirements.txt
 ansible-galaxy collection install -r molecule/requirements.yml
 ```
@@ -224,6 +223,25 @@ ansible-galaxy collection install -r molecule/requirements.yml
 molecule test
 
 # Additional scenarios: molecule test -s <scenario>, or --all for everything.
+```
+
+### macOS: `OBJC_DISABLE_INITIALIZE_FORK_SAFETY`
+
+On macOS, Ansible's forked workers can abort during create's
+`wait_for_connection` step after boto3 has already initialized Objective-C
+frameworks in the parent process. Symptoms:
+
+- macOS "Python quit unexpectedly"
+- Ansible: `A worker was found in a dead state`
+- Crash report ASI: `crashed on child side of fork pre-exec` (stack through
+  `_scproxy.get_proxy_settings` / `performForkChildInitialize`)
+
+Export this before running molecule (session-only; do not set permanently
+unless you understand the trade-off):
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+molecule test
 ```
 
 ## AWS networking

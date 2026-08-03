@@ -29,7 +29,8 @@
         timeout: 30
 
     - name: Query the server through the configured socket directory
-      ansible.builtin.command: psql -h /var/lib/pgsql/data -p 5432 -c 'SELECT 1'
+      ansible.builtin.command: >-
+        psql -h /var/run/postgresql -p 5432 -c 'SELECT 1'
       become: true
       become_user: postgres
       changed_when: false
