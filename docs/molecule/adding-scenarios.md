@@ -6,6 +6,9 @@ Background on how the base config and inventories compose is in
 
 ## Prerequisites
 
+Required once per environment — the shared base config does not auto-install
+deps (see [molecule/README.md](../../molecule/README.md#setup)):
+
 ```bash
 pip install -r molecule/requirements.txt
 ansible-galaxy collection install -r molecule/requirements.yml

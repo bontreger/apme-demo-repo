@@ -155,11 +155,12 @@ override cookbook, and how base-config/inventory inheritance works — are in
 
 ## Setup
 
-Molecule itself must be installed (`pip install molecule`); everything else —
-python deps and collections — is installed automatically by the `dependency`
-step on every run (a ~1s no-op once satisfied). To pre-install manually:
+Install Molecule and the scenario dependencies before the first run. The shared
+base config does not auto-install them (the `dependency` shell step in
+`.config/molecule/config.yml` is commented out).
 
 ```bash
+pip install molecule
 pip install -r molecule/requirements.txt
 ansible-galaxy collection install -r molecule/requirements.yml
 ```
@@ -177,6 +178,25 @@ ansible-galaxy collection install -r molecule/requirements.yml
 molecule test
 
 # Additional scenarios: molecule test -s <scenario>, or --all for everything.
+```
+
+### macOS: `OBJC_DISABLE_INITIALIZE_FORK_SAFETY`
+
+On macOS, Ansible's forked workers can abort during create's
+`wait_for_connection` step after boto3 has already initialized Objective-C
+frameworks in the parent process. Symptoms:
+
+- macOS "Python quit unexpectedly"
+- Ansible: `A worker was found in a dead state`
+- Crash report ASI: `crashed on child side of fork pre-exec` (stack through
+  `_scproxy.get_proxy_settings` / `performForkChildInitialize`)
+
+Export this before running molecule (session-only; do not set permanently
+unless you understand the trade-off):
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+molecule test
 ```
 
 ## AWS networking
