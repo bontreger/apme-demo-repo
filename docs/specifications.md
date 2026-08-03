@@ -169,7 +169,6 @@ Runtime collections required by playbooks are declared in
 - `community.general`
 - `community.crypto`
 - `community.mysql`
-- `community.postgresql`
 - `openstack.cloud`
 - `community.windows`
 - `chocolatey.chocolatey`
