@@ -105,6 +105,9 @@
              | map('default', 'ssh')
              | select('equalto', 'winrm') | list | length > 0 }}
 
+    # 22 always; 5986 when any host connects over WinRM; anything a scenario
+    # declares in molecule_aws_extra_ports on top of that (content that serves
+    # traffic, e.g. IIS on 80).
     - name: Create security group allowing SSH/WinRM
       amazon.aws.ec2_security_group:
         name: "{{ _prefix }}"
@@ -116,7 +119,10 @@
         rules: >-
           {{ [{'proto': 'tcp', 'ports': [22], 'cidr_ip': molecule_aws_ssh_cidr}]
              + ([{'proto': 'tcp', 'ports': [5986], 'cidr_ip': molecule_aws_ssh_cidr}]
-                if _any_windows | bool else []) }}
+                if _any_windows | bool else [])
+             + ([{'proto': 'tcp', 'ports': molecule_aws_extra_ports,
+                  'cidr_ip': molecule_aws_ssh_cidr}]
+                if molecule_aws_extra_ports | default([], true) else []) }}
 
     - name: Find latest matching AMI per host
       amazon.aws.ec2_ami_info:

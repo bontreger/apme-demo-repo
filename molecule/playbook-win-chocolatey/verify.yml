@@ -1,0 +1,41 @@
+---
+- name: Verify
+  hosts: all_windows
+  gather_facts: false
+  tasks:
+    - name: Stat the Chocolatey client
+      ansible.windows.win_stat:
+        path: 'C:\ProgramData\chocolatey\bin\choco.exe'
+      register: choco_client
+
+    - name: Assert Chocolatey is installed
+      ansible.builtin.assert:
+        that:
+          - choco_client.stat.exists
+
+    - name: Gather Chocolatey facts
+      chocolatey.chocolatey.win_chocolatey_facts:
+
+    - name: Assert Chocolatey pinned itself to the requested version
+      ansible.builtin.assert:
+        that:
+          - (ansible_chocolatey.packages
+             | selectattr('package', 'equalto', 'chocolatey')
+             | map(attribute='version') | list) == [win_chocolatey_version]
+
+    - name: Assert the requested packages are installed
+      ansible.builtin.assert:
+        that:
+          - item in (ansible_chocolatey.packages | map(attribute='package') | list)
+      loop: "{{ win_chocolatey_packages }}"
+
+    # The package is only really installed if it put its payload on disk.
+    - name: Stat the 7-Zip binary the package installs
+      ansible.windows.win_stat:
+        path: 'C:\Program Files\7-Zip\7z.exe'
+      register: sevenzip_binary
+
+    - name: Assert 7-Zip was installed on disk
+      ansible.builtin.assert:
+        that:
+          - sevenzip_binary.stat.exists

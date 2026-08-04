@@ -26,6 +26,13 @@ ansible:
   # converge playbooks that reference roles by name.
   env:
     ANSIBLE_ROLES_PATH: ../../roles
+    # macOS only, no-op elsewhere: ansible runs each host in a forked worker,
+    # and connection plugins that reach into CoreFoundation from the child
+    # (pywinrm -> requests -> urllib -> SystemConfiguration proxy lookup) make
+    # the ObjC runtime abort the process. The symptom is a "Python quit
+    # unexpectedly" dialog and "A worker was found in a dead state" at the
+    # first task that talks to a guest.
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"
   executor:
     args:
       ansible_playbook:

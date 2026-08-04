@@ -1,0 +1,50 @@
+---
+# win_updates drives the Windows Update COM API through a Task Scheduler job,
+# so it works over the runtime inventory's NTLM connection without become. If
+# the converge ever fails inside the search step with an access error, the
+# module's documented fallback is become (runas/SYSTEM) — that belongs in the
+# role, not here.
+- name: Verify
+  hosts: all_windows
+  gather_facts: false
+  tasks:
+    - name: Collect the Windows Update service state
+      ansible.windows.win_service_info:
+        name: wuauserv
+      register: windows_update_service
+
+    # Not asserting it is still running: wuauserv is trigger-started and stops
+    # again once it has been idle for a while, which would make this flaky.
+    - name: Assert the Windows Update service is present and not disabled
+      ansible.builtin.assert:
+        that:
+          - windows_update_service.exists
+          - windows_update_service.services[0].start_mode != 'disabled'
+
+    - name: Stat the generated report
+      ansible.windows.win_stat:
+        path: "{{ win_patch_management_report_dest }}"
+      register: patch_report
+
+    - name: Assert the report was generated and is not empty
+      ansible.builtin.assert:
+        that:
+          - patch_report.stat.exists
+          - patch_report.stat.size > 0
+
+    - name: Read the report back
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          Get-Content -Path '{{ win_patch_management_report_dest }}' -Raw
+      register: patch_report_content
+
+    # The template renders the update table from win_updates' search result,
+    # so a report that reached the "Available Updates" section proves the
+    # search ran and its return value was consumed.
+    - name: Assert the report rendered
+      ansible.builtin.assert:
+        that:
+          - "'Windows Update Report' in patch_report_content.output[0]"
+          - "'Available Updates' in patch_report_content.output[0]"
+          - "'Filtered Updates' in patch_report_content.output[0]"

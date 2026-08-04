@@ -14,6 +14,12 @@ molecule/
 ├── default/                # Smoke-test scenario — see its README.md
 ├── playbook-linux-postgresql-deploy/ # example: tests playbooks/linux-postgresql-deploy.yml
 ├── role-postgresql-server/           # example: tests roles/postgresql_server
+├── playbook-linux-postgresql-deploy/  # tests playbooks/linux-postgresql-deploy.yml
+├── playbook-win-chocolatey/           # tests playbooks/win-chocolatey.yml
+├── playbook-win-iis-deploy/           # tests playbooks/win-iis-deploy.yml
+├── playbook-win-patch-management/     # tests playbooks/win-patch-management.yml
+├── playbook-win-service-management/   # tests playbooks/win-service-management.yml
+├── playbook-win-software-management/  # tests playbooks/win-software-management.yml
 ├── utils/                  # Shared test infrastructure (not a scenario)
 │   ├── inventory/          # Shared inventory layers
 │   │   ├── base/           # localhost + molecule_aws_* group_vars (always loaded)
@@ -26,6 +32,15 @@ molecule/
 ├── requirements.txt        # python deps (molecule, boto3, pywinrm)
 └── requirements.yml        # collection deps (amazon.aws, community.aws, community.crypto)
 ```
+
+The `dependency` step also installs the repo's `collections/requirements.yml`
+(`ansible.windows`, `community.windows`, `chocolatey.chocolatey`,
+`community.postgresql`, ...) — the collections the *content* under test needs,
+as opposed to `molecule/requirements.yml` which covers the test infrastructure
+itself. Both go to the galaxy default path, not the repo's `collections/` tree:
+molecule generates its own `ansible.cfg`, and a converge playbook's
+`playbook_dir` is the scenario directory, so nothing would discover
+`<repo>/collections`.
 
 Content scenarios follow a naming convention: a scenario testing a playbook is
 named `playbook-<playbook-name-without-file-extension>` (e.g.
@@ -66,6 +81,13 @@ Scenarios can layer additional per-host vars for their own converge/verify via
 a scenario-local `inventory/` — the default scenario's
 [README](default/README.md) shows the pattern.
 
+Group-wide values are overridden the same way, in a scenario-local
+`inventory/group_vars/all.yml`. `molecule_aws_extra_ports` (default `[]`) is
+the one to know about: inbound TCP ports added to the test security group on
+top of 22 and 5986, for content that has to be reached from the controller. It
+has to be group-wide because `create.yml` reads it on `localhost`. No scenario
+needs it today — verify from inside the guest where you can.
+
 ## Adding a scenario
 
 A scenario is a directory under `molecule/` with three files; everything else
@@ -88,6 +110,29 @@ ansible:
         - --inventory=../utils/inventory/windows/
         - --inventory=inventory/
 ```
+
+### Testing Windows content
+
+The five `playbook-win-*` scenarios are the worked examples: each drops the
+linux layer (Windows-only, so only `win2022` gets provisioned), maps `win2022`
+into the `all_windows` group the `win-*` playbooks target, and supplies the
+role vars the content needs — every `win_*` role defaults to an empty
+package/service list, so a converge on defaults would be a no-op. Notes worth
+carrying into new Windows scenarios:
+
+- Do **not** add `become: true` the way the Linux role examples do. WinRM
+  already connects as Administrator, and `become` on Windows is a different
+  mechanism (`runas`).
+- Verify from inside the guest (`win_uri` against `http://localhost/`) rather
+  than from the controller, so assertions don't depend on the security group.
+- `ansible.windows.win_updates` drives Windows Update through a Task Scheduler
+  job, so it works over the runtime inventory's NTLM connection without
+  `become`.
+- Windows first boot is slow — EC2Launch, the WinRM `user_data`, then waiting
+  for the Administrator password. `create.yml` allows 900s for the connection
+  (vs 300s for Linux); budget several minutes before converge starts.
+- `playbook-win-software-management` pins an external MSI URL plus its exact
+  `product_id`; both have to be updated together when that version disappears.
 
 ### Testing a playbook
 

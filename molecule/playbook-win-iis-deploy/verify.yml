@@ -1,0 +1,71 @@
+---
+- name: Verify
+  hosts: all_windows
+  gather_facts: false
+  tasks:
+    - name: Collect the Web-Server feature state
+      ansible.windows.win_feature_info:
+        name: Web-Server
+      register: iis_feature
+
+    - name: Assert IIS is installed
+      ansible.builtin.assert:
+        that:
+          - iis_feature.exists
+          - iis_feature.features[0].installed
+
+    - name: Collect the IIS service state
+      ansible.windows.win_service_info:
+        name: W3SVC
+      register: iis_service
+
+    - name: Assert the IIS service is running and starts automatically
+      ansible.builtin.assert:
+        that:
+          - iis_service.exists
+          - iis_service.services[0].state == 'started'
+          - iis_service.services[0].start_mode == 'auto'
+
+    # The role's default webroot, restated because role defaults are not
+    # visible outside the role. Keep in sync if the scenario ever overrides
+    # win_iis_deploy_webroot.
+    - name: Stat the deployed index page
+      ansible.windows.win_stat:
+        path: 'C:\inetpub\wwwroot\index.html'
+      register: iis_index
+
+    - name: Assert the index page was written
+      ansible.builtin.assert:
+        that:
+          - iis_index.stat.exists
+
+    # From the guest itself, so this asserts the site is up regardless of what
+    # the security group allows in from outside.
+    - name: Request the site from the guest
+      ansible.windows.win_uri:
+        url: http://localhost/
+        return_content: true
+      register: iis_response
+
+    - name: Assert the site serves the deployed content
+      ansible.builtin.assert:
+        that:
+          - iis_response.status_code == 200
+          - "'IIS is live via Ansible' in iis_response.content"
+
+    - name: Query the firewall rules the role created
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          @('IIS-HTTP-Inbound', 'IIS-HTTPS-Inbound') | ForEach-Object {
+              Get-NetFirewallRule -DisplayName $_ -ErrorAction SilentlyContinue |
+                  Where-Object { $_.Enabled -eq 'True' } |
+                  Select-Object -ExpandProperty DisplayName
+          }
+      register: iis_firewall
+
+    - name: Assert both inbound firewall rules exist and are enabled
+      ansible.builtin.assert:
+        that:
+          - "'IIS-HTTP-Inbound' in iis_firewall.output"
+          - "'IIS-HTTPS-Inbound' in iis_firewall.output"

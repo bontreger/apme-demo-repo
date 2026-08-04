@@ -13,6 +13,13 @@ molecule_aws_ssh_user: ec2-user
 molecule_aws_connection: ssh
 # Where SSH may come from. Tighten to your egress IP for anything long-lived.
 molecule_aws_ssh_cidr: 0.0.0.0/0
+# Extra inbound TCP ports on the test security group, on top of 22 (SSH) and
+# 5986 (WinRM, opened whenever a host connects over WinRM). Scenarios whose
+# content serves traffic override this in their own inventory/group_vars/all.yml
+# (see molecule/playbook-win-iis-deploy/). It is consumed by create.yml running
+# on localhost, so it has to be group-wide — a per-host value would not be
+# visible there.
+molecule_aws_extra_ports: []
 # Unset/empty, create.yml provisions a throwaway VPC + public subnet +
 # internet gateway + route table named molecule-<scenario>, torn down by
 # destroy.yml. Set both (env vars, or replace the lookups with literal IDs) to

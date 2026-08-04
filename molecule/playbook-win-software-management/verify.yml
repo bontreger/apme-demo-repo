@@ -1,0 +1,33 @@
+---
+- name: Verify
+  hosts: all_windows
+  gather_facts: false
+  tasks:
+    # win_package tracks state by product_id, so the registered uninstall key
+    # is what "installed" actually means to the role.
+    - name: Query the uninstall registry key for each package
+      ansible.windows.win_reg_stat:
+        path: 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{ item.product_id }}'
+      register: package_keys
+      loop: "{{ win_software_management_packages }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Assert each package is registered as installed
+      ansible.builtin.assert:
+        that:
+          - item.exists
+        fail_msg: "{{ item.item.name }} ({{ item.item.product_id }}) is not registered as installed"
+      loop: "{{ package_keys.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Stat the 7-Zip binary the package installs
+      ansible.windows.win_stat:
+        path: 'C:\Program Files\7-Zip\7z.exe'
+      register: sevenzip_binary
+
+    - name: Assert 7-Zip was installed on disk
+      ansible.builtin.assert:
+        that:
+          - sevenzip_binary.stat.exists
