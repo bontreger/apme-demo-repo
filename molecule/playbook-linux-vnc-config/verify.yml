@@ -1,0 +1,74 @@
+---
+# The role sets failed_when: false on every task, so converge reports success
+# regardless of what actually happened. These assertions are therefore the only
+# real pass/fail signal — keep them strict (no failed_when here).
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    vnc_user: admin01
+  tasks:
+    - name: Look up the VNC user
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ vnc_user }}"
+      register: vnc_user_ent
+
+    - name: Assert the VNC user was created
+      ansible.builtin.assert:
+        that:
+          - vnc_user in vnc_user_ent.ansible_facts.getent_passwd
+
+    - name: Collect installed package facts
+      ansible.builtin.package_facts:
+
+    - name: Assert the TigerVNC server package is installed
+      ansible.builtin.assert:
+        that:
+          - "'tigervnc-server' in ansible_facts.packages"
+
+    - name: Stat the VNC password file
+      ansible.builtin.stat:
+        path: /home/{{ vnc_user }}/.vnc/passwd
+      register: vnc_passwd_file
+
+    - name: Assert the password file was generated
+      ansible.builtin.assert:
+        that:
+          - vnc_passwd_file.stat.exists
+          - vnc_passwd_file.stat.size | int > 0
+
+    - name: Read the user mapping file
+      ansible.builtin.slurp:
+        src: /etc/tigervnc/vncserver.users
+      register: vnc_users_file
+
+    - name: Read the default session config
+      ansible.builtin.slurp:
+        src: /etc/tigervnc/vncserver-config-defaults
+      register: vnc_session_file
+
+    - name: Read the user geometry config
+      ansible.builtin.slurp:
+        src: /home/{{ vnc_user }}/.vnc/config
+      register: vnc_geometry_file
+
+    - name: Assert the role wrote the expected configuration
+      ansible.builtin.assert:
+        that:
+          # display_number 2 mapped to the user
+          - "':2=' ~ vnc_user in users_content"
+          # desktop_session default
+          - "'session=gnome' in session_content"
+          # geometry default
+          - "'geometry=1280x1024' in geometry_content"
+        fail_msg: >-
+          VNC config not as expected.
+          vncserver.users={{ users_content }}
+          defaults={{ session_content }}
+          config={{ geometry_content }}
+      vars:
+        users_content: "{{ vnc_users_file.content | b64decode }}"
+        session_content: "{{ vnc_session_file.content | b64decode }}"
+        geometry_content: "{{ vnc_geometry_file.content | b64decode }}"

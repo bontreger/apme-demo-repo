@@ -13,7 +13,7 @@
   ansible.builtin.assert:
     that:
       - vnc_config_display_number is defined
-      - vnc_config_display_number | string | regex_search('^[0-9]+$')
+      - (vnc_config_display_number | string | regex_search('^[0-9]+$')) is not none
       - vnc_config_display_number | int >= 1
       - vnc_config_display_number | int <= 99
     fail_msg: "Invalid vnc_config_display_number. Must be between 1 and 99."
@@ -24,7 +24,7 @@
   ansible.builtin.assert:
     that:
       - vnc_config_geometry is defined
-      - vnc_config_geometry | string | regex_search('^[0-9]+x[0-9]+$')
+      - (vnc_config_geometry | string | regex_search('^[0-9]+x[0-9]+$')) is not none
     fail_msg: "Invalid vnc_config_geometry. Must be WIDTHxHEIGHT (e.g. 1280x1024)."
     success_msg: "VNC geometry validated: {{ vnc_config_geometry }}"
   failed_when: false
@@ -170,52 +170,30 @@
 
 - name: Set VNC password
   block:
-    - name: Create temporary password file
-      ansible.builtin.copy:
-        content: "{{ vnc_config_password }}\n{{ vnc_config_password }}"
-        dest: "/tmp/vnc_passwd_{{ vnc_config_user }}_tmp"
-        mode: "0600"
-      no_log: true
-      failed_when: false
-      register: vnc_config_passwd_file
-
-    - name: Generate VNC password file using vncpasswd
+    - name: Generate the VNC password file with vncpasswd
+      # Run as root (the play's become) and feed the password on stdin, so the
+      # secret never lands in a temp file or on the command line. vncpasswd -f
+      # reads one password from stdin and writes the obfuscated passwd to
+      # stdout, redirected into the user's .vnc directory. Writing as root then
+      # chowning avoids an unprivileged become_user (which needs acl/setfacl)
+      # and the earlier root-owned temp file the target user could not read.
       ansible.builtin.shell:
-        cmd: "vncpasswd -f < /tmp/vnc_passwd_{{ vnc_config_user }}_tmp > /home/{{ vnc_config_user }}/.vnc/passwd"
-      become: true
-      become_user: "{{ vnc_config_user }}"
-      register: vnc_config_passwd_result
+        cmd: "vncpasswd -f > /home/{{ vnc_config_user }}/.vnc/passwd"
+        stdin: "{{ vnc_config_password }}"
       no_log: true
-      failed_when: false
+      register: vnc_config_passwd_result
       changed_when: vnc_config_passwd_result.rc == 0
-      when: vnc_config_passwd_file is defined and not vnc_config_passwd_file.failed
 
-    - name: Set permissions on VNC password file
+    - name: Secure the VNC password file
       ansible.builtin.file:
         path: "/home/{{ vnc_config_user }}/.vnc/passwd"
         owner: "{{ vnc_config_user }}"
         group: "{{ vnc_config_user }}"
         mode: "0600"
-      failed_when: false
-      when: vnc_config_passwd_result is defined and not vnc_config_passwd_result.failed
-
-    - name: Remove temporary password file
-      ansible.builtin.file:
-        path: "/tmp/vnc_passwd_{{ vnc_config_user }}_tmp"
-        state: absent
-      failed_when: false
-      no_log: true
   rescue:
     - name: Handle VNC password setup failure
       ansible.builtin.debug:
         msg: "Warning: Failed to set VNC password. Run 'vncpasswd' manually."
-      no_log: true
-
-    - name: Cleanup temporary password file on failure
-      ansible.builtin.file:
-        path: "/tmp/vnc_passwd_{{ vnc_config_user }}_tmp"
-        state: absent
-      failed_when: false
       no_log: true
 
 - name: Manage VNC service
