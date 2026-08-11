@@ -1,0 +1,65 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # job_id pinned to "molecule"; namespace privileged_account_audit comes from
+    # the role's namespace_map for check_type privileged_account.
+    audit_report_dir: /var/lib/ansible-reports/privileged_account_audit
+    audit_text_path: "{{ audit_report_dir }}/{{ inventory_hostname }}-molecule.txt"
+    audit_json_path: "{{ audit_report_dir }}/{{ inventory_hostname }}-molecule.json"
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ audit_text_path }}"
+      register: audit_text
+
+    - name: Stat the JSON report
+      ansible.builtin.stat:
+        path: "{{ audit_json_path }}"
+      register: audit_json
+
+    - name: Assert both reports were written
+      ansible.builtin.assert:
+        that:
+          - audit_text.stat.exists
+          - audit_text.stat.isreg
+          - audit_text.stat.size | int > 0
+          - audit_json.stat.exists
+          - audit_json.stat.isreg
+
+    - name: Read the plaintext report
+      ansible.builtin.slurp:
+        src: "{{ audit_text_path }}"
+      register: audit_text_content
+
+    - name: Assert the plaintext report has the expected shape
+      ansible.builtin.assert:
+        that:
+          - "'Privileged Account Audit - ' ~ inventory_hostname in report_text"
+          - "'Rogue UID 0 Users: 0' in report_text"
+          - "'Empty Password Accounts: 0' in report_text"
+      vars:
+        report_text: "{{ audit_text_content.content | b64decode }}"
+
+    - name: Read and parse the JSON report
+      ansible.builtin.slurp:
+        src: "{{ audit_json_path }}"
+      register: audit_json_content
+
+    - name: Assert the audit results match the prepared state
+      ansible.builtin.assert:
+        that:
+          # No CRITICAL categories were created by prepare.
+          - report.rogue_uid0_users.count | int == 0
+          - report.empty_password_accounts.count | int == 0
+          # The NOPASSWD entry from prepare must be detected (WARNING).
+          - report.sudo_nopasswd_entries.count | int >= 1
+          - report.sudo_nopasswd_entries.entries | select('search', 'molaudittest') | list | length >= 1
+          - report.audit_summary.security_status == 'WARNING'
+        fail_msg: >-
+          Audit result did not match the prepared NOPASSWD-only state.
+          Report was: {{ report | to_json }}
+      vars:
+        report: "{{ audit_json_content.content | b64decode | from_json }}"

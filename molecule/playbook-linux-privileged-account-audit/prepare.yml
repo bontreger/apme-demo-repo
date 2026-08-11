@@ -1,0 +1,19 @@
+---
+# Test-harness prerequisite (not part of the content under test): drop a known
+# NOPASSWD sudoers entry so the audit has a WARNING-level finding to detect.
+# Kept intentionally benign — a NOPASSWD entry is a WARNING, not a CRITICAL
+# finding, and fail_on_critical defaults to false, so this never aborts the
+# play. No rogue UID-0 or empty-password accounts are created (those are the
+# CRITICAL categories); verify asserts those stay at zero.
+- name: Prepare instances
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install a NOPASSWD sudoers entry for the audit to find
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/molecule-audit
+        content: "molaudittest ALL=(ALL) NOPASSWD: ALL\n"
+        owner: root
+        group: root
+        mode: "0440"
