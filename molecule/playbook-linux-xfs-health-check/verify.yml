@@ -1,0 +1,50 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # Report job id is pinned to "molecule" in inventory, so the path is
+    # deterministic. Namespace xfs_check comes from the role's default
+    # xfs_health_check_namespace.
+    xfs_report_path: /var/lib/ansible-reports/xfs_check/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the health report
+      ansible.builtin.stat:
+        path: "{{ xfs_report_path }}"
+      register: xfs_report
+
+    - name: Assert the report was written
+      ansible.builtin.assert:
+        that:
+          - xfs_report.stat.exists
+          - xfs_report.stat.isreg
+          - xfs_report.stat.size | int > 0
+
+    - name: Read the report
+      ansible.builtin.slurp:
+        src: "{{ xfs_report_path }}"
+      register: xfs_report_content
+
+    - name: Assert the report has the expected sections
+      ansible.builtin.assert:
+        that:
+          # Header
+          - "'XFS Health Inspection Report' in report_text"
+          - "'Generated on:' in report_text"
+          - "'Host:' in report_text"
+          - "'OS:' in report_text"
+          # Body — dmesg scan always runs
+          - "'Kernel Log Analysis' in report_text"
+          # Per-filesystem block: the RHEL root fs is XFS, so at least one
+          # filesystem was inspected (proves ansible_mounts filtering worked).
+          - "'Filesystem:' in report_text"
+          - "'Metadata Consistency Check' in report_text"
+          - "'Storage and Inode Usage' in report_text"
+          # Footer
+          - "'End of Report' in report_text"
+        fail_msg: >-
+          The XFS report is missing expected sections. Report was:
+          {{ report_text }}
+      vars:
+        report_text: "{{ xfs_report_content.content | b64decode }}"
