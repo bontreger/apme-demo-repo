@@ -13,7 +13,7 @@ linux_diagnostic_rca_report_namespace: >-
 linux_diagnostic_rca_report_local_dir: >-
   /var/lib/ansible-reports/{{ linux_diagnostic_rca_report_namespace }}
 linux_diagnostic_rca_report_job_id: >-
-  {{ awx_job_id | default(ansible_date_time.epoch) }}
+  {{ awx_job_id | default(ansible_facts['date_time'].epoch) }}
 linux_diagnostic_rca_report_text_path: >-
   {{ linux_diagnostic_rca_report_local_dir }}/{{ inventory_hostname }}-{{ linux_diagnostic_rca_report_job_id }}.txt
 linux_diagnostic_rca_report_json_path: >-

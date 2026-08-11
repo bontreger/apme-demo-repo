@@ -1,0 +1,38 @@
+---
+# Test-harness prerequisite (not part of the content under test): a stock
+# instance has no zombie processes, so manufacture one for the RCA to find.
+# A transient systemd unit runs a parent that forks a child; the child exits
+# immediately while the parent sleeps without ever reaping it, leaving a
+# Z-state (<defunct>) child whose parent is alive — a genuine zombie — for the
+# lifetime of the unit. Without this, zombie_count would be 0 and verify could
+# only confirm the report was written, not that detection works.
+- name: Prepare instances
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Spawn a parent that leaves an unreaped child (zombie)
+      ansible.builtin.command:
+        argv:
+          - systemd-run
+          - --unit=molecule-zombie-maker
+          - --collect
+          - /usr/bin/python3
+          - -c
+          - |
+            import os, time
+            # Parent keeps running and never wait()s, so the exited child
+            # stays a zombie until this process ends.
+            if os.fork() > 0:
+                time.sleep(3600)
+            else:
+                os._exit(0)
+      changed_when: true
+
+    - name: Wait until the zombie is visible in the process table
+      ansible.builtin.command: ps -eo state
+      register: prepare_ps
+      changed_when: false
+      until: prepare_ps.stdout_lines | select('search', '^Z') | list | length > 0
+      retries: 10
+      delay: 1

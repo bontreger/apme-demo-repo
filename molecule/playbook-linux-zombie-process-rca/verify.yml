@@ -1,0 +1,63 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # Report job id is pinned to "molecule" in inventory, so the paths are
+    # deterministic. Namespace zombie_process_rca comes from the role's
+    # namespace_map for check_type zombie_process.
+    zombie_rca_report_dir: /var/lib/ansible-reports/zombie_process_rca
+    zombie_rca_text_path: "{{ zombie_rca_report_dir }}/{{ inventory_hostname }}-molecule.txt"
+    zombie_rca_json_path: "{{ zombie_rca_report_dir }}/{{ inventory_hostname }}-molecule.json"
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ zombie_rca_text_path }}"
+      register: zombie_rca_text
+
+    - name: Stat the JSON report
+      ansible.builtin.stat:
+        path: "{{ zombie_rca_json_path }}"
+      register: zombie_rca_json
+
+    - name: Assert both reports were written
+      ansible.builtin.assert:
+        that:
+          - zombie_rca_text.stat.exists
+          - zombie_rca_text.stat.isreg
+          - zombie_rca_text.stat.size | int > 0
+          - zombie_rca_json.stat.exists
+          - zombie_rca_json.stat.isreg
+
+    - name: Read the plaintext report
+      ansible.builtin.slurp:
+        src: "{{ zombie_rca_text_path }}"
+      register: zombie_rca_text_content
+
+    - name: Assert the plaintext report has the expected shape
+      ansible.builtin.assert:
+        that:
+          - "'Zombie Process Investigation - ' ~ inventory_hostname in report_text"
+          - "'Zombie Processes Found:' in report_text"
+          - "'JSON Report:' in report_text"
+      vars:
+        report_text: "{{ zombie_rca_text_content.content | b64decode }}"
+
+    - name: Read and parse the JSON report
+      ansible.builtin.slurp:
+        src: "{{ zombie_rca_json_path }}"
+      register: zombie_rca_json_content
+
+    - name: Assert the RCA detected the manufactured zombie
+      ansible.builtin.assert:
+        that:
+          - report.os_distribution == 'RedHat'
+          - report.zombie_count | int >= 1
+          - report.zombie_processes | length == report.zombie_count | int
+          - report.detailed_investigation | length >= 1
+        fail_msg: >-
+          Expected the RCA to detect the zombie created by prepare.yml, but the
+          report was: {{ report | to_json }}
+      vars:
+        report: "{{ zombie_rca_json_content.content | b64decode | from_json }}"
