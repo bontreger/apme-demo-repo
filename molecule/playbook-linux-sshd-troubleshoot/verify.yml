@@ -1,0 +1,64 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Locate the timestamped report directory
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: "ssh_network_fix_*"
+        file_type: directory
+      register: sshd_report_dirs
+
+    - name: Assert a report directory was created
+      ansible.builtin.assert:
+        that:
+          - sshd_report_dirs.files | length >= 1
+
+    - name: Stat the four generated reports
+      ansible.builtin.stat:
+        path: "{{ sshd_report_dirs.files[0].path }}/{{ item }}"
+      register: sshd_report_files
+      loop:
+        - dns_diagnosis.txt
+        - ssh_status.txt
+        - client_fix_instructions.txt
+        - monitor_ssh_network.sh
+
+    - name: Assert every report was written and is non-empty
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.size | int > 0
+        fail_msg: "Missing or empty report: {{ item.item }}"
+      loop: "{{ sshd_report_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Assert the monitor script is executable
+      ansible.builtin.assert:
+        that:
+          - sshd_report_files.results[3].stat.mode == '0755'
+
+    - name: Read /etc/hosts
+      ansible.builtin.slurp:
+        src: /etc/hosts
+      register: sshd_hosts_file
+
+    - name: Assert the hosts-file remediation added the target hostname
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname in hosts_content
+        fail_msg: "Expected '{{ inventory_hostname }}' in /etc/hosts; got: {{ hosts_content }}"
+      vars:
+        hosts_content: "{{ sshd_hosts_file.content | b64decode }}"
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert sshd is running and enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['sshd.service'].state == 'running'
+          - ansible_facts.services['sshd.service'].status == 'enabled'
