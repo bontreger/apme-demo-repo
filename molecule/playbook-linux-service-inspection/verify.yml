@@ -1,0 +1,58 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # report_job_id pinned to "molecule" in inventory; namespace service_check
+    # is the role default. report_local_dir = /var/lib/ansible-reports/<ns>.
+    service_report_path: /var/lib/ansible-reports/service_check/{{ inventory_hostname }}-molecule.txt
+    # The 10 critical services the role checks by default.
+    expected_services:
+      - sshd
+      - firewalld
+      - chronyd
+      - tuned
+      - NetworkManager
+      - rsyslog
+      - auditd
+      - crond
+      - dbus
+      - systemd-journald
+  tasks:
+    - name: Stat the report
+      ansible.builtin.stat:
+        path: "{{ service_report_path }}"
+      register: service_report
+
+    - name: Assert the report was written
+      ansible.builtin.assert:
+        that:
+          - service_report.stat.exists
+          - service_report.stat.isreg
+          - service_report.stat.size | int > 0
+
+    - name: Read the report
+      ansible.builtin.slurp:
+        src: "{{ service_report_path }}"
+      register: service_report_content
+
+    - name: Assert the report header and every service section are present
+      ansible.builtin.assert:
+        that:
+          - "'RHEL Key Service Status Check Report for ' ~ inventory_hostname in report_text"
+          - report_text is search('Generated at:')
+          # One "[Service Status Report: <svc>]" block per checked service.
+          - "'[Service Status Report: ' ~ item ~ ']' in report_text"
+        fail_msg: "Missing section for {{ item }} in report:\n{{ report_text }}"
+      loop: "{{ expected_services }}"
+      vars:
+        report_text: "{{ service_report_content.content | b64decode }}"
+
+    - name: Assert a service is reported RUNNING (proves live service_facts, not empty stubs)
+      ansible.builtin.assert:
+        that:
+          - "'Current State: RUNNING' in report_text"
+        fail_msg: "No RUNNING service in report:\n{{ report_text }}"
+      vars:
+        report_text: "{{ service_report_content.content | b64decode }}"
