@@ -1,0 +1,65 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # Report job id pinned to "molecule" in inventory; namespace
+    # systemd_unit_deep_check comes from the role's namespace_map for
+    # check_type systemd_unit.
+    systemd_report_dir: /var/lib/ansible-reports/systemd_unit_deep_check
+    systemd_text_path: "{{ systemd_report_dir }}/{{ inventory_hostname }}-molecule.txt"
+    systemd_json_path: "{{ systemd_report_dir }}/{{ inventory_hostname }}-molecule.json"
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ systemd_text_path }}"
+      register: systemd_text
+
+    - name: Stat the JSON report
+      ansible.builtin.stat:
+        path: "{{ systemd_json_path }}"
+      register: systemd_json
+
+    - name: Assert both reports were written
+      ansible.builtin.assert:
+        that:
+          - systemd_text.stat.exists
+          - systemd_text.stat.isreg
+          - systemd_text.stat.size | int > 0
+          - systemd_json.stat.exists
+          - systemd_json.stat.isreg
+
+    - name: Read the plaintext report
+      ansible.builtin.slurp:
+        src: "{{ systemd_text_path }}"
+      register: systemd_text_content
+
+    - name: Assert the plaintext report has the expected shape
+      ansible.builtin.assert:
+        that:
+          - "'Systemd Unit Deep Check - ' ~ inventory_hostname in report_text"
+          - "'Failed Units Count:' in report_text"
+          - "'JSON Report:' in report_text"
+      vars:
+        report_text: "{{ systemd_text_content.content | b64decode }}"
+
+    - name: Read and parse the JSON report
+      ansible.builtin.slurp:
+        src: "{{ systemd_json_path }}"
+      register: systemd_json_content
+
+    - name: Assert the check detected the manufactured failed unit
+      ansible.builtin.assert:
+        that:
+          - report.systemctl_available == 'Yes'
+          - report.failed_units.count | int >= 1
+          - "'molecule-failunit.service' in report.failed_units.unit_names"
+          - report.detailed_analysis | length >= 1
+        fail_msg: >-
+          Expected the check to detect molecule-failunit.service (created in
+          prepare.yml). The role filters service_facts on value.state ==
+          'failed', but service_facts records 'failed' under value.status, so a
+          failed unit is never matched. Report was: {{ report | to_json }}
+      vars:
+        report: "{{ systemd_json_content.content | b64decode | from_json }}"
