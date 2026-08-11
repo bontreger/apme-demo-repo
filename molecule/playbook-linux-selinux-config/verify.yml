@@ -1,0 +1,31 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the persistent SELinux config
+      ansible.builtin.slurp:
+        src: /etc/selinux/config
+      register: selinux_config_file
+
+    - name: Assert the persistent state was set to disabled (role default)
+      ansible.builtin.assert:
+        that:
+          - "'SELINUX=disabled' in config_text"
+        fail_msg: "Expected SELINUX=disabled in /etc/selinux/config; got:\n{{ config_text }}"
+      vars:
+        config_text: "{{ selinux_config_file.content | b64decode }}"
+
+    - name: Query the runtime SELinux mode
+      ansible.builtin.command: getenforce
+      register: selinux_getenforce
+      changed_when: false
+
+    - name: Assert runtime is no longer enforcing (role sets permissive; disabled stays disabled)
+      ansible.builtin.assert:
+        that:
+          - selinux_getenforce.stdout in ['Permissive', 'Disabled']
+        fail_msg: >-
+          Runtime SELinux mode is '{{ selinux_getenforce.stdout }}'; the role
+          should have moved it off Enforcing (to permissive).
