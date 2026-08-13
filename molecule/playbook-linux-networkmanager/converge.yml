@@ -1,0 +1,30 @@
+---
+# Applies the role directly (not ../../playbooks/linux-networkmanager.yml) so
+# the safe test config can be passed as ROLE PARAMS. Role params outrank the
+# role's own vars/main.yml, which the playbook's survey path cannot fully do
+# (it only overrides the add/activate lists, leaving the example modify/delete
+# ops live). Everything here targets an isolated NetworkManager "dummy" device
+# with no gateway, so the primary NIC, default route, and SSH are untouched.
+- name: Converge
+  hosts: molecule
+  become: true
+  gather_facts: false
+  vars:
+    molecule_nm_conn: molecule-nm-dummy
+  roles:
+    - role: networkmanager_cli
+      vars:
+        networkmanager_cli_nm_action_view: true
+        networkmanager_cli_nm_connections_to_add:
+          - name: "{{ molecule_nm_conn }}"
+            ifname: dummy0
+            type: dummy
+            method: manual
+            ip4: 10.99.99.2/24
+            # no gw4 -> no default-route change
+        networkmanager_cli_nm_connections_to_activate:
+          - "{{ molecule_nm_conn }}"
+        # Neutralise the role's dangerous vars/main.yml examples.
+        networkmanager_cli_nm_connections_to_modify: []
+        networkmanager_cli_nm_devices_to_deactivate: []
+        networkmanager_cli_nm_connections_to_delete: []
