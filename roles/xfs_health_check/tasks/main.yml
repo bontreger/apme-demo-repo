@@ -10,9 +10,9 @@
     content: |
       XFS Health Inspection Report
       ==========================================
-      Generated on: {{ ansible_date_time.iso8601 }}
-      Host: {{ ansible_hostname }}
-      OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+      Generated on: {{ ansible_facts['date_time'].iso8601 }}
+      Host: {{ ansible_facts['hostname'] }}
+      OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
       ==========================================
     dest: "{{ xfs_health_check_report_text_path }}"
     mode: "0644"
@@ -20,7 +20,7 @@
 - name: Collect XFS filesystem mount points
   ansible.builtin.set_fact:
     xfs_health_check_mounts: >-
-      {{ ansible_mounts | selectattr('fstype', 'equalto', 'xfs') | list }}
+      {{ ansible_facts['mounts'] | selectattr('fstype', 'equalto', 'xfs') | list }}
 
 - name: Check if xfs_db command exists
   ansible.builtin.command: which xfs_db

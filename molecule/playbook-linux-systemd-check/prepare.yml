@@ -1,0 +1,35 @@
+---
+# Test-harness prerequisite (not part of the content under test): a stock
+# instance has no failed systemd units, so manufacture one for the check to
+# find. A oneshot unit that runs /bin/false enters the failed state on start.
+# Without this, the failed-unit count would be 0 and verify could not tell a
+# correct check from one that silently detects nothing.
+- name: Prepare instances
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install an intentionally-failing systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/molecule-failunit.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Molecule intentionally-failing unit
+
+          [Service]
+          Type=oneshot
+          ExecStart=/bin/false
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start the unit (expected to fail, leaving it in the failed state)
+      # A Type=oneshot start blocks until ExecStart exits, so the unit is
+      # already in the failed state when this returns. failed_when: false keeps
+      # the expected non-zero start from failing the play.
+      ansible.builtin.systemd_service:
+        name: molecule-failunit.service
+        state: started
+        daemon_reload: true
+      failed_when: false

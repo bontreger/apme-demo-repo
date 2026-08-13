@@ -1,0 +1,12 @@
+---
+# The playbook's OS gate accepts RHEL 7/8/9 only (its sibling RCA playbooks
+# accept 10 as well — see this scenario's README), so provision just rhel9:
+# drop the shared linux layer (which also ships rhel10, which the playbook
+# would reject at its pre_task assert) and declare the host locally in
+# inventory/. Keep base/ for localhost + platform group_vars.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=inventory/
