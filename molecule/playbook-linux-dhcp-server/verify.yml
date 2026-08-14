@@ -1,0 +1,60 @@
+---
+- name: Verify
+  hosts: dhcp_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect installed package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert dhcp-server package is installed
+      ansible.builtin.assert:
+        that:
+          - "'dhcp-server' in ansible_facts.packages"
+
+    - name: Stat DHCPv4 configuration file
+      ansible.builtin.stat:
+        path: /etc/dhcp/dhcpd.conf
+      register: dhcpd_conf
+
+    - name: Stat DHCPv6 configuration file
+      ansible.builtin.stat:
+        path: /etc/dhcp/dhcpd6.conf
+      register: dhcpd6_conf
+
+    - name: Assert DHCP configuration files are deployed
+      ansible.builtin.assert:
+        that:
+          - dhcpd_conf.stat.exists
+          - dhcpd6_conf.stat.exists
+
+    - name: Read DHCPv4 configuration marker
+      ansible.builtin.slurp:
+        src: /etc/dhcp/dhcpd.conf
+      register: dhcpd_conf_content
+
+    - name: Assert DHCPv4 configuration is molecule-managed sample
+      ansible.builtin.assert:
+        that:
+          - (dhcpd_conf_content.content | b64decode) is search('Ansible-managed DHCPv4')
+          - (dhcpd_conf_content.content | b64decode) is search('10.77.0.0')
+        fail_msg: >-
+          Expected molecule dhcpd.conf content; got:
+          {{ dhcpd_conf_content.content | b64decode | truncate(200) }}
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert DHCP services are enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['dhcpd.service'].status == 'enabled'
+          - ansible_facts.services['dhcpd6.service'].status == 'enabled'
+
+    - name: Report DHCP service active state (informational)
+      ansible.builtin.debug:
+        msg: >-
+          dhcpd state={{ ansible_facts.services['dhcpd.service'].state }},
+          dhcpd6 state={{ ansible_facts.services['dhcpd6.service'].state }}
+          (inactive/failed may occur when configs do not match the host network).

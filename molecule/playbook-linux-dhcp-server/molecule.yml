@@ -1,0 +1,9 @@
+---
+# Playbook asserts RHEL 8/9 only — provision rhel9 locally instead of the
+# shared linux layer (which also ships rhel10).
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=inventory/
