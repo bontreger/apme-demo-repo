@@ -1,9 +1,9 @@
 # ============================================================================
-# Playbook: Configure DHCP Client
+# Playbook: Configure DHCP client
 # ============================================================================
 #
 # Description:
-#   Configure DHCP client using rhel-system-roles.network role.
+#   Configure DHCP client using redhat.rhel_system_roles.network.
 #   This is the Red Hat recommended standardized, cross-version network
 #   configuration method for Linux service automation.
 #
@@ -35,21 +35,39 @@
         msg:
           - "Host: {{ inventory_hostname }}"
           - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Primary interface: {{ ansible_default_ipv4.interface | default('unknown') }}"
       tags: [debug, always]
 
-  vars:
-    # Define network connections to configure
-    network_connections:
-      # Create a connection named 'dhcp-connection' for eth1 interface
-      - name: "dhcp-connection"
-        interface_name: eth1
-        type: ethernet
-        # Enable IPv4 auto-configuration (DHCP)
-        ip:
-          dhcp4: true
-          # Enable IPv6 auto-configuration (SLAAC + DHCPv6)
-          auto6: true
-        state: up
+    - name: Default interface name to primary IPv4 NIC when not supplied
+      ansible.builtin.set_fact:
+        dhcp_client_interface_name: "{{ ansible_default_ipv4.interface }}"
+      when:
+        - network_connections is not defined
+        - dhcp_client_interface_name is not defined
+        - ansible_default_ipv4.interface is defined
+
+    - name: Build network_connections from dhcp_client_interface_name
+      ansible.builtin.set_fact:
+        network_connections:
+          - name: "{{ dhcp_client_connection_name | default('dhcp-connection') }}"
+            interface_name: "{{ dhcp_client_interface_name }}"
+            type: ethernet
+            ip:
+              dhcp4: true
+              auto6: true
+            state: up
+      when:
+        - network_connections is not defined
+        - dhcp_client_interface_name is defined
+
+    - name: Assert network connection variables are defined
+      ansible.builtin.assert:
+        that:
+          - network_connections is defined
+        fail_msg: >-
+          Supply network_connections or dhcp_client_interface_name
+          (for example eth0 or ens5).
+      tags: [always]
 
   roles:
-    - rhel-system-roles.network
+    - redhat.rhel_system_roles.network

@@ -19,7 +19,7 @@ offline: false
 #   ansible-galaxy collection install -r molecule/requirements.yml
 
 mock_roles:
-  - rhel-system-roles.network
+  - redhat.rhel_system_roles.network
   - infra.convert2rhel.analysis
   - infra.convert2rhel.convert
   - infra.leapp.analysis

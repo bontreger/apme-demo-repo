@@ -1,0 +1,51 @@
+---
+# Mirror playbooks/linux-dhcp-client.yml; use fedora.linux_system_roles on
+# non-RHEL Molecule controllers (see README).
+- name: Configure DHCP client
+  hosts: dhcp_clients
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
+          - ansible_distribution_major_version in ["7", "8", "9"]
+        fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
+        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      tags: [always]
+
+    - name: Display host information for debugging
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Primary interface: {{ ansible_default_ipv4.interface | default('unknown') }}"
+      tags: [debug, always]
+
+    # Molecule: always build from primary NIC (do not rely on inventory vars).
+    - name: Build network_connections for primary interface
+      ansible.builtin.set_fact:
+        dhcp_client_interface_name: "{{ ansible_default_ipv4.interface }}"
+        network_connections:
+          - name: "{{ dhcp_client_connection_name | default('dhcp-connection') }}"
+            interface_name: "{{ ansible_default_ipv4.interface }}"
+            type: ethernet
+            ip:
+              dhcp4: true
+              auto6: true
+            state: up
+      when: ansible_default_ipv4.interface is defined
+
+    - name: Assert primary interface is available
+      ansible.builtin.assert:
+        that:
+          - ansible_default_ipv4.interface is defined
+          - network_connections is defined
+        fail_msg: Could not determine primary IPv4 interface for DHCP client test.
+      tags: [always]
+
+  roles:
+    - fedora.linux_system_roles.network
