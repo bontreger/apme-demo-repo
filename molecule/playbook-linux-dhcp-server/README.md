@@ -33,11 +33,13 @@ but not required to pass.
 
 ## Peer-review notes
 
-- Task blocks use `rescue` for service/firewall errors; handlers now use
-  `failed_when: false` so a failed restart does not abort the play after a
-  rescued service block.
 - Production sample configs in `roles/dhcp_server/files/` still target
-  `192.168.0.0/24` — document for lab/AAP users.
+  `192.168.0.0/24` — document for lab/AAP users. Molecule supplies VPC-aligned
+  configs via `MOLECULE_SCENARIO_DIRECTORY` so `dhcpd`/`dhcpd6` can start on EC2
+  without changing production handlers.
+- Task blocks use `rescue` for service/firewall errors while handlers remain
+  strict — a follow-up issue may be warranted if bad configs should fail loudly
+  at the handler stage in production.
 
 ## AAP
 
