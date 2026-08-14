@@ -37,7 +37,7 @@
   block:
     - name: Ensure primary named.conf is present
       ansible.builtin.copy:
-        src: named-primary.conf
+        src: "{{ bind_primary_dns_bind_config_src }}"
         dest: "{{ bind_primary_dns_bind_config_dest }}"
         owner: "{{ bind_primary_dns_bind_config_owner }}"
         group: "{{ bind_primary_dns_bind_config_group }}"
