@@ -1,0 +1,35 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    ftp_rca_report_path: >-
+      /var/lib/ansible-reports/ftp_rca/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the diagnosis report
+      ansible.builtin.stat:
+        path: "{{ ftp_rca_report_path }}"
+      register: ftp_rca_report
+
+    - name: Assert diagnosis report was written
+      ansible.builtin.assert:
+        that:
+          - ftp_rca_report.stat.exists
+          - ftp_rca_report.stat.isreg
+          - ftp_rca_report.stat.size | int > 0
+
+    - name: Read diagnosis report
+      ansible.builtin.slurp:
+        src: "{{ ftp_rca_report_path }}"
+      register: ftp_rca_report_content
+
+    - name: Assert report contains expected diagnostic sections
+      ansible.builtin.assert:
+        that:
+          - "'FTP Diagnosis for ' ~ inventory_hostname in report_text"
+          - "'[Server Checks]' in report_text"
+          - "'[Journal Summary]' in report_text"
+          - "'Diagnostic Hint:' in report_text"
+      vars:
+        report_text: "{{ ftp_rca_report_content.content | b64decode }}"
