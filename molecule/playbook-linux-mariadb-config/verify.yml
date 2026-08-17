@@ -1,0 +1,62 @@
+---
+# The role wraps every step in block/rescue that only debug-prints on failure,
+# so converge reports success regardless. These assertions are the real
+# pass/fail signal. mysql commands run as root via the /root/.my.cnf the role
+# creates.
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    mariadb_db: webapp_db
+    mariadb_user: webapp_user
+    mariadb_backup: /root/webapp_db_initial_backup.sql
+  tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert mariadb is running and enabled
+      ansible.builtin.assert:
+        that:
+          - "'mariadb.service' in ansible_facts.services"
+          - ansible_facts.services['mariadb.service'].state == 'running'
+          - ansible_facts.services['mariadb.service'].status == 'enabled'
+
+    - name: List databases
+      ansible.builtin.command: mysql --batch --skip-column-names -e "SHOW DATABASES;"
+      register: mariadb_databases
+      changed_when: false
+
+    - name: Assert the application database was created
+      ansible.builtin.assert:
+        that:
+          - mariadb_db in mariadb_databases.stdout_lines
+        fail_msg: "Database '{{ mariadb_db }}' missing. Databases: {{ mariadb_databases.stdout_lines }}"
+
+    - name: Query for the application user
+      ansible.builtin.command: >-
+        mysql --batch --skip-column-names
+        -e "SELECT User FROM mysql.user WHERE User='{{ mariadb_user }}';"
+      register: mariadb_users
+      changed_when: false
+
+    - name: Assert the application user exists
+      ansible.builtin.assert:
+        that:
+          - mariadb_user in mariadb_users.stdout_lines
+
+    - name: Assert the test database was removed (security hardening)
+      ansible.builtin.assert:
+        that:
+          - "'test' not in mariadb_databases.stdout_lines"
+
+    - name: Stat the initial backup file
+      ansible.builtin.stat:
+        path: "{{ mariadb_backup }}"
+      register: mariadb_backup_stat
+
+    - name: Assert the initial backup was written
+      ansible.builtin.assert:
+        that:
+          - mariadb_backup_stat.stat.exists
+          - mariadb_backup_stat.stat.size | int > 0

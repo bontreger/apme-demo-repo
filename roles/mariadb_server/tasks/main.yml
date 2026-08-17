@@ -114,7 +114,7 @@
         - "localhost"
         - "127.0.0.1"
         - "::1"
-        - "{{ ansible_hostname }}"
+        - "{{ ansible_facts['hostname'] }}"
       no_log: true
       register: mariadb_server_root_password_result
       tags: [security, always]
