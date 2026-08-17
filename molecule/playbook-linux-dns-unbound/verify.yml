@@ -1,0 +1,52 @@
+---
+- name: Verify
+  hosts: caching_dns
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect installed package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert unbound package is installed
+      ansible.builtin.assert:
+        that:
+          - "'unbound' in ansible_facts.packages"
+
+    - name: Stat Unbound configuration file
+      ansible.builtin.stat:
+        path: /etc/unbound/conf.d/ansible_generated.conf
+      register: unbound_conf
+
+    - name: Assert Unbound configuration is deployed
+      ansible.builtin.assert:
+        that:
+          - unbound_conf.stat.exists
+          - unbound_conf.stat.isreg
+
+    - name: Read Unbound configuration marker
+      ansible.builtin.slurp:
+        src: /etc/unbound/conf.d/ansible_generated.conf
+      register: unbound_conf_content
+
+    - name: Assert Unbound configuration includes molecule VPC network
+      ansible.builtin.assert:
+        that:
+          - (unbound_conf_content.content | b64decode) is search('Ansible-generated Unbound')
+          - (unbound_conf_content.content | b64decode) is search('10.77.0.0/24')
+        fail_msg: >-
+          Expected molecule Unbound config content; got:
+          {{ unbound_conf_content.content | b64decode | truncate(200) }}
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert unbound service is enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['unbound.service'].status == 'enabled'
+
+    - name: Report unbound service active state (informational)
+      ansible.builtin.debug:
+        msg: >-
+          unbound state={{ ansible_facts.services['unbound.service'].state }}
