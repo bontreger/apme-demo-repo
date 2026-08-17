@@ -1,0 +1,41 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # job_id pinned to "molecule"; namespace os_info is the role default.
+    os_info_report_path: /var/lib/ansible-reports/os_info/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ os_info_report_path }}"
+      register: os_info_report
+
+    - name: Assert the report was written
+      ansible.builtin.assert:
+        that:
+          - os_info_report.stat.exists
+          - os_info_report.stat.isreg
+          - os_info_report.stat.size | int > 0
+
+    - name: Read the report
+      ansible.builtin.slurp:
+        src: "{{ os_info_report_path }}"
+      register: os_info_report_content
+
+    - name: Assert the report has the expected sections and real facts
+      ansible.builtin.assert:
+        that:
+          - "'System Information Report - ' ~ inventory_hostname in report_text"
+          - "'OS Version Information' in report_text"
+          - "'Kernel Information' in report_text"
+          - "'Network Information' in report_text"
+          - "'Disk Mount Information' in report_text"
+          # Real gathered facts rendered, not empty stubs (RedHat is the
+          # distribution/os_family value, only present if templating worked).
+          - "'RedHat' in report_text"
+          - "'Default IPv4:' in report_text"
+        fail_msg: "Report missing sections or facts:\n{{ report_text }}"
+      vars:
+        report_text: "{{ os_info_report_content.content | b64decode }}"

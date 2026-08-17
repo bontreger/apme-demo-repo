@@ -1,30 +1,30 @@
 System Information Report - {{ inventory_hostname }}
-Generated: {{ ansible_date_time.iso8601 }}
+Generated: {{ ansible_facts['date_time'].iso8601 }}
 
 OS Version Information
 ----------------------
-Distribution:    {{ ansible_distribution | default('N/A') }}
-Version:         {{ ansible_distribution_version | default('N/A') }}
-Major Version:   {{ ansible_distribution_major_version | default('N/A') }}
-OS Family:       {{ ansible_os_family | default('N/A') }}
+Distribution:    {{ ansible_facts['distribution'] | default('N/A') }}
+Version:         {{ ansible_facts['distribution_version'] | default('N/A') }}
+Major Version:   {{ ansible_facts['distribution_major_version'] | default('N/A') }}
+OS Family:       {{ ansible_facts['os_family'] | default('N/A') }}
 
 Kernel Information
 ------------------
-Kernel Version:  {{ ansible_kernel | default('N/A') }}
-Architecture:    {{ ansible_architecture | default('N/A') }}
+Kernel Version:  {{ ansible_facts['kernel'] | default('N/A') }}
+Architecture:    {{ ansible_facts['architecture'] | default('N/A') }}
 
 Network Information
 -------------------
-Hostname:        {{ ansible_hostname | default('N/A') }}
-Default IPv4:    {{ ansible_default_ipv4.address | default('Not configured') }}
-Gateway:         {{ ansible_default_ipv4.gateway | default('Not configured') }}
-Interface:       {{ ansible_default_ipv4.interface | default('Not configured') }}
-DNS Servers:     {{ ansible_dns.nameservers | default(['Not configured']) | join(', ') }}
-Interfaces:      {{ ansible_interfaces | default([]) | join(', ') }}
+Hostname:        {{ ansible_facts['hostname'] | default('N/A') }}
+Default IPv4:    {{ ansible_facts['default_ipv4'].address | default('Not configured') }}
+Gateway:         {{ ansible_facts['default_ipv4'].gateway | default('Not configured') }}
+Interface:       {{ ansible_facts['default_ipv4'].interface | default('Not configured') }}
+DNS Servers:     {{ ansible_facts['dns'].nameservers | default(['Not configured']) | join(', ') }}
+Interfaces:      {{ ansible_facts['interfaces'] | default([]) | join(', ') }}
 
 Disk Mount Information
 ----------------------
-{% for mount in ansible_mounts | default([]) %}
+{% for mount in ansible_facts['mounts'] | default([]) %}
 {{ mount.mount }} ({{ mount.device }}, {{ mount.fstype }}): {{ '%.2f' | format((1 - mount.size_available / mount.size_total) * 100) }}% used
 {% else %}
 No mount information available
