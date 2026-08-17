@@ -2,8 +2,8 @@
 - name: Set report directory path
   ansible.builtin.set_fact:
     sshd_troubleshoot_report_timestamp: >-
-      {{ ansible_date_time.year ~ ansible_date_time.month ~ ansible_date_time.day ~ '_'
-         ~ ansible_date_time.hour ~ ansible_date_time.minute ~ ansible_date_time.second }}
+      {{ ansible_facts['date_time'].year ~ ansible_facts['date_time'].month ~ ansible_facts['date_time'].day ~ '_'
+         ~ ansible_facts['date_time'].hour ~ ansible_facts['date_time'].minute ~ ansible_facts['date_time'].second }}
 
 - name: Build report directory path
   ansible.builtin.set_fact:
@@ -48,7 +48,7 @@
       ansible.builtin.lineinfile:
         path: "{{ sshd_troubleshoot_hosts_file_path }}"
         line: >-
-          {{ ansible_default_ipv4.address }}
+          {{ ansible_facts['default_ipv4'].address }}
           {{ sshd_troubleshoot_target_hostname }}
           {{ sshd_troubleshoot_target_short_name }}
         state: present
@@ -125,8 +125,8 @@
   ansible.builtin.copy:
     content: |
       === DNS Diagnostics Report ===
-      Time: {{ ansible_date_time.iso8601 }}
-      Host: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})
+      Time: {{ ansible_facts['date_time'].iso8601 }}
+      Host: {{ ansible_facts['hostname'] }} ({{ ansible_facts['default_ipv4'].address }})
 
       DNS test before remediation:
       {{ _sshd_dns_test_before.stdout if _sshd_dns_test_before.rc == 0 else "DNS resolution failed" }}
@@ -140,7 +140,7 @@
   ansible.builtin.copy:
     content: |
       === SSH Service Status Report ===
-      Time: {{ ansible_date_time.iso8601 }}
+      Time: {{ ansible_facts['date_time'].iso8601 }}
 
       SSH host key fingerprints (SHA256):
       {{ _sshd_fingerprints.stdout }}
@@ -154,14 +154,14 @@
   ansible.builtin.copy:
     content: |
       === Client-Side SSH Remediation Guide ===
-      Time: {{ ansible_date_time.iso8601 }}
-      Server: {{ ansible_hostname }} ({{ ansible_default_ipv4.address }})
+      Time: {{ ansible_facts['date_time'].iso8601 }}
+      Server: {{ ansible_facts['hostname'] }} ({{ ansible_facts['default_ipv4'].address }})
 
       Steps:
       1. Clear local SSH host key cache:
          ssh-keygen -R {{ sshd_troubleshoot_target_hostname }}
       2. Connect using IP:
-         ssh {{ ansible_user | default('root') }}@{{ ansible_default_ipv4.address }}
+         ssh {{ ansible_user | default('root') }}@{{ ansible_facts['default_ipv4'].address }}
       3. Verify SSH fingerprints match:
          {{ _sshd_fingerprints.stdout }}
       4. Reconnect using FQDN:

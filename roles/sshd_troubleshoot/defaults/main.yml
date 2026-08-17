@@ -1,6 +1,6 @@
 ---
 sshd_troubleshoot_target_hostname: "{{ inventory_hostname }}"
-sshd_troubleshoot_target_short_name: "{{ ansible_hostname | default(inventory_hostname) }}"
+sshd_troubleshoot_target_short_name: "{{ ansible_facts['hostname'] | default(inventory_hostname) }}"
 
 sshd_troubleshoot_hosts_file_path: "/etc/hosts"
 sshd_troubleshoot_dns_resolution_targets:
