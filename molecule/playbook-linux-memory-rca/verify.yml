@@ -1,0 +1,35 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    memory_rca_report_path: >-
+      /var/lib/ansible-reports/memory_high_utilization/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the diagnosis report
+      ansible.builtin.stat:
+        path: "{{ memory_rca_report_path }}"
+      register: memory_rca_report
+
+    - name: Assert diagnosis report was written
+      ansible.builtin.assert:
+        that:
+          - memory_rca_report.stat.exists
+          - memory_rca_report.stat.isreg
+          - memory_rca_report.stat.size | int > 0
+
+    - name: Read diagnosis report
+      ansible.builtin.slurp:
+        src: "{{ memory_rca_report_path }}"
+      register: memory_rca_report_content
+
+    - name: Assert report contains expected diagnostic sections
+      ansible.builtin.assert:
+        that:
+          - "'High Memory Utilization Diagnosis Report' in report_text"
+          - "'Memory Usage Overview (free -t -m)' in report_text"
+          - "'[Memory Utilization Analysis Points]' in report_text"
+          - "'[Common Issues and Solutions]' in report_text"
+      vars:
+        report_text: "{{ memory_rca_report_content.content | b64decode }}"
