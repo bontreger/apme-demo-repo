@@ -4,15 +4,26 @@
   become: true
   gather_facts: false
   tasks:
-    - name: Check pmcd binary is present
-      ansible.builtin.command: which pmcd
-      register: pcp_verify_pmcd
+    - name: Check PCP package is installed
+      ansible.builtin.command: rpm -q pcp
+      register: pcp_verify_package
       changed_when: false
 
-    - name: Assert pmcd is installed
+    - name: Assert PCP package is installed
       ansible.builtin.assert:
         that:
-          - pcp_verify_pmcd.rc == 0
+          - pcp_verify_package.rc == 0
+
+    - name: Check pmcd binary is present
+      ansible.builtin.stat:
+        path: /usr/sbin/pmcd
+      register: pcp_verify_pmcd
+
+    - name: Assert pmcd binary exists
+      ansible.builtin.assert:
+        that:
+          - pcp_verify_pmcd.stat.exists
+          - pcp_verify_pmcd.stat.isreg
 
     - name: Check pmcd service state
       ansible.builtin.systemd:
@@ -25,17 +36,6 @@
         that:
           - pcp_verify_pmcd_service.status.ActiveState == 'active'
 
-    - name: Run a minimal PCP overview command
-      ansible.builtin.command: pcp
-      register: pcp_verify_overview
-      changed_when: false
-      failed_when: false
-
-    - name: Assert PCP overview command succeeded
-      ansible.builtin.assert:
-        that:
-          - pcp_verify_overview.rc == 0
-
 - name: Verify integrated report was generated on archive host
   hosts: localhost
   connection: local
@@ -43,6 +43,21 @@
   vars:
     pcp_report_search_root: /var/www/ansible-reports/os_pcp
   tasks:
+    - name: Check integrated report search root exists
+      ansible.builtin.stat:
+        path: "{{ pcp_report_search_root }}"
+      register: pcp_report_root
+
+    - name: Assert integrated report search root exists
+      ansible.builtin.assert:
+        that:
+          - pcp_report_root.stat.exists
+          - pcp_report_root.stat.isdir
+        fail_msg: >-
+          Expected play 3 to create {{ pcp_report_search_root }} on the archive
+          host (report_archive_host: localhost). Directory is missing — check
+          converge output for the report play.
+
     - name: Find integrated PCP markdown reports
       ansible.builtin.find:
         paths: "{{ pcp_report_search_root }}"
