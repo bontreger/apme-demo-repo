@@ -48,10 +48,10 @@
 - name: Build investigation report
   ansible.builtin.set_fact:
     linux_diagnostic_rca_investigation_report:
-      hostname: "{{ ansible_hostname }}"
-      os_distribution: "{{ ansible_distribution }}"
-      os_version: "{{ ansible_distribution_version }}"
-      audit_timestamp: "{{ ansible_date_time.iso8601 }}"
+      hostname: "{{ ansible_facts['hostname'] }}"
+      os_distribution: "{{ ansible_facts['distribution'] }}"
+      os_version: "{{ ansible_facts['distribution_version'] }}"
+      audit_timestamp: "{{ ansible_facts['date_time'].iso8601 }}"
       rogue_uid0_users:
         count: "{{ linux_diagnostic_rca_rogue_count | int }}"
         users: >-
@@ -87,7 +87,7 @@
   ansible.builtin.set_fact:
     linux_diagnostic_rca_report_text: |
       Privileged Account Audit - {{ inventory_hostname }}
-      Generated: {{ ansible_date_time.iso8601 }}
+      Generated: {{ ansible_facts['date_time'].iso8601 }}
       Rogue UID 0 Users: {{ linux_diagnostic_rca_rogue_count | int }}
       Empty Password Accounts: {{ linux_diagnostic_rca_empty_pw_count | int }}
       JSON Report: {{ linux_diagnostic_rca_report_json_path }}
