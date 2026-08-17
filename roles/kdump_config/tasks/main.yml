@@ -13,7 +13,7 @@
     that:
       - kdump_config_local_path is defined
       - kdump_config_local_path | length > 0
-      - kdump_config_local_path | regex_search('^/')
+      - (kdump_config_local_path | regex_search('^/')) is not none
     fail_msg: "Invalid kdump_config_local_path. Must be an absolute path."
     success_msg: "Local path validated: {{ kdump_config_local_path }}"
   failed_when: false
@@ -24,7 +24,7 @@
     that:
       - kdump_config_nfs_server is defined
       - kdump_config_nfs_server | length > 0
-      - kdump_config_nfs_server | regex_search('^[^:]+:/')
+      - (kdump_config_nfs_server | regex_search('^[^:]+:/')) is not none
     fail_msg: "Invalid kdump_config_nfs_server. Must be SERVER:/PATH format."
     success_msg: "NFS server validated: {{ kdump_config_nfs_server }}"
   failed_when: false
@@ -47,7 +47,7 @@
     that:
       - kdump_config_raw_device is defined
       - kdump_config_raw_device | length > 0
-      - kdump_config_raw_device | regex_search('^/dev/')
+      - (kdump_config_raw_device | regex_search('^/dev/')) is not none
     fail_msg: "Invalid kdump_config_raw_device. Must start with /dev/"
     success_msg: "Raw device validated: {{ kdump_config_raw_device }}"
   failed_when: false
@@ -122,7 +122,7 @@
       register: kdump_config_crashkernel_result
       failed_when: false
       changed_when: true
-      when: ansible_distribution_major_version | int >= 9
+      when: ansible_facts['distribution_major_version'] | int >= 9
 
     - name: Display crashkernel reset status
       ansible.builtin.debug:
@@ -131,12 +131,12 @@
           {{ 'completed' if not kdump_config_crashkernel_result.failed else 'failed' }}
       when:
         - kdump_config_crashkernel_result is defined
-        - ansible_distribution_major_version | int >= 9
+        - ansible_facts['distribution_major_version'] | int >= 9
   rescue:
     - name: Handle crashkernel reset failure
       ansible.builtin.debug:
         msg: "Warning: Failed to reset crashkernel. Manual configuration may be required."
-      when: ansible_distribution_major_version | int >= 9
+      when: ansible_facts['distribution_major_version'] | int >= 9
 
 - name: Generate and apply kdump.conf
   block:
@@ -226,17 +226,17 @@
           value: "1"
           when: >-
             {{ (kdump_config_panic_triggers.system_hang | default(false))
-               and ansible_architecture == 'x86_64' }}
+               and ansible_facts['architecture'] == 'x86_64' }}
         - key: "kernel.panic_on_io_nmi"
           value: "1"
           when: >-
             {{ (kdump_config_panic_triggers.system_hang | default(false))
-               and ansible_architecture == 'x86_64' }}
+               and ansible_facts['architecture'] == 'x86_64' }}
         - key: "kernel.panic_on_unrecovered_nmi"
           value: "1"
           when: >-
             {{ (kdump_config_panic_triggers.system_hang | default(false))
-               and ansible_architecture == 'x86_64' }}
+               and ansible_facts['architecture'] == 'x86_64' }}
         - key: "vm.panic_on_oom"
           value: "1"
           when: "{{ kdump_config_panic_triggers.oom_killer | default(false) }}"

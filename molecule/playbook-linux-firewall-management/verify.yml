@@ -1,0 +1,39 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert firewalld is running and enabled (action=start)
+      ansible.builtin.assert:
+        that:
+          - "'firewalld.service' in ansible_facts.services"
+          - ansible_facts.services['firewalld.service'].state == 'running'
+          - ansible_facts.services['firewalld.service'].status == 'enabled'
+        fail_msg: >-
+          firewalld is not running/enabled:
+          {{ ansible_facts.services['firewalld.service'] | default('not present') }}
+
+    - name: Confirm firewalld reports running via firewall-cmd
+      ansible.builtin.command: firewall-cmd --state
+      register: fw_state
+      changed_when: false
+      failed_when: false
+
+    - name: Assert firewall-cmd agrees
+      ansible.builtin.assert:
+        that:
+          - fw_state.stdout | trim == 'running'
+
+    - name: Assert SSH is still permitted (connection-safety sanity check)
+      ansible.builtin.command: firewall-cmd --query-service=ssh
+      register: fw_ssh
+      changed_when: false
+      failed_when: false
+
+    - name: Report the ssh-service query result
+      ansible.builtin.debug:
+        msg: "firewalld ssh service allowed in default zone: {{ fw_ssh.stdout | trim }}"

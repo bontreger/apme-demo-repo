@@ -74,13 +74,13 @@
 - name: Validate OS compatibility (RHEL/CentOS 7/8/9 only)
   ansible.builtin.assert:
     that:
-      - ansible_os_family == "RedHat"
-      - ansible_distribution in ['RedHat', 'CentOS']
-      - ansible_distribution_major_version in ['7', '8', '9']
+      - ansible_facts['os_family'] == "RedHat"
+      - ansible_facts['distribution'] in ['RedHat', 'CentOS']
+      - ansible_facts['distribution_major_version'] in ['7', '8', '9']
     fail_msg: >-
       Unsupported operating system. This playbook is only available for RHEL 7/8/9 and CentOS 7/8/9.
-      Current OS: {{ ansible_distribution }} {{ ansible_distribution_major_version }}
-    success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+      Current OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}
+    success_msg: "OS compatibility check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}"
   tags:
     - validation
     - always
@@ -88,10 +88,10 @@
 - name: Display OS information for debugging
   ansible.builtin.debug:
     msg:
-      - "Distribution: {{ ansible_distribution }}"
-      - "Version: {{ ansible_distribution_version }}"
-      - "Major Version: {{ ansible_distribution_major_version }}"
-      - "Architecture: {{ ansible_architecture }}"
+      - "Distribution: {{ ansible_facts['distribution'] }}"
+      - "Version: {{ ansible_facts['distribution_version'] }}"
+      - "Major Version: {{ ansible_facts['distribution_major_version'] }}"
+      - "Architecture: {{ ansible_facts['architecture'] }}"
   tags:
     - validation
     - debug
@@ -105,7 +105,7 @@
   register: kernel_log_monitor_log_output
   changed_when: false
   failed_when: false
-  when: ansible_distribution_major_version | int >= 8
+  when: ansible_facts['distribution_major_version'] | int >= 8
   tags:
     - capture
     - always
@@ -114,7 +114,7 @@
   ansible.builtin.debug:
     msg: "Kernel logs captured successfully (RHEL 8/9): {{ kernel_log_monitor_log_output.stdout_lines | default([]) | length }} lines"
   when:
-    - ansible_distribution_major_version | int >= 8
+    - ansible_facts['distribution_major_version'] | int >= 8
     - kernel_log_monitor_log_output.stdout_lines is defined
   tags:
     - capture
@@ -126,7 +126,7 @@
   register: kernel_log_monitor_log_output
   changed_when: false
   failed_when: false
-  when: ansible_distribution_major_version | int == 7
+  when: ansible_facts['distribution_major_version'] | int == 7
   tags:
     - capture
     - always
@@ -135,7 +135,7 @@
   ansible.builtin.debug:
     msg: "Kernel logs captured successfully (RHEL 7): {{ kernel_log_monitor_log_output.stdout_lines | default([]) | length }} lines"
   when:
-    - ansible_distribution_major_version | int == 7
+    - ansible_facts['distribution_major_version'] | int == 7
     - kernel_log_monitor_log_output.stdout_lines is defined
   tags:
     - capture
@@ -243,7 +243,10 @@
           - "CRITICAL ISSUES ({{ kernel_log_monitor_detected_errors.critical | length }}):"
           - "{{ kernel_log_monitor_detected_errors.critical | join('\\n') }}"
       when: kernel_log_monitor_detected_errors.critical | length > 0
-      notify: emergency_alert
+      # debug never reports 'changed', so a handler notify from it never fires;
+      # force it so the emergency_alert handler actually runs on critical errors.
+      changed_when: true
+      notify: Emergency_alert
       tags:
         - alert
         - always
@@ -254,7 +257,10 @@
           - "SEVERE WARNINGS ({{ kernel_log_monitor_detected_errors.severe | length }}):"
           - "{{ kernel_log_monitor_detected_errors.severe | join('\\n') }}"
       when: kernel_log_monitor_detected_errors.severe | length > 0
-      notify: priority_alert
+      # debug never reports 'changed', so a handler notify from it never fires;
+      # force it so the priority_alert handler actually runs on severe errors.
+      changed_when: true
+      notify: Priority_alert
       tags:
         - alert
         - always

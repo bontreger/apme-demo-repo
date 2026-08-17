@@ -13,7 +13,7 @@ Collects comprehensive operating system information from managed hosts and gener
 | `os_info_report_title` | `"System Information Report"` | Title displayed in the generated report |
 | `os_info_report_namespace` | `"os_info"` | Report namespace for directory structure |
 | `os_info_report_local_dir` | `"/var/lib/ansible-reports/{{ os_info_report_namespace }}"` | Local directory for generated reports |
-| `os_info_report_job_id` | `"{{ awx_job_id \| default(ansible_date_time.epoch) }}"` | Unique job identifier for report filenames |
+| `os_info_report_job_id` | `"{{ awx_job_id \| default(ansible_facts['date_time'].epoch) }}"` | Unique job identifier for report filenames |
 | `os_info_report_text_path` | `"{{ os_info_report_local_dir }}/{{ inventory_hostname }}-{{ ... }}.txt"` | Full path for the plaintext report |
 | `os_info_report_html_path` | `"{{ os_info_report_local_dir }}/{{ inventory_hostname }}-{{ ... }}.html"` | Full path for the HTML report |
 | `os_info_report_generate_html` | `false` | Whether to generate an HTML report in addition to plaintext |

@@ -28,7 +28,7 @@
     - name: Log severe errors to kernel events log
       ansible.builtin.lineinfile:
         path: "{{ kernel_log_monitor_kernel_events_log }}"
-        line: "{{ ansible_date_time.iso8601 }} - PRIORITY ALERT: {{ kernel_log_monitor_alert_message }}"
+        line: "{{ ansible_facts['date_time'].iso8601 }} - PRIORITY ALERT: {{ kernel_log_monitor_alert_message }}"
         create: true
         mode: "0644"
       tags:

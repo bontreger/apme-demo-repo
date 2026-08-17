@@ -20,7 +20,7 @@ service_check_critical_services_list:
 # generate_html and report_publish_enabled: inventory/group_vars/all/reporting.yml
 report_namespace: service_check  # noqa: var-naming[no-role-prefix]
 report_local_dir: "/var/lib/ansible-reports/{{ report_namespace }}"  # noqa: var-naming[no-role-prefix]
-report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"  # noqa: var-naming[no-role-prefix]
+report_job_id: "{{ awx_job_id | default(ansible_facts['date_time'].epoch) }}"  # noqa: var-naming[no-role-prefix]
 report_text_path: >-  # noqa: var-naming[no-role-prefix]
   {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt
 

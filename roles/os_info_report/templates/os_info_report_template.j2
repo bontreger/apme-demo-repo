@@ -77,26 +77,26 @@
         <div class="content">
             <h2>OS Version Information</h2>
             <table>
-                <tr><td class="key">Distribution</td><td>{{ ansible_distribution | default('N/A') }}</td></tr>
-                <tr><td class="key">Version</td><td>{{ ansible_distribution_version | default('N/A') }}</td></tr>
-                <tr><td class="key">Major Version</td><td>{{ ansible_distribution_major_version | default('N/A') }}</td></tr>
-                <tr><td class="key">OS Family</td><td>{{ ansible_os_family | default('N/A') }}</td></tr>
+                <tr><td class="key">Distribution</td><td>{{ ansible_facts['distribution'] | default('N/A') }}</td></tr>
+                <tr><td class="key">Version</td><td>{{ ansible_facts['distribution_version'] | default('N/A') }}</td></tr>
+                <tr><td class="key">Major Version</td><td>{{ ansible_facts['distribution_major_version'] | default('N/A') }}</td></tr>
+                <tr><td class="key">OS Family</td><td>{{ ansible_facts['os_family'] | default('N/A') }}</td></tr>
             </table>
 
             <h2>Kernel Information</h2>
             <table>
-                <tr><td class="key">Kernel Version</td><td>{{ ansible_kernel | default('N/A') }}</td></tr>
-                <tr><td class="key">Architecture</td><td>{{ ansible_architecture | default('N/A') }}</td></tr>
+                <tr><td class="key">Kernel Version</td><td>{{ ansible_facts['kernel'] | default('N/A') }}</td></tr>
+                <tr><td class="key">Architecture</td><td>{{ ansible_facts['architecture'] | default('N/A') }}</td></tr>
             </table>
 
             <h2>Network Information</h2>
             <table>
-                <tr><td class="key">Hostname</td><td>{{ ansible_hostname | default('N/A') }}</td></tr>
-                <tr><td class="key">Default IPv4 Address</td><td>{{ ansible_default_ipv4.address | default('Not configured') }}</td></tr>
-                <tr><td class="key">Default IPv4 Gateway</td><td>{{ ansible_default_ipv4.gateway | default('Not configured') }}</td></tr>
-                <tr><td class="key">Default Network Interface</td><td>{{ ansible_default_ipv4.interface | default('Not configured') }}</td></tr>
-                <tr><td class="key">DNS Servers</td><td>{{ ansible_dns.nameservers | default(['Not configured']) | join(', ') }}</td></tr>
-                <tr><td class="key">All Network Interfaces</td><td>{{ ansible_interfaces | default([]) | join(', ') }}</td></tr>
+                <tr><td class="key">Hostname</td><td>{{ ansible_facts['hostname'] | default('N/A') }}</td></tr>
+                <tr><td class="key">Default IPv4 Address</td><td>{{ ansible_facts['default_ipv4'].address | default('Not configured') }}</td></tr>
+                <tr><td class="key">Default IPv4 Gateway</td><td>{{ ansible_facts['default_ipv4'].gateway | default('Not configured') }}</td></tr>
+                <tr><td class="key">Default Network Interface</td><td>{{ ansible_facts['default_ipv4'].interface | default('Not configured') }}</td></tr>
+                <tr><td class="key">DNS Servers</td><td>{{ ansible_facts['dns'].nameservers | default(['Not configured']) | join(', ') }}</td></tr>
+                <tr><td class="key">All Network Interfaces</td><td>{{ ansible_facts['interfaces'] | default([]) | join(', ') }}</td></tr>
             </table>
 
             <h2>Disk Mount Information</h2>
@@ -113,7 +113,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for mount in ansible_mounts | default([]) %}
+                    {% for mount in ansible_facts['mounts'] | default([]) %}
                     <tr>
                         <td>{{ mount.mount }}</td>
                         <td>{{ mount.device }}</td>
@@ -132,7 +132,7 @@
             </table>
         </div>
         <div class="footer">
-            Report generated at {{ ansible_date_time.iso8601 }}
+            Report generated at {{ ansible_facts['date_time'].iso8601 }}
         </div>
     </div>
 </body>
