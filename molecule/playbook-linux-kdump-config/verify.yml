@@ -1,0 +1,55 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect installed package facts
+      ansible.builtin.package_facts:
+
+    - name: Assert kexec-tools is installed
+      ansible.builtin.assert:
+        that:
+          - "'kexec-tools' in ansible_facts.packages"
+
+    - name: Read /etc/kdump.conf
+      ansible.builtin.slurp:
+        src: /etc/kdump.conf
+      register: kdump_conf
+
+    - name: Assert kdump.conf was written for the Local target
+      ansible.builtin.assert:
+        that:
+          - "'path /var/crash' in kdump_conf_text"
+          - "'core_collector makedumpfile' in kdump_conf_text"
+          - "'default reboot' in kdump_conf_text"
+        fail_msg: "kdump.conf not as expected:\n{{ kdump_conf_text }}"
+      vars:
+        kdump_conf_text: "{{ kdump_conf.content | b64decode }}"
+
+    - name: Read the panic-trigger sysctl file
+      ansible.builtin.slurp:
+        src: /etc/sysctl.d/90-kdump-panic.conf
+      register: kdump_sysctl
+
+    - name: Assert the panic-trigger sysctls were written
+      ansible.builtin.assert:
+        that:
+          - "'vm.panic_on_oom' in sysctl_text"
+          - "'kernel.softlockup_panic' in sysctl_text"
+          - "'kernel.hung_task_panic' in sysctl_text"
+        fail_msg: "panic-trigger sysctl file not as expected:\n{{ sysctl_text }}"
+      vars:
+        sysctl_text: "{{ kdump_sysctl.content | b64decode }}"
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert kdump service is present and enabled
+      ansible.builtin.assert:
+        that:
+          - "'kdump.service' in ansible_facts.services"
+          - ansible_facts.services['kdump.service'].status == 'enabled'
+        fail_msg: >-
+          kdump.service not enabled:
+          {{ ansible_facts.services['kdump.service'] | default('not present') }}
