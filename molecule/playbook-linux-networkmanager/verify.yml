@@ -1,0 +1,43 @@
+---
+- name: Verify
+  hosts: molecule
+  become: true
+  gather_facts: false
+  vars:
+    molecule_nm_conn: molecule-nm-dummy
+  tasks:
+    - name: List NetworkManager connection names
+      ansible.builtin.command: nmcli -t -f NAME connection show
+      register: nm_conns
+      changed_when: false
+
+    - name: Assert the role created the dummy connection
+      ansible.builtin.assert:
+        that:
+          - molecule_nm_conn in nm_conns.stdout_lines
+        fail_msg: "Connection '{{ molecule_nm_conn }}' not found. Connections: {{ nm_conns.stdout_lines }}"
+
+    - name: Query the connection's activation state
+      ansible.builtin.command: nmcli -g GENERAL.STATE connection show "{{ molecule_nm_conn }}"
+      register: nm_state
+      changed_when: false
+
+    - name: Assert the connection was activated
+      ansible.builtin.assert:
+        that:
+          - nm_state.stdout | trim == 'activated'
+        fail_msg: "Connection state is '{{ nm_state.stdout | trim }}', expected 'activated'."
+
+    - name: Read the dummy device's IPv4 address
+      ansible.builtin.command: ip -4 -o addr show dummy0
+      register: dummy_addr
+      changed_when: false
+
+    - name: Assert the static IPv4 address was applied to dummy0
+      ansible.builtin.assert:
+        that:
+          - "'10.99.99.2' in dummy_addr.stdout"
+        fail_msg: "Expected 10.99.99.2 on dummy0; got: {{ dummy_addr.stdout }}"
+
+    - name: Assert the primary connectivity was untouched (control host still reachable)
+      ansible.builtin.ping:

@@ -1,0 +1,12 @@
+---
+# Ensure the dummy kernel module is available so NetworkManager can create the
+# isolated dummy device the converge uses. Test-harness only.
+- name: Prepare instances
+  hosts: molecule
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Load the dummy kernel module
+      community.general.modprobe:
+        name: dummy
+        state: present

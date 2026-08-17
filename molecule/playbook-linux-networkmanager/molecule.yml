@@ -1,0 +1,10 @@
+---
+# rhel9 only (nmcli/NetworkManager content). Drop the shared linux layer (which
+# also ships rhel10) and declare the host locally in inventory/. Keep base/ for
+# localhost + platform group_vars.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=inventory/
