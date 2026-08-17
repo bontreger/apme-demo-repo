@@ -8,3 +8,5 @@ ansible:
       ansible_playbook:
         - --inventory=../utils/inventory/base/
         - --inventory=inventory/
+        - -e
+        - report_archive_host=rhel9

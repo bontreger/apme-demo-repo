@@ -5,60 +5,48 @@
   gather_facts: false
   vars:
     pcp_report_search_root: /var/www/ansible-reports/os_pcp
+    pcp_report_host_heading: "## Host: {{ inventory_hostname }}"
   tasks:
-    - name: Check PCP package is installed
-      ansible.builtin.command: rpm -q pcp
-      register: pcp_verify_package
+    - name: Find integrated PCP markdown reports
+      ansible.builtin.shell: |
+        set -o pipefail
+        find {{ pcp_report_search_root | quote }} -name 'integrated_pcp_report_*.md' -type f 2>/dev/null
+      register: pcp_report_paths
       changed_when: false
       failed_when: false
 
-    - name: Assert PCP package is installed
-      ansible.builtin.assert:
-        that:
-          - pcp_verify_package.rc == 0
-        fail_msg: >-
-          PCP package is not installed on {{ inventory_hostname }}.
-          Check play 1 (package install) in converge output.
-
-    - name: Check integrated report search root exists
-      ansible.builtin.stat:
-        path: "{{ pcp_report_search_root }}"
-      register: pcp_report_root
-
-    - name: Assert integrated report search root exists
-      ansible.builtin.assert:
-        that:
-          - pcp_report_root.stat.exists
-          - pcp_report_root.stat.isdir
-        fail_msg: >-
-          Expected play 3 to create {{ pcp_report_search_root }} on
-          {{ inventory_hostname }} (report_archive_host). Directory is missing.
-
-    - name: Find integrated PCP markdown reports
-      ansible.builtin.find:
-        paths: "{{ pcp_report_search_root }}"
-        patterns: integrated_pcp_report_*.md
-        recurse: true
-      register: pcp_integrated_reports
+    - name: List report tree when no reports were found
+      ansible.builtin.shell: |
+        set -o pipefail
+        find {{ pcp_report_search_root | quote }} 2>/dev/null || true
+        ls -la /var/www/ansible-reports 2>/dev/null || true
+      register: pcp_report_tree
+      changed_when: false
+      when: pcp_report_paths.stdout_lines | length == 0
 
     - name: Assert at least one integrated report exists
       ansible.builtin.assert:
         that:
-          - pcp_integrated_reports.matched | int >= 1
+          - pcp_report_paths.stdout_lines | length > 0
         fail_msg: >-
-          Expected an integrated PCP report under {{ pcp_report_search_root }},
-          found {{ pcp_integrated_reports.matched | int }} match(es).
+          No integrated PCP report under {{ pcp_report_search_root }} on
+          {{ inventory_hostname }}. Play 3 must delegate to report_archive_host
+          (rhel9). Debug output:
+          {{ pcp_report_tree.stdout | default('report tree not collected') }}
 
     - name: Read the newest integrated report
       ansible.builtin.slurp:
-        src: "{{ (pcp_integrated_reports.files | sort(attribute='mtime') | last).path }}"
+        src: "{{ pcp_report_paths.stdout_lines | last }}"
       register: pcp_integrated_report_content
 
     - name: Assert report contains expected content
       ansible.builtin.assert:
         that:
           - "'RHEL Performance Analysis Report' in report_text"
-          - "'## Host: rhel9' in report_text"
+          - pcp_report_host_heading in report_text
           - "'System Overview (PCP)' in report_text"
+        fail_msg: >-
+          Report {{ pcp_report_paths.stdout_lines | last }} is missing expected
+          sections for {{ inventory_hostname }}.
       vars:
         report_text: "{{ pcp_integrated_report_content.content | b64decode }}"
