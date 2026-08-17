@@ -1,3 +1,4 @@
 ---
-# Play 3 writes the integrated report to the archive host (localhost here).
-report_archive_host: localhost
+# Play 3 delegates report generation to the archive host. Use the molecule
+# guest (same pattern as AAP: report_archive_host: rhel9_lab).
+report_archive_host: rhel9

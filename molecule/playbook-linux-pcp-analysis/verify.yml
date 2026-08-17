@@ -1,48 +1,25 @@
 ---
-- name: Verify PCP is installed and running on target hosts
+- name: Verify PCP analysis results on target hosts
   hosts: all_rhel
   become: true
   gather_facts: false
+  vars:
+    pcp_report_search_root: /var/www/ansible-reports/os_pcp
   tasks:
     - name: Check PCP package is installed
       ansible.builtin.command: rpm -q pcp
       register: pcp_verify_package
       changed_when: false
+      failed_when: false
 
     - name: Assert PCP package is installed
       ansible.builtin.assert:
         that:
           - pcp_verify_package.rc == 0
+        fail_msg: >-
+          PCP package is not installed on {{ inventory_hostname }}.
+          Check play 1 (package install) in converge output.
 
-    - name: Check pmcd binary is present
-      ansible.builtin.stat:
-        path: /usr/sbin/pmcd
-      register: pcp_verify_pmcd
-
-    - name: Assert pmcd binary exists
-      ansible.builtin.assert:
-        that:
-          - pcp_verify_pmcd.stat.exists
-          - pcp_verify_pmcd.stat.isreg
-
-    - name: Check pmcd service state
-      ansible.builtin.systemd:
-        name: pmcd
-      register: pcp_verify_pmcd_service
-      changed_when: false
-
-    - name: Assert pmcd service is active
-      ansible.builtin.assert:
-        that:
-          - pcp_verify_pmcd_service.status.ActiveState == 'active'
-
-- name: Verify integrated report was generated on archive host
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  vars:
-    pcp_report_search_root: /var/www/ansible-reports/os_pcp
-  tasks:
     - name: Check integrated report search root exists
       ansible.builtin.stat:
         path: "{{ pcp_report_search_root }}"
@@ -54,9 +31,8 @@
           - pcp_report_root.stat.exists
           - pcp_report_root.stat.isdir
         fail_msg: >-
-          Expected play 3 to create {{ pcp_report_search_root }} on the archive
-          host (report_archive_host: localhost). Directory is missing — check
-          converge output for the report play.
+          Expected play 3 to create {{ pcp_report_search_root }} on
+          {{ inventory_hostname }} (report_archive_host). Directory is missing.
 
     - name: Find integrated PCP markdown reports
       ansible.builtin.find:

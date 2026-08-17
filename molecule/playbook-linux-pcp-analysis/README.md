@@ -7,15 +7,16 @@ on `localhost` via `roles/pcp_analysis`).
 ## rhel9 only
 
 Provisions `rhel9` in `all_rhel` and `pcp_servers`. Play 3 delegates report
-generation to `report_archive_host`; this scenario sets that to `localhost`
-(the molecule controller) so `report_publish_enabled` can stay false.
+generation to `report_archive_host`; this scenario sets that to `rhel9` (the
+molecule guest — same pattern as AAP with `report_archive_host: rhel9_lab`).
 
 ## Files
 
 - `inventory/hosts.yml` — `rhel9` in `molecule`, `all_rhel`, and `pcp_servers`
-- `inventory/group_vars/all.yml` — `report_archive_host: localhost`
-- `verify.yml` — asserts `pmcd` is active on the guest and an integrated
+- `inventory/group_vars/all.yml` — `report_archive_host: rhel9`
+- `verify.yml` — asserts PCP is installed and an integrated
   `integrated_pcp_report_*.md` exists under `/var/www/ansible-reports/os_pcp/`
+  on the guest
 
 Expect a longer converge (PCP package install + collection).
 
