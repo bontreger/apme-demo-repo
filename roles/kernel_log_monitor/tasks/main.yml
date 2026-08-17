@@ -243,7 +243,10 @@
           - "CRITICAL ISSUES ({{ kernel_log_monitor_detected_errors.critical | length }}):"
           - "{{ kernel_log_monitor_detected_errors.critical | join('\\n') }}"
       when: kernel_log_monitor_detected_errors.critical | length > 0
-      notify: emergency_alert
+      # debug never reports 'changed', so a handler notify from it never fires;
+      # force it so the emergency_alert handler actually runs on critical errors.
+      changed_when: true
+      notify: Emergency_alert
       tags:
         - alert
         - always
@@ -254,7 +257,10 @@
           - "SEVERE WARNINGS ({{ kernel_log_monitor_detected_errors.severe | length }}):"
           - "{{ kernel_log_monitor_detected_errors.severe | join('\\n') }}"
       when: kernel_log_monitor_detected_errors.severe | length > 0
-      notify: priority_alert
+      # debug never reports 'changed', so a handler notify from it never fires;
+      # force it so the priority_alert handler actually runs on severe errors.
+      changed_when: true
+      notify: Priority_alert
       tags:
         - alert
         - always
