@@ -1,0 +1,3 @@
+---
+# Play 3 writes the integrated report to the archive host (localhost here).
+report_archive_host: localhost

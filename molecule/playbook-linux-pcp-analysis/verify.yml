@@ -1,0 +1,73 @@
+---
+- name: Verify PCP is installed and running on target hosts
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Check pmcd binary is present
+      ansible.builtin.command: which pmcd
+      register: pcp_verify_pmcd
+      changed_when: false
+
+    - name: Assert pmcd is installed
+      ansible.builtin.assert:
+        that:
+          - pcp_verify_pmcd.rc == 0
+
+    - name: Check pmcd service state
+      ansible.builtin.systemd:
+        name: pmcd
+      register: pcp_verify_pmcd_service
+      changed_when: false
+
+    - name: Assert pmcd service is active
+      ansible.builtin.assert:
+        that:
+          - pcp_verify_pmcd_service.status.ActiveState == 'active'
+
+    - name: Run a minimal PCP overview command
+      ansible.builtin.command: pcp
+      register: pcp_verify_overview
+      changed_when: false
+      failed_when: false
+
+    - name: Assert PCP overview command succeeded
+      ansible.builtin.assert:
+        that:
+          - pcp_verify_overview.rc == 0
+
+- name: Verify integrated report was generated on archive host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    pcp_report_search_root: /var/www/ansible-reports/os_pcp
+  tasks:
+    - name: Find integrated PCP markdown reports
+      ansible.builtin.find:
+        paths: "{{ pcp_report_search_root }}"
+        patterns: integrated_pcp_report_*.md
+        recurse: true
+      register: pcp_integrated_reports
+
+    - name: Assert at least one integrated report exists
+      ansible.builtin.assert:
+        that:
+          - pcp_integrated_reports.matched | int >= 1
+        fail_msg: >-
+          Expected an integrated PCP report under {{ pcp_report_search_root }},
+          found {{ pcp_integrated_reports.matched | int }} match(es).
+
+    - name: Read the newest integrated report
+      ansible.builtin.slurp:
+        src: "{{ (pcp_integrated_reports.files | sort(attribute='mtime') | last).path }}"
+      register: pcp_integrated_report_content
+
+    - name: Assert report contains expected content
+      ansible.builtin.assert:
+        that:
+          - "'RHEL Performance Analysis Report' in report_text"
+          - "'## Host: rhel9' in report_text"
+          - "'System Overview (PCP)' in report_text"
+      vars:
+        report_text: "{{ pcp_integrated_report_content.content | b64decode }}"
