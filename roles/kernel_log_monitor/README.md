@@ -17,7 +17,7 @@ Monitors kernel logs for critical and severe errors, classifies detected issues,
 | `kernel_log_monitor_kernel_events_log` | `"/var/log/kernel_events.log"` | Path to the kernel events log file for priority alerts |
 | `report_namespace` | `"kernel_log_monitor"` | Namespace used for report directory structure |
 | `report_local_dir` | `"/var/lib/ansible-reports/{{ report_namespace }}"` | Local directory for generated reports |
-| `report_job_id` | `"{{ awx_job_id \| default(ansible_date_time.epoch) }}"` | Unique job identifier for report filenames |
+| `report_job_id` | `"{{ awx_job_id \| default(ansible_facts['date_time'].epoch) }}"` | Unique job identifier for report filenames |
 | `report_text_path` | `"{{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt"` | Full path for the plaintext report |
 | `report_html_path` | `"{{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.html"` | Full path for the HTML report |
 | `kernel_log_monitor_report_base_path` | `"{{ report_local_dir }}"` | Deprecated alias for `report_local_dir` |

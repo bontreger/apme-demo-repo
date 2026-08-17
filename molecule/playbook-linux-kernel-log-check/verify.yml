@@ -1,0 +1,38 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # job_id pinned to "molecule"; namespace kernel_log_monitor is the role default.
+    kernel_report_path: /var/lib/ansible-reports/kernel_log_monitor/{{ inventory_hostname }}-molecule.txt
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ kernel_report_path }}"
+      register: kernel_report
+
+    - name: Assert the report was written
+      ansible.builtin.assert:
+        that:
+          - kernel_report.stat.exists
+          - kernel_report.stat.isreg
+          - kernel_report.stat.size | int > 0
+
+    - name: Read the report
+      ansible.builtin.slurp:
+        src: "{{ kernel_report_path }}"
+      register: kernel_report_content
+
+    - name: Assert the report has the expected structure
+      ansible.builtin.assert:
+        that:
+          - "'Kernel Log Monitor Report - ' ~ inventory_hostname in report_text"
+          - "'Critical Errors:' in report_text"
+          - "'Severe Errors:' in report_text"
+          - "'Unique Error Entries:' in report_text"
+          - "'Critical Error Samples' in report_text"
+          - "'Severe Error Samples' in report_text"
+        fail_msg: "Kernel report missing expected sections:\n{{ report_text }}"
+      vars:
+        report_text: "{{ kernel_report_content.content | b64decode }}"

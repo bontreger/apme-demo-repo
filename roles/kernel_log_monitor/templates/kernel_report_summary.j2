@@ -1,5 +1,5 @@
 Kernel Log Monitor Report - {{ inventory_hostname }}
-Generated: {{ ansible_date_time.iso8601 }}
+Generated: {{ ansible_facts['date_time'].iso8601 }}
 
 Critical Errors: {{ kernel_log_monitor_detected_errors.critical | default([]) | length }}
 Severe Errors: {{ kernel_log_monitor_detected_errors.severe | default([]) | length }}
