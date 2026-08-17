@@ -6,17 +6,19 @@ on `localhost` via `roles/pcp_analysis`).
 
 ## rhel9 only
 
-Provisions `rhel9` in `all_rhel` and `pcp_servers`. Play 3 delegates report
-generation to `report_archive_host`; this scenario sets that to `rhel9` (the
-molecule guest — same pattern as AAP with `report_archive_host: rhel9_lab`).
+Provisions `rhel9` in `all_rhel` and `pcp_servers`. Play 3 in the upstream
+playbook runs on `localhost` and delegates to `report_archive_host`; this
+scenario adds a **molecule-only harness play** in `converge.yml` that
+re-generates the integrated report on the guest (play 2 hostvars are still in
+memory). Pins `report_job_id: molecule` for a deterministic verify path.
 
 ## Files
 
 - `inventory/hosts.yml` — `rhel9` in `molecule`, `all_rhel`, and `pcp_servers`
 - `inventory/group_vars/all.yml` — `report_archive_host: rhel9`
-- `verify.yml` — asserts PCP is installed and an integrated
-  `integrated_pcp_report_*.md` exists under `/var/www/ansible-reports/os_pcp/`
-  on the guest
+- `converge.yml` — imports the playbook, then runs report generation on `pcp_servers`
+- `verify.yml` — asserts report at
+  `/var/www/ansible-reports/os_pcp/molecule/aggregated/integrated_pcp_report_*.md`
 
 Expect a longer converge (PCP package install + collection).
 

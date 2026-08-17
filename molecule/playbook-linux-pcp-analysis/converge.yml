@@ -1,3 +1,27 @@
 ---
 - name: Converge
   ansible.builtin.import_playbook: ../../playbooks/linux-pcp-analysis.yml
+
+# The upstream playbook's play 3 runs on localhost and delegates report tasks to
+# report_archive_host. That delegation is unreliable from the molecule controller
+# in this environment, so re-run report generation on the guest (same hostvars
+# from play 2 are still in memory). Matches AAP when archive == target host.
+- name: Generate integrated PCP report on molecule guest
+  hosts: pcp_servers
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../../inventory/group_vars/all/reporting.yml
+  vars:
+    report_namespace: os_pcp
+    report_job_id: molecule
+    pcp_analysis_report_dest_dir: /var/www/ansible-reports/{{ report_namespace }}/{{ report_job_id }}
+    pcp_analysis_report_filename: "integrated_pcp_report_{{ ansible_date_time.date }}.md"
+    report_publish_skip_collect: true
+    report_publish_source_hosts: []
+    report_archive_host: "{{ inventory_hostname }}"
+  tasks:
+    - name: Generate integrated PCP report on archive host
+      ansible.builtin.include_role:
+        name: pcp_analysis
+        tasks_from: report.yml

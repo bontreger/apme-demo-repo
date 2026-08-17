@@ -4,39 +4,27 @@
   become: true
   gather_facts: false
   vars:
-    pcp_report_search_root: /var/www/ansible-reports/os_pcp
+    pcp_report_dir: /var/www/ansible-reports/os_pcp/molecule/aggregated
     pcp_report_host_heading: "## Host: {{ inventory_hostname }}"
   tasks:
     - name: Find integrated PCP markdown reports
-      ansible.builtin.shell: |
-        set -o pipefail
-        find {{ pcp_report_search_root | quote }} -name 'integrated_pcp_report_*.md' -type f 2>/dev/null
-      register: pcp_report_paths
-      changed_when: false
-      failed_when: false
+      ansible.builtin.find:
+        paths: "{{ pcp_report_dir }}"
+        patterns: integrated_pcp_report_*.md
+      register: pcp_integrated_reports
 
-    - name: List report tree when no reports were found
-      ansible.builtin.shell: |
-        set -o pipefail
-        find {{ pcp_report_search_root | quote }} 2>/dev/null || true
-        ls -la /var/www/ansible-reports 2>/dev/null || true
-      register: pcp_report_tree
-      changed_when: false
-      when: pcp_report_paths.stdout_lines | length == 0
-
-    - name: Assert at least one integrated report exists
+    - name: Assert integrated report directory and file exist
       ansible.builtin.assert:
         that:
-          - pcp_report_paths.stdout_lines | length > 0
+          - pcp_integrated_reports.matched | int >= 1
         fail_msg: >-
-          No integrated PCP report under {{ pcp_report_search_root }} on
-          {{ inventory_hostname }}. Play 3 must delegate to report_archive_host
-          (rhel9). Debug output:
-          {{ pcp_report_tree.stdout | default('report tree not collected') }}
+          Expected integrated PCP report under {{ pcp_report_dir }} on
+          {{ inventory_hostname }}. Run converge with the molecule harness play
+          (see converge.yml) and confirm play 2 collection hostvars are present.
 
-    - name: Read the newest integrated report
+    - name: Read the integrated report
       ansible.builtin.slurp:
-        src: "{{ pcp_report_paths.stdout_lines | last }}"
+        src: "{{ (pcp_integrated_reports.files | sort(attribute='mtime') | last).path }}"
       register: pcp_integrated_report_content
 
     - name: Assert report contains expected content
@@ -45,8 +33,5 @@
           - "'RHEL Performance Analysis Report' in report_text"
           - pcp_report_host_heading in report_text
           - "'System Overview (PCP)' in report_text"
-        fail_msg: >-
-          Report {{ pcp_report_paths.stdout_lines | last }} is missing expected
-          sections for {{ inventory_hostname }}.
       vars:
         report_text: "{{ pcp_integrated_report_content.content | b64decode }}"

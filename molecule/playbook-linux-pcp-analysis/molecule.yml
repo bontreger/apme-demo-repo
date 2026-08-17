@@ -10,3 +10,5 @@ ansible:
         - --inventory=inventory/
         - -e
         - report_archive_host=rhel9
+        - -e
+        - report_job_id=molecule
