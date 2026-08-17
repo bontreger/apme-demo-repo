@@ -1,0 +1,65 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    # Report job id is pinned to "molecule" in inventory. Namespace
+    # disk_io_pressure_rca comes from the role's namespace_map for disk_io.
+    disk_io_rca_report_dir: /var/lib/ansible-reports/disk_io_pressure_rca
+    disk_io_rca_text_path: "{{ disk_io_rca_report_dir }}/{{ inventory_hostname }}-molecule.txt"
+    disk_io_rca_json_path: "{{ disk_io_rca_report_dir }}/{{ inventory_hostname }}-molecule.json"
+  tasks:
+    - name: Stat the plaintext report
+      ansible.builtin.stat:
+        path: "{{ disk_io_rca_text_path }}"
+      register: disk_io_rca_text
+
+    - name: Stat the JSON report
+      ansible.builtin.stat:
+        path: "{{ disk_io_rca_json_path }}"
+      register: disk_io_rca_json
+
+    - name: Assert both reports were written
+      ansible.builtin.assert:
+        that:
+          - disk_io_rca_text.stat.exists
+          - disk_io_rca_text.stat.isreg
+          - disk_io_rca_text.stat.size | int > 0
+          - disk_io_rca_json.stat.exists
+          - disk_io_rca_json.stat.isreg
+          - disk_io_rca_json.stat.size | int > 0
+
+    - name: Read the plaintext report
+      ansible.builtin.slurp:
+        src: "{{ disk_io_rca_text_path }}"
+      register: disk_io_rca_text_content
+
+    - name: Assert the plaintext report has the expected shape
+      ansible.builtin.assert:
+        that:
+          - "'Disk IO Pressure Investigation - ' ~ inventory_hostname in report_text"
+          - "'Processes in D State:' in report_text"
+          - "'JSON Report:' in report_text"
+      vars:
+        report_text: "{{ disk_io_rca_text_content.content | b64decode }}"
+
+    - name: Read and parse the JSON report
+      ansible.builtin.slurp:
+        src: "{{ disk_io_rca_json_path }}"
+      register: disk_io_rca_json_content
+
+    - name: Assert the JSON report has the expected structure
+      ansible.builtin.assert:
+        that:
+          - report.os_distribution == 'RedHat'
+          - report.hostname is defined
+          - report.io_statistics is defined
+          - report.high_io_processes is defined
+          - report.d_state_processes is defined
+          - report.d_state_processes.count is defined
+        fail_msg: >-
+          Expected a structured disk IO RCA JSON report, but got:
+          {{ report | to_json }}
+      vars:
+        report: "{{ disk_io_rca_json_content.content | b64decode | from_json }}"
