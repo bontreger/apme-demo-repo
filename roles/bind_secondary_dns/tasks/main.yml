@@ -36,7 +36,7 @@
   block:
     - name: Ensure secondary named.conf is present
       ansible.builtin.copy:
-        src: named-secondary.conf
+        src: "{{ bind_secondary_dns_bind_config_src }}"
         dest: "{{ bind_secondary_dns_bind_config_dest }}"
         owner: "{{ bind_secondary_dns_bind_config_owner }}"
         group: "{{ bind_secondary_dns_bind_config_group }}"

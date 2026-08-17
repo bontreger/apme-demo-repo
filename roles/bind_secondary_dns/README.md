@@ -13,6 +13,7 @@ Deploys and configures a BIND secondary (slave) DNS server with named.conf, serv
 |----------|---------|-------------|
 | `bind_secondary_dns_bind_secondary_packages` | `["bind"]` | List of packages to install for BIND secondary |
 | `bind_secondary_dns_bind_service_name` | `named` | Name of the BIND service |
+| `bind_secondary_dns_bind_config_src` | `named-secondary.conf` | Source path for named.conf (role `files/` or absolute path on controller) |
 | `bind_secondary_dns_bind_config_dest` | `/etc/named.conf` | Destination path for named.conf |
 | `bind_secondary_dns_bind_config_owner` | `root` | Owner of the named.conf file |
 | `bind_secondary_dns_bind_config_group` | `named` | Group of the named.conf file |
