@@ -11,7 +11,7 @@
     that:
       - cve_patching_cve_id is defined
       - cve_patching_cve_id | trim | length > 0
-      - cve_patching_cve_id | regex_search('^CVE-[0-9]{4}-[0-9]{4,}$')
+      - cve_patching_cve_id is match('^CVE-[0-9]{4}-[0-9]{4,}$')
     fail_msg: >-
       Invalid CVE ID format. Must match CVE-YYYY-NNNN
       (e.g. CVE-2023-42753)

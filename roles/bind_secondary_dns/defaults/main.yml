@@ -4,6 +4,7 @@ bind_secondary_dns_bind_secondary_packages:
 
 bind_secondary_dns_bind_service_name: named
 
+bind_secondary_dns_bind_config_src: named-secondary.conf
 bind_secondary_dns_bind_config_dest: /etc/named.conf
 bind_secondary_dns_bind_config_owner: root
 bind_secondary_dns_bind_config_group: named

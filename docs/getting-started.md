@@ -19,12 +19,15 @@ cd acl-ready-to-use-content
 # Shared collections (repo root)
 ansible-galaxy collection install -r collections/requirements.yml
 
-# DHCP client playbook only — not in collections/requirements.yml
-ansible-galaxy collection install rhel-system-roles.network
+# DHCP client playbook only — not in collections/requirements.yml.
+# Requires Automation Hub (or RHEL host with rhel-system-roles RPM):
+ansible-galaxy collection install redhat.rhel_system_roles
 ```
 
 Collections are also listed in `execution_environments/requirements.yml` for EE
-builds (includes `rhel-system-roles.network`).
+builds (includes `redhat.rhel_system_roles`). Build the custom EE before running
+`ACL_linux_dhcp_client` in AAP — the platform Default EE does not include this
+collection.
 
 ## Inventory
 

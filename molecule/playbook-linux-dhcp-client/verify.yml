@@ -1,0 +1,28 @@
+---
+- name: Verify
+  hosts: dhcp_clients
+  become: true
+  gather_facts: false
+  tasks:
+    - name: List NetworkManager connections
+      ansible.builtin.command: nmcli -t -f NAME con show
+      register: nm_connections
+      changed_when: false
+
+    - name: Assert dhcp-connection profile exists
+      ansible.builtin.assert:
+        that:
+          - nm_connections.stdout is search('dhcp-connection')
+        fail_msg: >-
+          dhcp-connection not in NetworkManager profiles:
+          {{ nm_connections.stdout | default('') }}
+
+    - name: Show dhcp-connection IPv4 method
+      ansible.builtin.command: nmcli -g ipv4.method con show dhcp-connection
+      register: dhcp_connection_method
+      changed_when: false
+
+    - name: Assert dhcp-connection uses DHCP for IPv4
+      ansible.builtin.assert:
+        that:
+          - dhcp_connection_method.stdout | trim == 'auto'
