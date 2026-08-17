@@ -2,10 +2,10 @@
 - name: Display OS information
   ansible.builtin.debug:
     msg:
-      - "Distribution: {{ ansible_distribution }}"
-      - "Version: {{ ansible_distribution_version }}"
-      - "Major Version: {{ ansible_distribution_major_version }}"
-      - "Architecture: {{ ansible_architecture }}"
+      - "Distribution: {{ ansible_facts['distribution'] }}"
+      - "Version: {{ ansible_facts['distribution_version'] }}"
+      - "Major Version: {{ ansible_facts['distribution_major_version'] }}"
+      - "Architecture: {{ ansible_facts['architecture'] }}"
   tags:
     - validation
     - debug
@@ -210,7 +210,7 @@
     msg:
       - "================= SELinux Status Report =================="
       - "Host: {{ inventory_hostname }}"
-      - "Timestamp: {{ ansible_date_time.iso8601 }}"
+      - "Timestamp: {{ ansible_facts['date_time'].iso8601 }}"
       - ""
       - "Runtime Status:"
       - "  - Current Mode: {{ ansible_facts.selinux.mode | default('disabled') }}"
