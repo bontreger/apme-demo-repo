@@ -13,7 +13,7 @@
     that:
       - kdump_config_local_path is defined
       - kdump_config_local_path | length > 0
-      - kdump_config_local_path | regex_search('^/')
+      - (kdump_config_local_path | regex_search('^/')) is not none
     fail_msg: "Invalid kdump_config_local_path. Must be an absolute path."
     success_msg: "Local path validated: {{ kdump_config_local_path }}"
   failed_when: false
@@ -24,7 +24,7 @@
     that:
       - kdump_config_nfs_server is defined
       - kdump_config_nfs_server | length > 0
-      - kdump_config_nfs_server | regex_search('^[^:]+:/')
+      - (kdump_config_nfs_server | regex_search('^[^:]+:/')) is not none
     fail_msg: "Invalid kdump_config_nfs_server. Must be SERVER:/PATH format."
     success_msg: "NFS server validated: {{ kdump_config_nfs_server }}"
   failed_when: false
@@ -47,7 +47,7 @@
     that:
       - kdump_config_raw_device is defined
       - kdump_config_raw_device | length > 0
-      - kdump_config_raw_device | regex_search('^/dev/')
+      - (kdump_config_raw_device | regex_search('^/dev/')) is not none
     fail_msg: "Invalid kdump_config_raw_device. Must start with /dev/"
     success_msg: "Raw device validated: {{ kdump_config_raw_device }}"
   failed_when: false
