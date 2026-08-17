@@ -13,6 +13,7 @@ Deploys and configures a BIND primary (master) DNS server with named.conf, zone 
 |----------|---------|-------------|
 | `bind_primary_dns_bind_primary_packages` | `["bind"]` | List of packages to install for BIND primary |
 | `bind_primary_dns_bind_service_name` | `named` | Name of the BIND service |
+| `bind_primary_dns_bind_config_src` | `named-primary.conf` | Source path for named.conf (role `files/` or absolute path on controller) |
 | `bind_primary_dns_bind_config_dest` | `/etc/named.conf` | Destination path for named.conf |
 | `bind_primary_dns_bind_config_owner` | `root` | Owner of the named.conf file |
 | `bind_primary_dns_bind_config_group` | `named` | Group of the named.conf file |

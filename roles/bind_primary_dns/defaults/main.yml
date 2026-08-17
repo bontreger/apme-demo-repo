@@ -5,6 +5,7 @@ bind_primary_dns_bind_primary_packages:
 bind_primary_dns_bind_service_name: named
 
 # Config paths
+bind_primary_dns_bind_config_src: named-primary.conf
 bind_primary_dns_bind_config_dest: /etc/named.conf
 bind_primary_dns_bind_config_owner: root
 bind_primary_dns_bind_config_group: named

@@ -1,0 +1,64 @@
+---
+- name: Verify
+  hosts: primary_dns
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Collect installed package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert bind package is installed
+      ansible.builtin.assert:
+        that:
+          - "'bind' in ansible_facts.packages"
+
+    - name: Stat named.conf
+      ansible.builtin.stat:
+        path: /etc/named.conf
+      register: named_conf
+
+    - name: Assert named.conf is deployed
+      ansible.builtin.assert:
+        that:
+          - named_conf.stat.exists
+          - named_conf.stat.isreg
+
+    - name: Read named.conf marker
+      ansible.builtin.slurp:
+        src: /etc/named.conf
+      register: named_conf_content
+
+    - name: Assert named.conf is molecule-managed sample
+      ansible.builtin.assert:
+        that:
+          - (named_conf_content.content | b64decode) is search('Ansible-managed BIND Primary')
+          - (named_conf_content.content | b64decode) is search('10.77.0.0/24')
+        fail_msg: >-
+          Expected molecule named-primary.conf content; got:
+          {{ named_conf_content.content | b64decode | truncate(200) }}
+
+    - name: Stat sample zone file
+      ansible.builtin.stat:
+        path: /var/named/pvt.example.com.zone
+      register: zone_file
+
+    - name: Assert zone files are deployed
+      ansible.builtin.assert:
+        that:
+          - zone_file.stat.exists
+          - zone_file.stat.isreg
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert named service is enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['named.service'].status == 'enabled'
+
+    - name: Report named service active state (informational)
+      ansible.builtin.debug:
+        msg: >-
+          named state={{ ansible_facts.services['named.service'].state }}
+          (inactive/failed may occur when configs do not match the host network).
