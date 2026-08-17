@@ -1,0 +1,37 @@
+---
+- name: Verify PCP analysis results on target hosts
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    pcp_report_dir: /var/www/ansible-reports/os_pcp/molecule/aggregated
+    pcp_report_host_heading: "## Host: {{ inventory_hostname }}"
+  tasks:
+    - name: Find integrated PCP markdown reports
+      ansible.builtin.find:
+        paths: "{{ pcp_report_dir }}"
+        patterns: integrated_pcp_report_*.md
+      register: pcp_integrated_reports
+
+    - name: Assert integrated report directory and file exist
+      ansible.builtin.assert:
+        that:
+          - pcp_integrated_reports.matched | int >= 1
+        fail_msg: >-
+          Expected integrated PCP report under {{ pcp_report_dir }} on
+          {{ inventory_hostname }}. Run converge with the molecule harness play
+          (see converge.yml) and confirm play 2 collection hostvars are present.
+
+    - name: Read the integrated report
+      ansible.builtin.slurp:
+        src: "{{ (pcp_integrated_reports.files | sort(attribute='mtime') | last).path }}"
+      register: pcp_integrated_report_content
+
+    - name: Assert report contains expected content
+      ansible.builtin.assert:
+        that:
+          - "'RHEL Performance Analysis Report' in report_text"
+          - pcp_report_host_heading in report_text
+          - "'System Overview (PCP)' in report_text"
+      vars:
+        report_text: "{{ pcp_integrated_report_content.content | b64decode }}"
