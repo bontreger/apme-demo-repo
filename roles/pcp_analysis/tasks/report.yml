@@ -13,7 +13,7 @@
     state: directory
     mode: "0755"
   delegate_to: "{{ report_archive_host }}"
-  become: true
+  become: "{{ pcp_analysis_report_use_become | bool }}"
   failed_when: false
 
 - name: Generate Markdown format report on archive host
@@ -22,7 +22,7 @@
     dest: "{{ pcp_analysis_report_dest_dir }}/aggregated/{{ pcp_analysis_report_filename }}"
     mode: "0644"
   delegate_to: "{{ report_archive_host }}"
-  become: true
+  become: "{{ pcp_analysis_report_use_become | bool }}"
 
 - name: Display report path
   ansible.builtin.debug:
@@ -35,5 +35,5 @@
     name: report_publish
     apply:
       delegate_to: "{{ report_archive_host }}"
-      become: true
+      become: "{{ pcp_analysis_report_use_become | bool }}"
   when: report_publish_enabled | bool
