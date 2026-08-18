@@ -1,5 +1,5 @@
 ---
-# Pre-commit hooks for ACL ready-to-use content
+# Pre-commit hooks for ACL ready-to-implement content
 #
 # Requires Python 3.12 (ansible-lint breaks on 3.14 with current ansible-core).
 # Setup:

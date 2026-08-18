@@ -1,5 +1,5 @@
 ---
-# Galaxy collections baked into the ACL ready-to-use content EE.
+# Galaxy collections baked into the ACL ready-to-implement content EE.
 # Kept in sync with collections/requirements.yml plus scenario-specific additions.
 
 collections:

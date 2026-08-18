@@ -1,5 +1,5 @@
 ---
-# Shared Ansible collections for ACL ready-to-use content.
+# Shared Ansible collections for ACL ready-to-implement content.
 # Install from repo root:
 #   ansible-galaxy collection install -r collections/requirements.yml -p collections
 # Or for user-wide lint/runtime:

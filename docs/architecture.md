@@ -1,6 +1,6 @@
 # Architecture
 
-How the ACL ready-to-use content repository is organized and how it relates to
+How the ACL ready-to-implement content repository is organized and how it relates to
 the legacy `ready-to-use-content` repo.
 
 ## Two-repo migration model
@@ -8,7 +8,7 @@ the legacy `ready-to-use-content` repo.
 | Repository | Role |
 |------------|------|
 | `ready-to-use-content` | Legacy reference — numbered scenario folders, frozen baseline for diff |
-| `acl-ready-to-use-content` | Migration target — ACL layout, all structural migration happens here |
+| `acl-ready-to-implement-content` | Migration target — ACL layout, all structural migration happens here |
 
 Content is **copied** from legacy to ACL (not renamed in place). The pilot batch
 validates layout and role path resolution before bulk migration continues.
@@ -16,7 +16,7 @@ validates layout and role path resolution before bulk migration continues.
 ## Repository layout
 
 ```
-acl-ready-to-use-content/
+acl-ready-to-implement-content/
 ├── playbooks/<slug>/       # Thin entry-point playbooks per scenario
 ├── roles/                  # All roles hoisted to repo root
 ├── collections/

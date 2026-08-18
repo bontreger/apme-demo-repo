@@ -1,7 +1,7 @@
 ---
 # Execution environment definition for ansible-builder (version 3 schema).
 # Build from repo root:
-#   ansible-builder build -f execution_environments/execution-environment.yml -t acl-ready-to-use-content-ee
+#   ansible-builder build -f execution_environments/execution-environment.yml -t acl-ready-to-implement-content-ee
 #
 # See docs/getting-started.md for collection install and lab usage without a custom EE.
 

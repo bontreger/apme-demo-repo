@@ -1,6 +1,6 @@
-# ACL Ready-to-Use Content Restructuring Plan
+# ACL Ready-to-Implement Content Restructuring Plan
 
-Migrate all remaining scenarios from `ready-to-use-content` into `acl-ready-to-use-content` following ACL spec and GPA principles: flat `playbooks/` layout, shared top-level `roles/`, thin playbooks calling parameterized roles, platform-prefixed naming (`linux-`/`win-`). Exclude 200 and 301 as ADUC candidates.
+Migrate all remaining scenarios from `ready-to-use-content` into `acl-ready-to-implement-content` following ACL spec and GPA principles: flat `playbooks/` layout, shared top-level `roles/`, thin playbooks calling parameterized roles, platform-prefixed naming (`linux-`/`win-`). Exclude 200 and 301 as ADUC candidates.
 
 ## Current State
 
@@ -24,7 +24,7 @@ Migrate all remaining scenarios from `ready-to-use-content` into `acl-ready-to-u
 Playbooks are **flat .yml files** directly under `playbooks/` -- no subdirectories. All logic, defaults, templates, and documentation live in the role.
 
 ```
-acl-ready-to-use-content/
+acl-ready-to-implement-content/
 ├── playbooks/                         # flat .yml files, no subdirectories
 │   ├── linux-dns-primary.yml          # existing, flattened + renamed
 │   ├── linux-dns-secondary.yml        # existing, flattened + renamed

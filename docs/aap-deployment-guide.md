@@ -1,6 +1,6 @@
 # AAP Deployment Guide
 
-Deploy ACL ready-to-use content into Ansible Automation Platform (AAP) 2.5+
+Deploy ACL ready-to-implement content into Ansible Automation Platform (AAP) 2.5+
 using Configuration as Code.
 
 ---
@@ -47,8 +47,8 @@ ansible-galaxy collection install ansible.controller
 ### 4. Clone the repository
 
 ```bash
-git clone https://github.com/redhat-services-platform-team/acl-ready-to-use-content.git
-cd acl-ready-to-use-content
+git clone https://github.com/redhat-services-platform-team/acl-ready-to-implement-content.git
+cd acl-ready-to-implement-content
 ```
 
 ---
@@ -69,7 +69,7 @@ aap_hostname: https://your-aap-host.example.com
 aap_validate_certs: false          # true if using a trusted certificate
 
 # Project -- Git URL of this repository as AAP will clone it
-acl_project_scm_url: https://github.com/your-org/acl-ready-to-use-content.git
+acl_project_scm_url: https://github.com/your-org/acl-ready-to-implement-content.git
 acl_project_scm_branch: main
 acl_project_scm_credential: ""     # name of SCM credential, or empty for public repos
 
@@ -96,7 +96,7 @@ The playbook validates required variables, then creates (or updates) the
 following AAP objects in order:
 
 1. **Inventory** -- `acl_lab_inventory` (or the name you chose)
-2. **Project** -- `acl-ready-to-use-content`, pointing to your Git URL
+2. **Project** -- `acl-ready-to-implement-content`, pointing to your Git URL
 3. **Job templates** -- 40 templates (35 Linux, 5 Windows)
 
 ### Step 3 -- Add hosts to inventory
@@ -138,7 +138,7 @@ and `postgres_servers`).
 After the CaC playbook runs, check that the project synced successfully:
 
 ```
-AAP UI > Projects > acl-ready-to-use-content > Status
+AAP UI > Projects > acl-ready-to-implement-content > Status
 ```
 
 If the status shows **Failed**, common causes:
@@ -170,7 +170,7 @@ This collects OS facts and generates a report without making changes.
 | Job templates -- Linux | 35 | DNS, DHCP, database, config, inspection, RCA, security |
 | Job templates -- Windows | 5 | Service mgmt, IIS, software, Chocolatey, patching |
 
-All job templates reference the project `acl-ready-to-use-content` and use
+All job templates reference the project `acl-ready-to-implement-content` and use
 the `Default execution environment`. Credential and inventory names are
 derived from `site_config.yml`.
 

@@ -1,5 +1,5 @@
 ---
-# ACL Ready-to-Use Content -- Site Configuration
+# ACL Ready-to-Implement Content -- Site Configuration
 #
 # Copy this file to site_config.yml and fill in your values:
 #   cp controller_config/site_config.yml.example controller_config/site_config.yml
@@ -24,12 +24,12 @@ aap_validate_certs: true
 # Project
 # ---------------------------------------------------------------------------
 
-# Git URL of the acl-ready-to-use-content repository.
+# Git URL of the acl-ready-to-implement-content repository.
 # Use SSH if authenticating with an SSH key credential:
-#   git@github.com:your-org/acl-ready-to-use-content.git
+#   git@github.com:your-org/acl-ready-to-implement-content.git
 # Use HTTPS if authenticating with a token or if the repo is public:
-#   https://github.com/your-org/acl-ready-to-use-content.git
-acl_project_scm_url: git@github.com:your-org/acl-ready-to-use-content.git
+#   https://github.com/your-org/acl-ready-to-implement-content.git
+acl_project_scm_url: git@github.com:your-org/acl-ready-to-implement-content.git
 
 # Branch for AAP to track (default: main).
 acl_project_scm_branch: main

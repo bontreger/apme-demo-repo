@@ -1,6 +1,6 @@
 # Getting Started
 
-Quick start for running ACL ready-to-use content from the command line or
+Quick start for running ACL ready-to-implement content from the command line or
 Ansible Automation Platform (AAP).
 
 ## Prerequisites
@@ -13,8 +13,8 @@ Ansible Automation Platform (AAP).
 ## Clone and install collections
 
 ```bash
-git clone https://github.com/redhat-services-platform-team/acl-ready-to-use-content.git
-cd acl-ready-to-use-content
+git clone https://github.com/redhat-services-platform-team/acl-ready-to-implement-content.git
+cd acl-ready-to-implement-content
 
 # Shared collections (repo root)
 ansible-galaxy collection install -r collections/requirements.yml
@@ -75,7 +75,7 @@ Build a custom EE when using AAP:
 ```bash
 ansible-builder build \
   -f execution_environments/execution-environment.yml \
-  -t acl-ready-to-use-content-ee
+  -t acl-ready-to-implement-content-ee
 ```
 
 ## AAP deployment (optional)

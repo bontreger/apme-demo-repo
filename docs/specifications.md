@@ -1,6 +1,6 @@
-# ACL Ready-to-Use Content -- Specifications
+# ACL Ready-to-Implement Content -- Specifications
 
-Architectural and operational decisions governing the `acl-ready-to-use-content`
+Architectural and operational decisions governing the `acl-ready-to-implement-content`
 repository. This document is the single source of truth for contributors and
 consumers of the content library.
 
@@ -10,14 +10,14 @@ consumers of the content library.
 
 | Decision | Value | Rationale |
 |----------|-------|-----------|
-| ACL category | **Starter pack** | Content is basic, ready-to-use automation -- not multi-week engagements |
-| Repository name | `acl-ready-to-use-content` | Follows ACL naming: `acl-<content-type>` |
-| Excluded as ADUC | Scenarios 200 (VMware + OCP-V), 301 (Convert2RHEL) | Too complex for "ready-to-use"; each warrants its own ADUC-level repository |
+| ACL category | **Starter pack** | Content is basic, ready-to-implement automation -- not multi-week engagements |
+| Repository name | `acl-ready-to-implement-content` | Follows ACL naming: `acl-<content-type>` |
+| Excluded as ADUC | Scenarios 200 (VMware + OCP-V), 301 (Convert2RHEL) | Too complex for "ready-to-implement"; each warrants its own ADUC-level repository |
 
 ## 2. Repository Layout
 
 ```
-acl-ready-to-use-content/
+acl-ready-to-implement-content/
 ├── playbooks/              # Flat .yml files -- no subdirectories
 ├── roles/                  # All roles hoisted to repo root
 ├── collections/            # requirements.yml for runtime collections

@@ -1,4 +1,4 @@
-## ACL Ready-to-Use Content
+## ACL Ready-to-Implement Content
 
 Ansible Content Library (ACL) — production-ready automation content maintained by the
 Ansible Services Platform Team.
@@ -12,7 +12,7 @@ and [Red Hat COP Good Practices for Ansible (GPA)](https://redhat-cop.github.io/
 ## Repository Structure
 
 ```
-acl-ready-to-use-content/
+acl-ready-to-implement-content/
 ├── playbooks/              # Flat thin playbooks (linux-*.yml / win-*.yml)
 ├── roles/                  # Shared roles (logic, defaults, templates, READMEs)
 ├── collections/

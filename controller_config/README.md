@@ -35,7 +35,7 @@ ansible-playbook controller_config/configure_aap.yml \
 ## What gets created
 
 1. **Inventory** -- name from `acl_inventory_name` (default: `acl_lab_inventory`)
-2. **Project** -- `acl-ready-to-use-content` pointing to your Git repo URL
+2. **Project** -- `acl-ready-to-implement-content` pointing to your Git repo URL
 3. **Job templates** -- 40 templates referencing your credentials and inventory
 
 ## Prerequisites (before running CaC)
