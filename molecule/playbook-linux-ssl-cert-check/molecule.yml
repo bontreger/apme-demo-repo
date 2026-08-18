@@ -1,0 +1,16 @@
+---
+# localhost-only playbook — no EC2 guests. Drop the linux/windows inventory
+# layers and skip create/destroy; the molecule controller is the test target.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=inventory/
+
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - converge
+    - verify
