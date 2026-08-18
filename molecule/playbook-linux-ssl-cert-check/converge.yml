@@ -1,0 +1,15 @@
+---
+# The playbook asserts RHEL 7/8/9 on localhost; the molecule controller is
+# Amazon Linux. Exercise ssl_cert_check directly (the playbook is a thin wrapper).
+- name: Converge
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    ssl_cert_check_sites:
+      - www.google.com
+      - github.com
+    ssl_cert_check_job_id: molecule
+    ssl_cert_check_report_path: /tmp/ssl_report_molecule.md
+  roles:
+    - role: ssl_cert_check

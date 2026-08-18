@@ -1,0 +1,34 @@
+---
+- name: Verify SSL certificate report on localhost
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ssl_cert_report_path: /tmp/ssl_report_molecule.md
+  tasks:
+    - name: Stat the SSL certificate report
+      ansible.builtin.stat:
+        path: "{{ ssl_cert_report_path }}"
+      register: ssl_cert_report
+
+    - name: Assert SSL certificate report was written
+      ansible.builtin.assert:
+        that:
+          - ssl_cert_report.stat.exists
+          - ssl_cert_report.stat.isreg
+          - ssl_cert_report.stat.size | int > 0
+
+    - name: Read SSL certificate report
+      ansible.builtin.slurp:
+        src: "{{ ssl_cert_report_path }}"
+      register: ssl_cert_report_content
+
+    - name: Assert report contains expected sections and sites
+      ansible.builtin.assert:
+        that:
+          - "'SSL Certificate Report' in report_text"
+          - "'| Domain |' in report_text"
+          - "'www.google.com' in report_text"
+          - "'github.com' in report_text"
+      vars:
+        report_text: "{{ ssl_cert_report_content.content | b64decode }}"
