@@ -8,3 +8,8 @@ pcp_analysis_services:
   - pmlogger
 
 pcp_analysis_report_namespace: os_pcp
+
+# Privilege escalation when writing the integrated report on report_archive_host.
+# Set false when the archive is the AAP execution node (localhost) and the EE
+# has no sudo; pair with a writable report_publish_web_root (e.g. /tmp/ansible-reports).
+pcp_analysis_report_use_become: true
