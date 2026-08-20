@@ -1,0 +1,10 @@
+---
+# The playbook targets `hosts: rhel9` and asserts RHEL 9 in a pre_task, so the
+# shared linux layer (which also ships rhel10) is dropped and the host is
+# declared locally. base/ stays for localhost + platform group_vars.
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=../utils/inventory/base/
+        - --inventory=inventory/
