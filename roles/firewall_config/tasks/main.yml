@@ -5,6 +5,12 @@
   ansible.builtin.set_fact:
     firewall_config_firewall_failed_ports: []
     firewall_config_firewall_service_available: false
+- name: Install firewalld
+  ansible.builtin.package:
+    name: firewalld
+    state: present
+  register: firewall_config_firewalld_install
+  failed_when: false
 - name: Check firewalld service status
   block:
     - name: Check if firewalld is installed

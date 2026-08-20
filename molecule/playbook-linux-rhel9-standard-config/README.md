@@ -51,9 +51,9 @@ so the fetch/copy/merge path executes instead of being skipped.
   servers plus a running and enabled `chronyd`, the `limits.conf` entries, and
   the sysctl drop-in with its values applied at runtime.
 
-A failure on the firewalld assertion means the AMI has no firewalld and the
-playbook silently skipped every port — the role warns rather than failing, so
-the assertion is what surfaces it.
+The RHEL 9 AMI ships without firewalld; `firewall_config` installs it, so the
+port assertions exercise a real install-configure-open path. A failure there
+means the role fell back to skipping the ports it was asked to open.
 
 ## Running
 
