@@ -1,24 +1,29 @@
 # Role: `dns_sync`
 
-**Tags:** pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:bind  
-**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+**Tags:** pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:networkmanager  
+**Supported OS:** RHEL 7/8/9/10
 
-Synchronizes a DNS resolver configuration file (resolv.conf) from the control node to target hosts with validation, backup, and rollback on failure.
+Configures DNS resolver settings on target hosts via NetworkManager. Nameservers
+and search domains are provided as variables, ensuring the role works correctly
+when executed from AAP (where the Execution Environment's own `/etc/resolv.conf`
+is not a viable source).
+
+Changes are applied through `nmcli` so they persist across reboots and
+NetworkManager restarts.
 
 ## Requirements
 
-- No special requirements beyond ansible-core 2.15+.
+- `community.general` collection (for the `nmcli` module).
+- NetworkManager must be active on the target hosts (standard on RHEL 7+).
 
 ## Role Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `dns_sync_source_file_path` | `/etc/resolv.conf` | Path to the source resolv.conf on the control node |
-| `dns_sync_dest_file_path` | `/etc/resolv.conf` | Destination path on target hosts |
-| `dns_sync_backup_enabled` | `true` | Whether to create a backup before overwriting |
-| `dns_sync_file_owner` | `root` | Owner of the deployed file |
-| `dns_sync_file_group` | `root` | Group of the deployed file |
-| `dns_sync_file_mode` | `0644` | File permissions for the deployed file |
+| `dns_sync_nameservers` | `[]` | **Required.** List of DNS nameserver IPs (e.g. `["10.0.0.1", "10.0.0.2"]`) |
+| `dns_sync_search_domains` | `[]` | List of DNS search domains (e.g. `["example.com"]`) |
+| `dns_sync_connection` | `""` | NetworkManager connection name. Auto-detected from the first active connection when empty |
+| `dns_sync_restart_connection` | `true` | Restart the NM connection after changes so `/etc/resolv.conf` is updated immediately |
 
 ## Dependencies
 
@@ -28,14 +33,27 @@ None.
 
 ```yaml
 ---
-- name: Synchronize DNS configuration files across network
+- name: Configure DNS resolvers across fleet
   hosts: all_rhel
   become: true
   roles:
     - role: dns_sync
       vars:
-        dns_sync_source_file_path: "/etc/resolv.conf"
-        dns_sync_backup_enabled: true
+        dns_sync_nameservers:
+          - "10.0.0.1"
+          - "10.0.0.2"
+        dns_sync_search_domains:
+          - "example.com"
+          - "corp.local"
+```
+
+### Override the NetworkManager connection name
+
+```yaml
+- role: dns_sync
+  vars:
+    dns_sync_nameservers: ["10.0.0.1"]
+    dns_sync_connection: "ens192"
 ```
 
 ## License

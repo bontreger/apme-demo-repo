@@ -2,11 +2,12 @@
 
 Tests `playbooks/linux-dns-sync.yml` and the in-repo `dns_sync` role.
 
-## Controller setup
+## What it tests
 
-No extra Galaxy collections beyond the standard molecule stack. The role copies
-a resolver file from the **molecule controller** (`delegate_to: localhost`) to
-each target host.
+The role configures DNS nameservers and search domains on the target host via
+NetworkManager (`nmcli`). The molecule inventory supplies `dns_sync_nameservers`
+and `dns_sync_search_domains` as variables. Verify checks that `/etc/resolv.conf`
+contains the expected entries after the connection is restarted.
 
 ## Run
 
@@ -15,17 +16,14 @@ export AWS_REGION=us-east-2
 molecule test -s playbook-linux-dns-sync
 ```
 
-Only `rhel9` is provisioned — playbook OS assert allows 7/8/9 only (RHEL 10 in
-#60).
-
 ## Molecule-specific overrides
 
 | Variable | Value | Reason |
 |----------|-------|--------|
-| `dns_sync_source_file_path` | `MOLECULE_SCENARIO_DIRECTORY/files/resolv.conf` | Known-good source on controller |
-| `dns_sync_dest_file_path` | `/tmp/molecule-dns-sync-resolv.conf` | Avoid overwriting live `/etc/resolv.conf` on EC2 |
+| `dns_sync_nameservers` | `["10.77.0.2"]` | Known nameserver for verification |
+| `dns_sync_search_domains` | `["molecule.test"]` | Known search domain for verification |
 
 ## AAP
 
-Template: `ACL_linux_dns_sync`. Inventory: `all_rhel`. Default EE. Source
-defaults to controller `/etc/resolv.conf` unless overridden at launch.
+Template: `ACL_linux_dns_sync`. Inventory: `all_rhel`. Default EE. Pass
+`dns_sync_nameservers` as extra vars at launch.
