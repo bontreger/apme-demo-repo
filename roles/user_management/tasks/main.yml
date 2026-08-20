@@ -13,10 +13,12 @@
       ansible.builtin.user:
         name: "{{ admin_user }}"
         password: "{{ admin_password | password_hash('sha512') }}"
+        update_password: on_create
         shell: /bin/bash
         create_home: true
         state: present
       register: user_management_user_creation
+      no_log: true
     - name: Update user creation status
       ansible.builtin.set_fact:
         user_management_user_created: true
@@ -59,21 +61,24 @@
         msg: "Warning: Failed to configure sudo privileges for user: {{ admin_user }}. Continuing with other configurations."
 - name: Enable user session persistence
   block:
-    - name: Enable systemd user session
-      ansible.builtin.systemd:
-        name: "user@{{ admin_user }}.service"
-        enabled: true
-        daemon_reload: true
-      register: user_management_session_enabled
+    - name: Check whether lingering is already enabled
+      ansible.builtin.stat:
+        path: /var/lib/systemd/linger/{{ admin_user }}
+      register: user_management_linger_stat
+    - name: Enable session lingering for the admin user
+      ansible.builtin.command: loginctl enable-linger {{ admin_user }}
+      register: user_management_linger_result
+      changed_when: true
       failed_when: false
+      when: not user_management_linger_stat.stat.exists
     - name: Update session persistence status
       ansible.builtin.set_fact:
         user_management_session_enabled: true
-      when: user_management_session_enabled is succeeded
+      when: user_management_linger_result is succeeded
     - name: Display session persistence result
       ansible.builtin.debug:
-        msg: "User session persistence {{ 'enabled' if user_management_session_enabled.changed else 'already enabled' }}"
-      when: user_management_session_enabled is succeeded
+        msg: "User session persistence {{ 'enabled' if user_management_linger_result.changed | default(false) else 'already enabled' }}"
+      when: user_management_linger_result is succeeded
   rescue:
     - name: Handle session persistence failure
       ansible.builtin.debug:

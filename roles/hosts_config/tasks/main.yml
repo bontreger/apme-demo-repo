@@ -6,7 +6,7 @@
     - name: Backup hosts file
       ansible.builtin.copy:
         src: /etc/hosts
-        dest: "/etc/hosts.backup.{{ ansible_date_time.epoch }}"
+        dest: /etc/hosts.ansible.backup
         remote_src: true
         mode: "0644"
         backup: "{{ backup.enabled | default(true) }}"
@@ -53,6 +53,7 @@
       ansible.builtin.stat:
         path: "{{ hosts_config_hosts_template_local_path }}"
       delegate_to: localhost
+      become: false
       run_once: true
       register: hosts_config_hosts_template_stat
     - name: Copy template to remote location
@@ -170,6 +171,7 @@
         path: "{{ hosts_config_hosts_template_local_path }}"
         state: absent
       delegate_to: localhost
+      become: false
       run_once: true
       failed_when: false
   rescue:

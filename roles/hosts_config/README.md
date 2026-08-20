@@ -17,6 +17,14 @@ This role does not define variables in `defaults/main.yml`. It relies on the fol
 | `template_server.host` | *(required)* | Hostname of the template server (fallback if group is empty) |
 | `backup.enabled` | `true` | Whether to create backups before modifying files |
 
+## Behaviour
+
+- The pre-change copy of `/etc/hosts` is written to a fixed path,
+  `/etc/hosts.ansible.backup`. It previously carried a timestamp, so every run
+  reported `changed` and left another file behind.
+- Tasks delegated to the controller run with `become: false`; inheriting the
+  play's `become: true` made them attempt `sudo` on the control node.
+
 ## Dependencies
 
 None.
