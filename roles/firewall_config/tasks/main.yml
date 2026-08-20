@@ -126,16 +126,20 @@
         msg: "Warning: UDP ports configuration encountered issues. Firewalld may not be running."
 - name: Reload firewall configuration
   block:
+    # The port tasks run with immediate + permanent, so a reload is only
+    # needed when something actually changed.
     - name: Reload firewalld service
       ansible.builtin.systemd:
         name: firewalld
         state: reloaded
       register: firewall_config_firewall_reload
-      when: firewall_config_firewall_service_available
+      when:
+        - firewall_config_firewall_service_available
+        - (firewall_config_tcp_ports_result | default({}) is changed) or (firewall_config_udp_ports_result | default({}) is changed)
     - name: Display firewall reload result
       ansible.builtin.debug:
         msg: "Firewall configuration reloaded"
-      when: firewall_config_firewall_service_available
+      when: firewall_config_firewall_reload is changed
   rescue:
     - name: Handle firewall reload failure
       ansible.builtin.debug:
