@@ -24,6 +24,11 @@ This role does not define variables in `defaults/main.yml`. It relies on the fol
   reported `changed` and left another file behind.
 - Tasks delegated to the controller run with `become: false`; inheriting the
   play's `become: true` made them attempt `sudo` on the control node.
+- The fetched template is kept at a stable path per host
+  (`/tmp/hosts.template.<inventory_hostname>` on the controller and
+  `/tmp/hosts.remote` on the target) rather than being written to a timestamped
+  name and deleted each run. `fetch` and `copy` compare checksums, so repeat
+  runs report no change; deleting the scratch files made every run `changed`.
 
 ## Dependencies
 
