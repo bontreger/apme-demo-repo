@@ -24,6 +24,10 @@ This role does not define variables in `defaults/main.yml`. It relies on the fol
   reported `changed` and left another file behind.
 - Tasks delegated to the controller run with `become: false`; inheriting the
   play's `become: true` made them attempt `sudo` on the control node.
+- `/etc/hosts.ansible.backup` is a snapshot of the file as it was before the
+  role first ran; it is written once. Re-copying the live file on every run
+  meant the task always reported `changed`. Change-time backups come from the
+  merge task's own `backup:`.
 - The fetched template is kept at a stable path per host
   (`/tmp/hosts.template.<inventory_hostname>` on the controller and
   `/tmp/hosts.remote` on the target) rather than being written to a timestamped

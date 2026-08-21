@@ -3,14 +3,18 @@
 # Standardizes /etc/hosts file from template server
 - name: Backup current hosts file
   block:
+    - name: Check for an existing backup
+      ansible.builtin.stat:
+        path: /etc/hosts.ansible.backup
+      register: hosts_config_hosts_backup_stat
     - name: Backup hosts file
       ansible.builtin.copy:
         src: /etc/hosts
         dest: /etc/hosts.ansible.backup
         remote_src: true
         mode: "0644"
-        backup: "{{ backup.enabled | default(true) }}"
       register: hosts_config_hosts_backup
+      when: not hosts_config_hosts_backup_stat.stat.exists
     - name: Display backup result
       ansible.builtin.debug:
         msg: "Hosts file backup completed"
@@ -149,6 +153,7 @@
         path: /etc/hosts
         line: "{{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}"
         state: present
+        backup: "{{ backup.enabled | default(true) }}"
       when: hosts_config_local_entry_exists.rc != 0
       register: hosts_config_local_entry_added
     - name: Display local entry result
