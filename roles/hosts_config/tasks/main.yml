@@ -104,13 +104,24 @@
       ansible.builtin.stat:
         path: /tmp/hosts.remote
       register: hosts_config_hosts_remote_stat
-    - name: Copy template hosts file to /etc/hosts
-      ansible.builtin.copy:
+    - name: Read the template hosts file
+      ansible.builtin.slurp:
         src: /tmp/hosts.remote
+      register: hosts_config_hosts_template_content
+      when: hosts_config_hosts_remote_stat.stat.exists
+    # One deterministic write. Copying the template over /etc/hosts and then
+    # re-appending the local entry meant both tasks reported changed forever,
+    # because the template cannot contain this host's own address.
+    - name: Write /etc/hosts from the template plus this host's entry
+      ansible.builtin.copy:
+        content: |
+          {{ hosts_config_merged_hosts }}
+          {{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}
         dest: /etc/hosts
-        remote_src: true
         mode: "0644"
         backup: "{{ backup.enabled | default(true) }}"
+      vars:
+        hosts_config_merged_hosts: "{{ (hosts_config_hosts_template_content.content | b64decode).split('\n') | reject('search', hosts_config_local_ip) | join('\n') | trim }}"
       register: hosts_config_hosts_merge
       when: hosts_config_hosts_remote_stat.stat.exists
     - name: Display merge result
@@ -126,6 +137,7 @@
       ansible.builtin.debug:
         msg: "Warning: Failed to merge hosts file. Please check template server connectivity."
 - name: Add local entry to hosts file
+  when: not hosts_config_hosts_remote_stat.stat.exists
   block:
     - name: Check if local entry exists
       ansible.builtin.command: grep -q "{{ hosts_config_local_ip }}" /etc/hosts
