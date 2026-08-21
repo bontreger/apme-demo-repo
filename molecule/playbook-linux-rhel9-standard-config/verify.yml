@@ -98,6 +98,16 @@
       vars:
         hosts_text: "{{ verify_hosts.content | b64decode }}"
 
+    - name: Assert the template server's content was merged in
+      ansible.builtin.assert:
+        that:
+          - "'template-marker.example.com' in hosts_text"
+        fail_msg: >-
+          The marker prepare.yml wrote to the template server is missing, so
+          the fetch/copy/merge chain did not deliver the template.
+      vars:
+        hosts_text: "{{ verify_hosts.content | b64decode }}"
+
     - name: Read the chrony configuration
       ansible.builtin.slurp:
         src: /etc/chrony.conf

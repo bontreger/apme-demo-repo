@@ -22,10 +22,22 @@ of that name directly, and adding a group with the same name makes Ansible warn
 
 `hosts_config` fetches `/etc/hosts` from `groups['template_servers'][0]`,
 falling back to `template_server.host` (`10.66.208.237`) when that group does
-not exist. That address is unroutable from AWS, so without the group the fetch
-blocks until SSH times out and the role's rescue skips the whole hosts
-configuration. The scenario points `template_servers` at the test host itself,
-so the fetch/copy/merge path executes instead of being skipped.
+not exist — an address unroutable from AWS, where the fetch blocks until SSH
+times out and the role's rescue skips the whole hosts configuration.
+
+The scenario therefore provisions a **second instance**, `hosts-template`, as
+the template server. It sits in the `molecule` group so the lifecycle creates
+it, but outside the play's `rhel9` pattern so the playbook never configures it
+and its `/etc/hosts` stays fixed. That is the topology the role is written for:
+a dedicated server whose hosts file is the source of truth.
+
+`prepare.yml` writes a marker entry into that server's `/etc/hosts`, and
+`verify.yml` asserts the marker arrived on the target — proving the
+fetch/copy/merge chain end to end rather than just that the file exists.
+
+Pointing `template_servers` at the target itself is cheaper (one instance) but
+makes the template and the live file converge on each other, which hides
+whether the merge is stable.
 
 ## Safe to run under molecule
 
