@@ -129,19 +129,25 @@ spaces. Pick from the lists below; add a new tag only via spec update (PR).
 | Technology / focus (optional) | `bind`, `unbound`, `mariadb`, `postgresql`, `nfs`, `firewall`, `selinux`, `kdump`, `pcp`, `ssl`, `systemd`, `iis`, `chocolatey` |
 | Execution context (optional) | `localhost`, `multi-play`, `rhel9-only` |
 
-**Header `Tags:` vs Ansible task tags**
+**Header `Tags:` vs Ansible runtime tags**
 
 | | Header `# Tags:` | Ansible `tags:` on tasks/plays |
 |--|------------------|--------------------------------|
-| Purpose | Documentation and cataloguing | Runtime selection (`--tags`, AAP job tags) |
+| Purpose | Documentation and cataloguing | Runtime selection (`--tags`, AAP job slicing) |
 | Scope | Entire playbook file | Individual tasks or plays |
-| This spec | Required on all playbooks | Unchanged; not required to mirror header tags |
+| This spec | Required on all playbooks | Unchanged |
 
-**Rollout**
+**Do not mirror header tags into Ansible runtime tags.** Header tags exist for
+discovery, grep, and future catalog tooling. They are not copied to play- or
+task-level `tags:` unless a separate change explicitly requires runtime tag
+filtering (out of scope for header rollout). Existing runtime tags (e.g.
+`always`, role-specific tags) stay as-is.
+
+**Rollout (playbooks)**
 
 Existing playbooks may use legacy banner styles or omit headers. New and
-updated playbooks must conform. Bulk header additions are tracked separately;
-this section is the source of truth for format and vocabulary.
+updated playbooks must conform. Bulk playbook header additions are tracked in
+batched PRs; this section is the source of truth for format and vocabulary.
 
 ## 5. Role Design
 
@@ -158,6 +164,42 @@ this section is the source of truth for format and vocabulary.
     (e.g. `__web_service_rca_profile`, not `_web_rca_profile`).
 - **Scenario `group_vars` absorbed.** Any `group_vars/` from legacy scenarios
   are merged into `roles/<role>/defaults/main.yml` during migration.
+
+### Role README metadata
+
+Roles ship in this repository alongside playbooks and are documented in
+`roles/<role>/README.md` (GPA). Use the **same controlled tag vocabulary** as
+playbook headers (see §4), but as **Markdown** immediately under the `# Role:`
+title — not as a YAML comment block in `tasks/main.yml`.
+
+**Required lines** (when adding or updating a role README):
+
+| Line | Required | Notes |
+|------|:--------:|-------|
+| `**Tags:**` | Yes | Same vocabulary as §4; comma-separated, no spaces |
+| `**Supported OS:**` | When restricted | Same rule as playbooks — include when the role or its calling playbook asserts OS |
+| Body | Yes | Existing GPA sections (Requirements, Role Variables, Example Playbook, etc.) |
+
+**Example** (top of `roles/ssl_cert_check/README.md`):
+
+```markdown
+# Role: `ssl_cert_check`
+
+**Tags:** linux,security,inspection,report,ssl,localhost
+**Supported OS:** localhost (controller); playbook assert RHEL 7/8/9
+
+Checks SSL/TLS certificate expiry...
+```
+
+Playbook and role tags may differ slightly: the playbook header describes the
+**entry point** (inventory, multi-play); the role README describes **role
+behaviour**. One playbook may invoke several roles — each role documents itself.
+
+**Rollout (roles)**
+
+Bulk README metadata additions follow playbook header batches (same PR or the
+next). New and updated roles must include Tags (and Supported OS when
+applicable) in README.
 
 ## 6. Consolidation Decisions
 
