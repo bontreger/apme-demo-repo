@@ -1,5 +1,7 @@
 # Role: `win_chocolatey`
 
+**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:windows,tech:chocolatey
+
 Installs the Chocolatey package manager on Windows hosts and manages packages through it.
 
 ## Requirements

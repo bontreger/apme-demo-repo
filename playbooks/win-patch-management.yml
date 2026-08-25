@@ -1,3 +1,19 @@
+# ============================================================================
+# Playbook: Windows Patch Management
+# ============================================================================
+#
+# Description:
+#   Install Windows updates, target specific KBs, or generate an HTML patch
+#   report using the win_patch_management role.
+#
+# Tags: pillar:os,lifecycle:day2,maturity:l2,platform:windows,tech:patching
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Manage Windows patches and updates
   hosts: all_windows
