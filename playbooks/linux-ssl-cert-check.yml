@@ -9,7 +9,7 @@
 # Tags: pillar:security,lifecycle:day2,maturity:l2,platform:linux,tech:ssl,context:multi-play,context:localhost
 #
 # Supported OS:
-#   RHEL 7/8/9 (controller localhost assert)
+#   Any (runs on controller localhost)
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
