@@ -1,27 +1,23 @@
----
-# =============================================================================
-# RHEL Network Latency Diagnosis Automation Playbook
-# =============================================================================
+# ============================================================================
+# Playbook: Network Latency Fault Diagnosis
+# ============================================================================
 #
 # Description:
-#   This playbook automates network latency diagnosis for RHEL systems including:
-#   - Network interface status and statistics check
-#   - System-level diagnosis (TCP stats, system logs, load, memory)
-#   - Traffic capture for deep analysis
-#   - Comprehensive diagnostic report generation
+#   Automate network latency diagnosis including interface checks, system-level
+#   analysis, traffic capture, and report generation; optionally publish reports
+#   to an archive host (multi-play).
+#
+# Tags: pillar:network,lifecycle:day2,maturity:l2,platform:linux,context:multi-play
 #
 # Supported OS:
-#   - RHEL 7/8/9
-#   - CentOS 7/8/9
-#
-# Usage:
-#   ansible-playbook network_diagnosis_site.yml -i inventory
+#   RHEL/CentOS 7/8/9
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-06-16
+# Date: 2026-08-25
 # License: Apache-2.0
-# =============================================================================
+#
+# ============================================================================
 
 - name: RHEL Network Latency Diagnosis Automation
   hosts: "all_rhel"

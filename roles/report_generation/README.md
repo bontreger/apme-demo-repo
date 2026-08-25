@@ -1,5 +1,8 @@
 # Role: `report_generation`
 
+**Tags:** pillar:network,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS 7/8/9
+
 Generates a network latency analysis report from collected diagnostic data using a Jinja2 template and writes it to a configurable local directory on the target host.
 
 ## Requirements

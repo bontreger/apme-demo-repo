@@ -1,5 +1,8 @@
 # Role: `filesystem_check`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Performs read-only filesystem health checks (xfs_scrub, fsck -n) on mounted filesystems and generates HTML/text reports with disk space and inode usage.
 
 ## Requirements
