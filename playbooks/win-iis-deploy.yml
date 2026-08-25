@@ -8,9 +8,6 @@
 #
 # Tags: pillar:os,lifecycle:day1,maturity:l2,platform:windows,tech:iis
 #
-# Supported OS:
-#   Windows Server 2016/2019/2022
-#
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
 # Date: 2026-08-25
