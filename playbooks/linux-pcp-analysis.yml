@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: PCP Performance Analysis and Report
+# ============================================================================
+#
+# Description:
+#   Install PCP on RHEL targets, collect performance metrics, and generate or
+#   publish an integrated report (multi-play; localhost report generation).
+#
+# Tags: pillar:ops,lifecycle:day2,maturity:l2,platform:linux,tech:pcp,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: "Install and configure PCP"
   hosts: all_rhel
