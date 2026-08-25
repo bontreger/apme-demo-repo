@@ -1,5 +1,8 @@
 # Role: `bind_primary_dns`
 
+**Tags:** pillar:network,lifecycle:day1,maturity:l2,platform:linux,tech:bind  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Deploys and configures a BIND primary (master) DNS server with named.conf, zone files, service management, and optional firewalld rules.
 
 ## Requirements

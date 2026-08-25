@@ -1,5 +1,8 @@
 # Role: `ssl_cert_check`
 
+**Tags:** pillar:security,lifecycle:day2,maturity:l2,platform:linux,tech:ssl,context:localhost  
+**Supported OS:** Any (runs on controller localhost)
+
 Checks SSL/TLS certificate expiry dates for a list of remote sites and generates a Markdown report with warning and critical thresholds.
 
 ## Requirements
