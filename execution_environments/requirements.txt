@@ -1,2 +1,2 @@
 # Python packages beyond the EE base image.
-# Add site-specific packages here (e.g. openstacksdk for OpenStack scenarios).
+# Add site-specific packages here.
