@@ -3,3 +3,4 @@
 molecule>=25.7.0
 boto3          # amazon.aws / community.aws
 pywinrm        # WinRM connection plugin (Windows guests)
+passlib        # password_hash on the controller (Python 3.13 removed `crypt`)
