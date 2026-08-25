@@ -1,30 +1,22 @@
----
-# =============================================================================
-# RHEL9 System Standardization Configuration Playbook
-# =============================================================================
+# ============================================================================
+# Playbook: RHEL 9 System Standardization
+# ============================================================================
+#
 # Description:
-#   This playbook automates the standardization of RHEL9 systems including:
-#   - User management (admin user creation with sudo privileges)
-#   - System configuration (hostname validation, SELinux configuration)
-#   - Firewall configuration (port management)
-#   - Hosts file standardization
-#   - Time synchronization (Chrony configuration)
-#   - System optimization (limits, sysctl parameters)
-#   - Configuration verification
+#   Automate RHEL 9 system standardization including user management, SELinux,
+#   firewall, hosts file, chrony, system optimization, and verification.
+#
+# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only
 #
 # Supported OS:
-#   - RHEL 9 only
-#
-# Usage:
-#   ansible-playbook rhel9_standardization_site.yml -i inventory
-#
+#   RHEL 9 only
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-06-16
+# Date: 2026-08-25
 # License: Apache-2.0
 #
-# =============================================================================
+# ============================================================================
 
 - name: RHEL9 System Standardization Configuration
   hosts: rhel9
