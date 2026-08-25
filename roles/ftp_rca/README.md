@@ -1,5 +1,8 @@
 # Role: `ftp_rca`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Performs root cause analysis diagnostics on the vsftpd FTP service, including server-side checks, client connectivity tests, and generates a text diagnosis report.
 
 ## Requirements

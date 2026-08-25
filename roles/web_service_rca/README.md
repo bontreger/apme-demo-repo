@@ -1,5 +1,8 @@
 # Role: `web_service_rca`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
+
 Performs root-cause analysis on a failed web service (httpd or nginx) by checking package state, configuration syntax, SELinux booleans, firewall rules, listening ports, and log output, then generates a diagnostic report.
 
 ## Requirements
