@@ -66,6 +66,83 @@ Key layout rules:
 - **No `import_playbook` across scenarios.** Each playbook is self-contained
   (may call shared utility roles like `report_publish`).
 
+### Playbook file header (comment block)
+
+Every file under `playbooks/` must begin with a **YAML comment header** placed
+**before** the document start marker (`---`). The header is catalog metadata for
+contributors, operators, and future search or filtering. It does **not** replace
+role `README.md` files and is **not** the same as Ansible runtime `tags:` on
+tasks (see below).
+
+**Required fields**
+
+| Field | Required | Notes |
+|-------|:--------:|-------|
+| Playbook title | Yes | Short human title (banner line) |
+| `Description:` | Yes | 1–3 lines: purpose and notable behaviour |
+| `Tags:` | Yes | Comma-delimited controlled vocabulary (see table) |
+| `Supported OS:` | When restricted | Omit only if the playbook runs on any target the role supports with no extra assert |
+| `Author:` | Yes | `Ansible Services Platform Team, Red Hat` |
+| `Version:` | Yes | Semantic content version; start at `1.0.0` |
+| `Date:` | Yes | `YYYY-MM-DD` — date header added or last meaningful content change |
+| `License:` | Yes | `Apache-2.0` unless a bundled role specifies otherwise |
+
+**Canonical template**
+
+```yaml
+# ============================================================================
+# Playbook: <Human title>
+# ============================================================================
+#
+# Description:
+#   <What this playbook does; key roles or side effects in 1–3 lines.>
+#
+# Tags: <tag1>,<tag2>,<tag3>
+#
+# Supported OS:
+#   <e.g. RHEL 7/8/9 — or Windows Server 2016+, or localhost only>
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: YYYY-MM-DD
+# License: Apache-2.0
+#
+# ============================================================================
+---
+```
+
+**Example** (`linux-dns-primary.yml`):
+
+```yaml
+# Tags: linux,dns,deploy,bind,infrastructure
+```
+
+**Controlled tag vocabulary**
+
+Use **3–6 tags** per playbook. Tags are lowercase, comma-separated **without**
+spaces. Pick from the lists below; add a new tag only via spec update (PR).
+
+| Dimension | Allowed values |
+|-----------|----------------|
+| Platform | `linux`, `windows` |
+| Category | `dns`, `dhcp`, `config`, `deploy`, `database`, `patching`, `security`, `network`, `inspection`, `report`, `rca`, `troubleshoot`, `audit`, `remediate` |
+| Technology / focus (optional) | `bind`, `unbound`, `mariadb`, `postgresql`, `nfs`, `firewall`, `selinux`, `kdump`, `pcp`, `ssl`, `systemd`, `iis`, `chocolatey` |
+| Execution context (optional) | `localhost`, `multi-play`, `rhel9-only` |
+
+**Header `Tags:` vs Ansible task tags**
+
+| | Header `# Tags:` | Ansible `tags:` on tasks/plays |
+|--|------------------|--------------------------------|
+| Purpose | Documentation and cataloguing | Runtime selection (`--tags`, AAP job tags) |
+| Scope | Entire playbook file | Individual tasks or plays |
+| This spec | Required on all playbooks | Unchanged; not required to mirror header tags |
+
+**Rollout**
+
+Existing playbooks may use legacy banner styles or omit headers. New and
+updated playbooks must conform. Bulk header additions are tracked separately;
+this section is the source of truth for format and vocabulary.
+
 ## 5. Role Design
 
 - **Self-contained.** Each role includes `tasks/`, `defaults/main.yml`,
