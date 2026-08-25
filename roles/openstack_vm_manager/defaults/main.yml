@@ -1,3 +1,0 @@
----
-# roles/openstack_vm_manager/defaults/main.yml
-openstack_vm_manager_vm_list: []

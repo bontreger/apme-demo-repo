@@ -455,20 +455,6 @@ controller_templates:
     ask_limit_on_launch: true
     survey_enabled: false
 
-  # --- OpenStack ---
-  - name: ACL_linux_openstack_vm_lifecycle
-    description: OpenStack VM lifecycle management
-    organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
-    inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
-    playbook: playbooks/linux-openstack-vm-lifecycle.yml
-    execution_environment: Default execution environment
-    credentials:
-      - "{{ acl_linux_credential }}"
-    ask_variables_on_launch: true
-    ask_limit_on_launch: true
-    survey_enabled: false
-
   # --- Windows ---
   - name: ACL_win_service_management
     description: Start/stop/restart Windows services or set start mode
