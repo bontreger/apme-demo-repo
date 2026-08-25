@@ -1,5 +1,8 @@
 # Role: `dns_sync`
 
+**Tags:** pillar:network,lifecycle:day2,maturity:l2,platform:linux,tech:bind  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Synchronizes a DNS resolver configuration file (resolv.conf) from the control node to target hosts with validation, backup, and rollback on failure.
 
 ## Requirements

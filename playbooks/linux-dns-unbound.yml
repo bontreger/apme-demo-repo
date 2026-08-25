@@ -7,9 +7,14 @@
 #   Includes OS compatibility assertions, parameter validation, and robust
 #   error handling for critical changes.
 #
+# Tags: pillar:network,lifecycle:day1,maturity:l2,platform:linux,tech:unbound
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-06-16
+# Date: 2026-08-25
 # License: Apache-2.0
 #
 # ============================================================================
