@@ -1,3 +1,18 @@
+# ============================================================================
+# Playbook: Chocolatey Package Management
+# ============================================================================
+#
+# Description:
+#   Install Chocolatey and manage Windows packages via the win_chocolatey role.
+#
+# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:windows,tech:chocolatey
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Manage packages via Chocolatey
   hosts: all_windows
