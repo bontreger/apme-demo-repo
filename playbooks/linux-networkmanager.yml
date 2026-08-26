@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Manage NetworkManager Connections
+# ============================================================================
+#
+# Description:
+#   Manage NetworkManager connections and devices via nmcli, supporting view,
+#   add, modify, activate/deactivate, and delete operations.
+#
+# Tags: pillar:network,lifecycle:day2,maturity:l2,platform:linux
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Manage NetworkManager connections and devices
   hosts: all_rhel

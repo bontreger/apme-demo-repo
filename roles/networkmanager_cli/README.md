@@ -1,5 +1,8 @@
 # Role: `networkmanager_cli`
 
+**Tags:** pillar:network,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Manages NetworkManager connections and devices via `nmcli`, supporting view, add, modify, activate/deactivate, and delete operations.
 
 ## Requirements

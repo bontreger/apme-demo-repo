@@ -1,5 +1,8 @@
 # Role: `mariadb_server`
 
+**Tags:** pillar:db,lifecycle:day1,maturity:l2,platform:linux,tech:mariadb  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Deploys and configures a MariaDB server with security hardening, database and user creation, initial backup, and optional firewall configuration.
 
 ## Requirements

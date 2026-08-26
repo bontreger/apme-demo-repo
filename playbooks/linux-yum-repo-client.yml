@@ -1,3 +1,19 @@
+# ============================================================================
+# Playbook: Configure Yum/DNF Repository Client
+# ============================================================================
+#
+# Description:
+#   Configure yum/dnf repository entries on RHEL client hosts using the
+#   yum_repo_client role.
+#
+# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Configure yum/dnf repositories on clients
   hosts: all_rhel
