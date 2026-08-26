@@ -7,9 +7,14 @@
 #   This is the Red Hat recommended standardized, cross-version network
 #   configuration method for Linux service automation.
 #
+# Tags: pillar:network,lifecycle:day2,maturity:l2,platform:linux,tech:dhcp
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-06-16
+# Date: 2026-08-25
 # License: Apache-2.0
 #
 # ============================================================================
