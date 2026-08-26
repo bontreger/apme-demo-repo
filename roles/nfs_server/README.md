@@ -1,6 +1,6 @@
 # Role: `nfs_server`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,tech:nfs  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:nfs  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Installs NFS utilities, creates a shared directory, configures exports, manages the nfs-server service, and opens the firewall for NFS access.

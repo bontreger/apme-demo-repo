@@ -6,7 +6,7 @@
 #   Install Windows updates, target specific KBs, or generate an HTML patch
 #   report using the win_patch_management role.
 #
-# Tags: pillar:os,lifecycle:day2,maturity:l2,platform:windows,tech:patching
+# Tags: pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:windows,tech:patching
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

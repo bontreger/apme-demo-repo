@@ -6,7 +6,7 @@
 #   Automate RHEL 9 system standardization including user management, SELinux,
 #   firewall, hosts file, chrony, system optimization, and verification.
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only
 #
 # Supported OS:
 #   RHEL 9 only

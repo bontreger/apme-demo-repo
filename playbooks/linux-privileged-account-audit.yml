@@ -6,7 +6,7 @@
 #   Audit privileged accounts and sudo configuration; generate JSON and
 #   plaintext reports; optionally publish to an archive host (multi-play).
 #
-# Tags: pillar:security,lifecycle:day2,maturity:l2,platform:linux,context:multi-play
+# Tags: pillar:security,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

@@ -1,6 +1,6 @@
 # Role: `xfs_health_check`
 
-**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Inspects all XFS filesystems on a host by running metadata consistency checks, collecting disk/inode usage, reviewing kernel logs for XFS errors, and generating a plaintext diagnostic report.

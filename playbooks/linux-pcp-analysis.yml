@@ -6,7 +6,7 @@
 #   Install PCP on RHEL targets, collect performance metrics, and generate or
 #   publish an integrated report (multi-play; localhost report generation).
 #
-# Tags: pillar:ops,lifecycle:day2,maturity:l2,platform:linux,tech:pcp,context:multi-play
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:pcp,context:multi-play
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

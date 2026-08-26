@@ -6,7 +6,7 @@
 #   Deploy and configure an NFS server with exports, service management, and
 #   optional firewalld rules using the nfs_server role.
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux,tech:nfs
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:nfs
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

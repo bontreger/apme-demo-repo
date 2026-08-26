@@ -1,6 +1,6 @@
 # Role: `win_patch_management`
 
-**Tags:** pillar:os,lifecycle:day2,maturity:l2,platform:windows,tech:patching
+**Tags:** pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:windows,tech:patching
 
 Manages Windows Update patching with support for installing all updates, targeting specific KBs, or generating an HTML report of available patches.
 

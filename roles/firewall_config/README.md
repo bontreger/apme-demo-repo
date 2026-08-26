@@ -1,6 +1,6 @@
 # Role: `firewall_config`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Installs firewalld, ensures it is running, and opens a configurable list of TCP and UDP ports, with service reload and verification.

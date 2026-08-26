@@ -1,6 +1,6 @@
 # Role: `pcp_analysis`
 
-**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux,tech:pcp  
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:pcp  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Installs and enables Performance Co-Pilot (PCP) with `pmcd` and `pmlogger` services for system performance data collection and reporting.

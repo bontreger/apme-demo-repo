@@ -6,7 +6,7 @@
 #   Configure yum/dnf repository entries on RHEL client hosts using the
 #   yum_repo_client role.
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

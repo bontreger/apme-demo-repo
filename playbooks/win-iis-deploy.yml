@@ -6,7 +6,7 @@
 #   Install IIS on Windows targets, configure firewall rules, and deploy a
 #   default site (thin entry point for win_iis_deploy role).
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:windows,tech:iis
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:windows,tech:iis
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

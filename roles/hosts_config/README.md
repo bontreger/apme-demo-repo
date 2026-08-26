@@ -1,6 +1,6 @@
 # Role: `hosts_config`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Standardizes /etc/hosts across target hosts by fetching a template from a designated template server, merging it, and ensuring the local host entry is present.

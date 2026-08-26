@@ -1,6 +1,6 @@
 # Role: `postgresql_server`
 
-**Tags:** pillar:db,lifecycle:day1,maturity:l2,platform:linux,tech:postgresql  
+**Tags:** pillar:db,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:postgresql  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
 
 Installs PostgreSQL, initializes the database cluster, configures the listening

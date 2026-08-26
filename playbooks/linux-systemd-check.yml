@@ -6,7 +6,7 @@
 #   Perform deep systemd unit analysis and generate JSON and plaintext RCA
 #   reports; optionally publish to an archive host (multi-play).
 #
-# Tags: pillar:ops,lifecycle:day2,maturity:l2,platform:linux,tech:systemd,context:multi-play
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:systemd,context:multi-play
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

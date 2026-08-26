@@ -1,6 +1,6 @@
 # Role: `system_config`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Validates hostname resolution (localhost and FQDN) and configures SELinux state and policy as part of RHEL9 system standardization.

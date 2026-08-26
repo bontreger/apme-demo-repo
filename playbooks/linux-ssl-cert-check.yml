@@ -6,7 +6,7 @@
 #   Check remote SSL/TLS certificate expiry on localhost and optionally publish
 #   a Markdown report to an archive host (multi-play; see reporting vars).
 #
-# Tags: pillar:security,lifecycle:day2,maturity:l2,platform:linux,tech:ssl,context:multi-play,context:localhost
+# Tags: pillar:security,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:ssl,context:multi-play,context:localhost
 #
 # Supported OS:
 #   Any (runs on controller localhost)

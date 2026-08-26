@@ -7,7 +7,7 @@
 #   management, database creation, and initial backup. Includes OS
 #   compatibility assertions, parameter validation, and robust error handling.
 #
-# Tags: pillar:db,lifecycle:day1,maturity:l2,platform:linux,tech:mariadb
+# Tags: pillar:db,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:mariadb
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

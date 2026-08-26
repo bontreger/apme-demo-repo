@@ -1,6 +1,6 @@
 # Role: `yum_repo_client`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
 
 Configures yum/dnf repository entries on RHEL client hosts by looping a

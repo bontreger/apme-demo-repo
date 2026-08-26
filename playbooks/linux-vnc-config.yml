@@ -6,7 +6,7 @@
 #   Install and configure TigerVNC server with user mapping, desktop session,
 #   password setup, and optional firewalld rules.
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:linux
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

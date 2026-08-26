@@ -5,7 +5,7 @@
 # Description:
 #   Install Chocolatey and manage Windows packages via the win_chocolatey role.
 #
-# Tags: pillar:os,lifecycle:day1,maturity:l2,platform:windows,tech:chocolatey
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:windows,tech:chocolatey
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

@@ -1,6 +1,6 @@
 # Role: `os_info_report`
 
-**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Collects comprehensive operating system information from managed hosts and generates plaintext and optional HTML reports.
