@@ -7,7 +7,7 @@
 #   This is the Red Hat recommended standardized, cross-version network
 #   configuration method for Linux service automation.
 #
-# Tags: pillar:network,lifecycle:day2,maturity:l2,platform:linux,tech:dhcp
+# Tags: pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:dhcp
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

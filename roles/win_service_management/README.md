@@ -1,6 +1,6 @@
 # Role: `win_service_management`
 
-**Tags:** pillar:os,lifecycle:day2,maturity:l2,platform:windows
+**Tags:** pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:windows
 
 Manages Windows services by starting, stopping, restarting, or checking their status and configuring the startup mode.
 

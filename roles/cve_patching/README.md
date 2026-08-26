@@ -1,6 +1,6 @@
 # Role: `cve_patching`
 
-**Tags:** pillar:os,lifecycle:day2,maturity:l2,platform:linux,tech:patching  
+**Tags:** pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:patching  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Queries and optionally applies security patches for a specific CVE ID on RHEL 7/8/9 systems, with reboot requirement detection.

@@ -6,7 +6,7 @@
 #   Check, start, stop, or restart Windows services and configure startup
 #   mode using the win_service_management role.
 #
-# Tags: pillar:os,lifecycle:day2,maturity:l2,platform:windows
+# Tags: pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:windows
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

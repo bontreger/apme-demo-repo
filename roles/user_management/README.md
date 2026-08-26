@@ -1,6 +1,6 @@
 # Role: `user_management`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Creates an administrator user with passwordless sudo privileges and enables session lingering so the user's systemd instance persists after logout.

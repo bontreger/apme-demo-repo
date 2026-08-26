@@ -6,7 +6,7 @@
 #   Configure SELinux runtime mode and persistent state across RHEL targets
 #   using the selinux_config role.
 #
-# Tags: pillar:security,lifecycle:day1,maturity:l2,platform:linux,tech:selinux
+# Tags: pillar:security,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:selinux
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9

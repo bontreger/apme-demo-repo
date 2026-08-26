@@ -1,6 +1,6 @@
 # Role: `system_optimization`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Configures system resource limits in `/etc/security/limits.conf` and kernel sysctl parameters via `/etc/sysctl.d/99-ansible.conf` as part of RHEL9 system standardization.

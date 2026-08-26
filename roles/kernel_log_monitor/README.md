@@ -1,6 +1,6 @@
 # Role: `kernel_log_monitor`
 
-**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Monitors kernel logs for critical and severe errors, classifies detected issues, triggers multi-level alerts, and generates plaintext and HTML diagnostic reports.

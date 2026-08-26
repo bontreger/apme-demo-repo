@@ -1,6 +1,6 @@
 # Role: `kdump_config`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,tech:kdump  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:kdump  
 **Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
 
 Installs, configures, and enables the Linux kdump crash dump service with support for local, NFS, SSH, and raw device dump targets, plus kernel panic trigger tuning.

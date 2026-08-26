@@ -1,6 +1,6 @@
 # Role: `win_software_management`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:windows
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:windows
 
 Installs or removes Windows software packages (MSI/EXE) using `win_package` with support for custom arguments and product IDs.
 

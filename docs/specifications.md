@@ -12,7 +12,7 @@ consumers of the content library.
 |----------|-------|-----------|
 | ACL category | **Starter pack** | Content is basic, ready-to-use automation -- not multi-week engagements |
 | Repository name | `acl-ready-to-use-content` | Follows ACL naming: `acl-<content-type>` |
-| Catalog scope | **Subset of the Use Case Maturity Catalog** | Mostly `maturity:l2`, `lifecycle:day1` and `lifecycle:day2`; other ACL repositories may cover day0, L3/L4, and ADUC-scale content |
+| Catalog scope | **Subset of the Use Case Maturity Catalog** | Mostly `maturity:l2-process-oriented`, `lifecycle:day1` and `lifecycle:day2`; other ACL repositories may cover day0, L3/L4, and ADUC-scale content |
 | Excluded as ADUC | Scenarios 200 (VMware + OCP-V), 301 (Convert2RHEL) | Too complex for "ready-to-use"; each warrants its own ADUC-level repository |
 
 ## 2. Repository Layout
@@ -138,13 +138,13 @@ clouds are deferred to a later catalog phase.
 `linux-dns-primary.yml`:
 
 ```yaml
-# Tags: pillar:network,lifecycle:day1,maturity:l2,platform:linux,tech:bind
+# Tags: pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:bind
 ```
 
 `linux-cve-patching.yml`:
 
 ```yaml
-# Tags: pillar:os,lifecycle:day2,maturity:l2,platform:linux,tech:patching
+# Tags: pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:patching
 ```
 
 **Controlled vocabulary**
@@ -156,7 +156,7 @@ spec update (PR).
 |--------|----------------|
 | `pillar:` | `os`, `cloud`, `network`, `db`, `security`, `ops` |
 | `lifecycle:` | `day0`, `day1`, `day2` |
-| `maturity:` | `l1` (task focus), `l2` (process / AAP-Ansible), `l3` (event driven), `l4` (AI driven) |
+| `maturity:` | `l1-task-focus`, `l2-process-oriented`, `l3-event-driven`, `l4-ai-driven` |
 | `platform:` (optional) | `linux`, `windows` |
 | `tech:` (optional) | `bind`, `unbound`, `dhcp`, `mariadb`, `postgresql`, `nfs`, `firewall`, `selinux`, `kdump`, `pcp`, `ssl`, `systemd`, `iis`, `chocolatey`, `patching`, … — add via spec PR |
 | `context:` (optional) | `localhost`, `multi-play`, `rhel9-only` |
@@ -166,7 +166,7 @@ spec update (PR).
 - Assign **one** `pillar:`, **one** `lifecycle:`, and **one** `maturity:` per
   playbook (primary classification). Use `Description:` for nuance (e.g. bundles
   that span day1 and day2 tasks).
-- **This repository** content is expected to be mostly `maturity:l2` and
+- **This repository** content is expected to be mostly `maturity:l2-process-oriented` and
   `lifecycle:day1` or `lifecycle:day2`. Use `day0`, `l3`, or `l4` only when
   the use case genuinely belongs in that catalog cell.
 - **Building blocks** (roles, thin playbooks) are tagged at their own maturity.
@@ -232,7 +232,7 @@ immediately under the `# Role:` title — not as a YAML comment block in
 ```markdown
 # Role: `bind_primary_dns`
 
-**Tags:** pillar:network,lifecycle:day1,maturity:l2,platform:linux,tech:bind
+**Tags:** pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:bind
 **Supported OS:** RHEL/CentOS 7/8/9
 
 Deploy and configure a BIND primary DNS server...

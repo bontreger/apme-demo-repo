@@ -7,7 +7,7 @@
 #   analysis, traffic capture, and report generation; optionally publish reports
 #   to an archive host (multi-play).
 #
-# Tags: pillar:network,lifecycle:day2,maturity:l2,platform:linux,context:multi-play
+# Tags: pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
 #
 # Supported OS:
 #   RHEL/CentOS 7/8/9

@@ -1,6 +1,6 @@
 # Role: `chrony_config`
 
-**Tags:** pillar:os,lifecycle:day1,maturity:l2,platform:linux,context:rhel9-only  
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
 **Supported OS:** RHEL 9 only
 
 Installs and configures Chrony for NTP time synchronization, deploying a templated chrony.conf and enabling the chronyd service.

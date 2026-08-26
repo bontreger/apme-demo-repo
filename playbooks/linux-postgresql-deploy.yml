@@ -6,7 +6,7 @@
 #   Install and configure a minimal PostgreSQL server using the
 #   postgresql_server role.
 #
-# Tags: pillar:db,lifecycle:day1,maturity:l2,platform:linux,tech:postgresql
+# Tags: pillar:db,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:postgresql
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0

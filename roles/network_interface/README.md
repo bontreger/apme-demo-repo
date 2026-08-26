@@ -1,6 +1,6 @@
 # Role: `network_interface`
 
-**Tags:** pillar:network,lifecycle:day2,maturity:l2,platform:linux  
+**Tags:** pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
 **Supported OS:** RHEL/CentOS 7/8/9
 
 Checks a network interface's link status, IP address, MTU, and error/drop statistics using `ip` and `ethtool`, and produces a diagnostic summary.
