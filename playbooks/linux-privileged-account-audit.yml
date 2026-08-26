@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Privileged Account Security Audit
+# ============================================================================
+#
+# Description:
+#   Audit privileged accounts and sudo configuration; generate JSON and
+#   plaintext reports; optionally publish to an archive host (multi-play).
+#
+# Tags: pillar:security,lifecycle:day2,maturity:l2,platform:linux,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Privileged account and sudo security audit
   hosts: all_rhel

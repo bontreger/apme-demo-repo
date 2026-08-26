@@ -1,5 +1,8 @@
 # Role: `linux_diagnostic_rca`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Performs targeted root cause analysis on Linux systems for zombie processes, disk I/O pressure, failed systemd units, or privileged account auditing, and generates JSON and plaintext investigation reports.
 
 ## Requirements
