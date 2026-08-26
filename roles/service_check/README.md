@@ -1,5 +1,8 @@
 # Role: `service_check`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Checks the status of critical systemd services on RHEL hosts using bulk service facts collection and generates a per-host text report.
 
 ## Requirements

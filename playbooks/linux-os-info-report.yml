@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: OS Information Report
+# ============================================================================
+#
+# Description:
+#   Collect comprehensive operating system information from managed hosts and
+#   generate reports; optionally publish to an archive host (multi-play).
+#
+# Tags: pillar:ops,lifecycle:day2,maturity:l2,platform:linux,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Collect OS information and generate reports
   hosts: all_rhel
