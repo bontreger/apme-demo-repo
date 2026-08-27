@@ -4,76 +4,135 @@
   become: true
   gather_facts: true
   tasks:
-    - name: Stat managed repo file
+    - name: Stat shared managed repo file
       ansible.builtin.stat:
         path: /etc/yum.repos.d/acl_yum_repo_client_test.repo
-      register: repo_file
+        get_checksum: true
+      register: __yum_repo_client_shared_stat
 
-    - name: Assert repo file exists
+    - name: Assert shared repo file exists
       ansible.builtin.assert:
         that:
-          - repo_file.stat.exists
-          - repo_file.stat.isreg
+          - __yum_repo_client_shared_stat.stat.exists
+          - __yum_repo_client_shared_stat.stat.isreg
+        fail_msg: Expected /etc/yum.repos.d/acl_yum_repo_client_test.repo
 
-    - name: Slurp repo file contents
+    - name: Slurp shared repo file contents
       ansible.builtin.slurp:
         src: /etc/yum.repos.d/acl_yum_repo_client_test.repo
-      register: repo_slurp
+      register: __yum_repo_client_shared_slurp
 
-    - name: Decode repo file
+    - name: Decode shared repo file
       ansible.builtin.set_fact:
-        repo_text: "{{ repo_slurp.content | b64decode }}"
+        __yum_repo_client_shared_text: >-
+          {{ __yum_repo_client_shared_slurp.content | b64decode }}
 
-    - name: Assert expected sections and parameters were written
+    - name: Assert per-section INI for file:// repos
       ansible.builtin.assert:
         that:
-          - "'[acl_test_baseos]' in repo_text"
-          - "'[acl_test_appstream]' in repo_text"
-          - "'file:///var/tmp/yum_repo_client_test/baseos' in repo_text"
-          # yum_repository uses ConfigParser.write → "key = value"
-          - "'priority = 99' in repo_text"
-          - "'gpgcheck = 0' in repo_text"
-          - "'enabled = 1' in repo_text"
+          - "'[acl_test_baseos]' in __yum_repo_client_shared_text"
+          - "'[acl_test_appstream]' in __yum_repo_client_shared_text"
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_baseos\][^\[]*file:///var/tmp/yum_repo_client_test/baseos'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_appstream\][^\[]*file:///var/tmp/yum_repo_client_test/appstream'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_baseos\][^\[]*priority = 99'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_baseos\][^\[]*gpgcheck = 0'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_baseos\][^\[]*enabled = 1'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_appstream\][^\[]*gpgcheck = 0'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_appstream\][^\[]*enabled = 1'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_appstream\][^\[]*sslverify = 0'
+            )
+          - >-
+            __yum_repo_client_shared_text is search(
+            '\[acl_test_appstream\][^\[]*exclude = nonexistent-pkg-\*'
+            )
+        fail_msg: Shared .repo file missing expected per-section values
+
+    - name: Stat metalink-shaped repo file after converge
+      ansible.builtin.stat:
+        path: /etc/yum.repos.d/acl_test_metalink_shape.repo
+      register: __yum_repo_client_metalink_before
+
+    - name: Assert metalink-shaped repo file exists after converge
+      ansible.builtin.assert:
+        that:
+          - __yum_repo_client_metalink_before.stat.exists
+          - __yum_repo_client_metalink_before.stat.isreg
+        fail_msg: >-
+          Metalink-shaped repo was not written; absent later would be
+          vacuous.
+
+    - name: Slurp metalink-shaped repo file
+      ansible.builtin.slurp:
+        src: /etc/yum.repos.d/acl_test_metalink_shape.repo
+      register: __yum_repo_client_metalink_slurp
+
+    - name: Decode metalink-shaped repo file
+      ansible.builtin.set_fact:
+        __yum_repo_client_metalink_text: >-
+          {{ __yum_repo_client_metalink_slurp.content | b64decode }}
+
+    - name: Assert metalink section written and disabled
+      ansible.builtin.assert:
+        that:
+          - "'[acl_test_metalink_shape]' in __yum_repo_client_metalink_text"
+          - "'metalink =' in __yum_repo_client_metalink_text"
+          - >-
+            __yum_repo_client_metalink_text is search(
+            '\[acl_test_metalink_shape\][^\[]*enabled = 0'
+            )
+          - >-
+            __yum_repo_client_metalink_text is search(
+            '\[acl_test_metalink_shape\][^\[]*countme = 0'
+            )
+        fail_msg: Metalink-shaped .repo missing expected disabled section
 
     - name: List enabled repositories
       ansible.builtin.command:
         cmd: dnf repolist --enabled
-      register: repolist
+      register: __yum_repo_client_repolist
       changed_when: false
 
-    - name: Assert test repos appear in dnf repolist
+    - name: Assert file:// repos are leading enabled ids
       ansible.builtin.assert:
         that:
-          - "'acl_test_baseos' in repolist.stdout"
-          - "'acl_test_appstream' in repolist.stdout"
-
-    - name: Re-apply present file repos after converge
-      ansible.builtin.include_role:
-        name: yum_repo_client
-      vars:
-        yum_repo_client_clean_metadata: false
-        yum_repo_client_verify: false
-        yum_repo_client_repositories:
-          - name: acl_test_baseos
-            description: ACL molecule BaseOS file repo
-            file: acl_yum_repo_client_test
-            baseurl: file:///var/tmp/yum_repo_client_test/baseos
-            enabled: true
-            gpgcheck: false
-            priority: "99"
-            skip_if_unavailable: true
-          - name: acl_test_appstream
-            description: ACL molecule AppStream file repo
-            file: acl_yum_repo_client_test
-            baseurl: file:///var/tmp/yum_repo_client_test/appstream
-            enabled: true
-            gpgcheck: false
-            exclude:
-              - nonexistent-pkg-*
-            sslverify: false
-
-    # M2 is a second `molecule converge` (configure changed=0), not this
-    # include_role.
+          - >-
+            __yum_repo_client_repolist.stdout_lines
+            | select('match', '^acl_test_baseos(\\s|$)')
+            | list | length > 0
+          - >-
+            __yum_repo_client_repolist.stdout_lines
+            | select('match', '^acl_test_appstream(\\s|$)')
+            | list | length > 0
+          - >-
+            __yum_repo_client_repolist.stdout_lines
+            | select('match', '^acl_test_metalink_shape(\\s|$)')
+            | list | length == 0
+        fail_msg: >-
+          dnf repolist --enabled did not show file:// test repos as
+          leading ids, or listed the disabled metalink repo.
 
     - name: Remove metalink-shaped repo via state absent
       ansible.builtin.include_role:
@@ -85,21 +144,66 @@
           - name: acl_test_metalink_shape
             state: absent
 
-    - name: Confirm metalink-shaped repo file absent or section gone
-      ansible.builtin.shell: |
-        set -o pipefail
-        if [ -f /etc/yum.repos.d/acl_test_metalink_shape.repo ]; then
-          ! grep -q '^\[acl_test_metalink_shape\]' \
-            /etc/yum.repos.d/acl_test_metalink_shape.repo
-        else
-          true
-        fi
-      args:
-        executable: /bin/bash
-      changed_when: false
+    - name: Stat metalink-shaped repo file after absent
+      ansible.builtin.stat:
+        path: /etc/yum.repos.d/acl_test_metalink_shape.repo
+      register: __yum_repo_client_metalink_after
+
+    - name: Fail if metalink file still contains the section
+      when: __yum_repo_client_metalink_after.stat.exists
+      block:
+        - name: Slurp remaining metalink-shaped repo file
+          ansible.builtin.slurp:
+            src: /etc/yum.repos.d/acl_test_metalink_shape.repo
+          register: __yum_repo_client_metalink_after_slurp
+
+        - name: Assert metalink section is gone from remaining file
+          ansible.builtin.assert:
+            that:
+              - >-
+                '[acl_test_metalink_shape]' not in
+                (__yum_repo_client_metalink_after_slurp.content | b64decode)
+            fail_msg: state=absent left [acl_test_metalink_shape] in place
+
+    - name: Snapshot shared repo checksum after absent
+      ansible.builtin.stat:
+        path: /etc/yum.repos.d/acl_yum_repo_client_test.repo
+        get_checksum: true
+      register: __yum_repo_client_shared_mid
+
+    - name: Snapshot yum.repos.d before empty-list no-op
+      ansible.builtin.find:
+        paths: /etc/yum.repos.d
+        file_type: file
+      register: __yum_repo_client_reposdir_pre_empty
 
     - name: Empty-list no-op succeeds
       ansible.builtin.include_role:
         name: yum_repo_client
       vars:
         yum_repo_client_repositories: []
+
+    - name: Snapshot yum.repos.d after empty-list no-op
+      ansible.builtin.find:
+        paths: /etc/yum.repos.d
+        file_type: file
+      register: __yum_repo_client_reposdir_post_empty
+
+    - name: Snapshot shared repo checksum after empty-list
+      ansible.builtin.stat:
+        path: /etc/yum.repos.d/acl_yum_repo_client_test.repo
+        get_checksum: true
+      register: __yum_repo_client_shared_after_empty
+
+    - name: Assert empty list did not add or rewrite repos
+      ansible.builtin.assert:
+        that:
+          - >-
+            (__yum_repo_client_reposdir_pre_empty.files
+             | map(attribute='path') | sort)
+            ==
+            (__yum_repo_client_reposdir_post_empty.files
+             | map(attribute='path') | sort)
+          - __yum_repo_client_shared_mid.stat.checksum
+            == __yum_repo_client_shared_after_empty.stat.checksum
+        fail_msg: Empty-list run changed /etc/yum.repos.d or the shared .repo
