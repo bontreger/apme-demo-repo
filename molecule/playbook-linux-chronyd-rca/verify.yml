@@ -5,7 +5,7 @@
   gather_facts: false
   vars:
     chronyd_rca_report_path: >-
-      /var/lib/ansible-reports/chronyd_rca/{{ inventory_hostname }}-molecule.txt
+      /var/lib/ansible-reports/chronyd_rca-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the diagnosis report
       ansible.builtin.stat:

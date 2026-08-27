@@ -135,14 +135,23 @@
 
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ web_service_rca_report_local_dir }}"
+    path: "{{ web_service_rca_report_dir }}"
     state: directory
     mode: "0755"
 
 - name: Render diagnosis report
   ansible.builtin.template:
     src: "{{ web_service_rca_service }}_diagnosis_report.j2"
-    dest: "{{ web_service_rca_report_text_path }}"
+    dest: "{{ web_service_rca_report_path }}"
     owner: root
     group: root
     mode: "0644"
+
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ web_service_rca_report_path }}"
+  register: __web_service_rca_report_slurp
+
+- name: Show web service RCA report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__web_service_rca_report_slurp.content | b64decode).splitlines() }}"

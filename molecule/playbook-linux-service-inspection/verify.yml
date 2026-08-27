@@ -4,9 +4,7 @@
   become: true
   gather_facts: false
   vars:
-    # report_job_id pinned to "molecule" in inventory; namespace service_check
-    # is the role default. report_local_dir = /var/lib/ansible-reports/<ns>.
-    service_report_path: /var/lib/ansible-reports/service_check/{{ inventory_hostname }}-molecule.txt
+    service_report_path: /var/lib/ansible-reports/service_check-{{ inventory_hostname }}.txt
     # The 10 critical services the role checks by default.
     expected_services:
       - sshd

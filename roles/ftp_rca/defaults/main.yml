@@ -9,9 +9,6 @@ ftp_rca_attempt_service_start: false
 ftp_rca_ping_count: 2
 ftp_rca_test_timeout: 5
 
-# Reporting
-ftp_rca_report_namespace: ftp_rca
-ftp_rca_report_local_dir: "/var/lib/ansible-reports/{{ ftp_rca_report_namespace }}"
-ftp_rca_report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
-ftp_rca_report_text_path: >-
-  {{ ftp_rca_report_local_dir }}/{{ inventory_hostname }}-{{ ftp_rca_report_job_id }}.txt
+ftp_rca_report_dir: /var/lib/ansible-reports
+ftp_rca_report_path: >-
+  {{ ftp_rca_report_dir }}/ftp_rca-{{ inventory_hostname }}.txt

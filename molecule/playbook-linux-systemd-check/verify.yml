@@ -4,12 +4,9 @@
   become: true
   gather_facts: false
   vars:
-    # Report job id pinned to "molecule" in inventory; namespace
-    # systemd_unit_deep_check comes from the role's namespace_map for
-    # check_type systemd_unit.
-    systemd_report_dir: /var/lib/ansible-reports/systemd_unit_deep_check
-    systemd_text_path: "{{ systemd_report_dir }}/{{ inventory_hostname }}-molecule.txt"
-    systemd_json_path: "{{ systemd_report_dir }}/{{ inventory_hostname }}-molecule.json"
+    systemd_report_dir: /var/lib/ansible-reports
+    systemd_text_path: "{{ systemd_report_dir }}/linux_diagnostic_rca-systemd_unit-{{ inventory_hostname }}.txt"
+    systemd_json_path: "{{ systemd_report_dir }}/linux_diagnostic_rca-systemd_unit-{{ inventory_hostname }}.json"
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

@@ -17,10 +17,8 @@ Checks SSL/TLS certificate expiry dates for a list of remote sites and generates
 | `ssl_cert_check_sites` | `["www.google.com", "github.com"]` | List of hostnames whose SSL certificates will be checked |
 | `ssl_cert_check_warn_days` | `30` | Number of days before expiry to trigger a warning |
 | `ssl_cert_check_critical_days` | `10` | Number of days before expiry to trigger a critical alert |
-| `ssl_cert_check_namespace` | `ssl_expiry` | Report namespace for organizing published reports |
-| `ssl_cert_check_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report run |
-| `ssl_cert_check_report_filename` | `ssl_report.md` | Filename for the generated Markdown report |
-| `ssl_cert_check_report_path` | `/tmp/{{ ssl_cert_check_report_filename }}` | Full path where the report is written |
+| `ssl_cert_check_report_dir` | `/tmp` | Directory on the controller for CLI/Molecule convenience |
+| `ssl_cert_check_report_path` | `{{ ssl_cert_check_report_dir }}/ssl_cert_check-{{ inventory_hostname }}.txt` | Report path (AAP job log is the durable output) |
 | `ssl_cert_check_timezone_offset_seconds` | `28800` | Timezone offset in seconds for display (28800 = UTC+8 Beijing) |
 
 ## Dependencies

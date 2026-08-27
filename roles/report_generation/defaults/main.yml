@@ -1,9 +1,4 @@
 ---
-# Report configuration
-report_generation_namespace: network_diagnosis
-report_generation_local_dir: "/var/lib/ansible-reports/{{ report_generation_namespace }}"
-report_generation_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
-report_generation_text_path: >-
-  {{ report_generation_local_dir }}/{{ inventory_hostname }}-{{ report_generation_job_id }}.txt
-report_generation_output_dir: "{{ report_generation_local_dir }}"
-report_generation_filename: "{{ inventory_hostname }}-{{ report_generation_job_id }}.txt"
+report_generation_report_dir: /var/lib/ansible-reports
+report_generation_report_path: >-
+  {{ report_generation_report_dir }}/report_generation-{{ inventory_hostname }}.txt

@@ -4,16 +4,16 @@
 #
 # Description:
 #   Diagnose failed httpd or nginx web services and generate a plaintext RCA
-#   report; optionally publish to an archive host (multi-play).
+#   report.
 #
-# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux
 #
 # Supported OS:
 #   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-08-25
+# Date: 2026-08-27
 # License: Apache-2.0
 #
 # ============================================================================
@@ -22,8 +22,6 @@
   hosts: all_rhel
   become: true
   gather_facts: true
-  vars_files:
-    - ../inventory/group_vars/all/reporting.yml
 
   pre_tasks:
     - name: Validate OS compatibility (RHEL/CentOS 8/9/10)
@@ -40,30 +38,3 @@
 
   roles:
     - role: web_service_rca
-
-  post_tasks:
-    - name: Read plaintext report for job output
-      ansible.builtin.command: cat "{{ web_service_rca_report_text_path }}"
-      register: _web_rca_report_output
-      become: false
-      changed_when: false
-
-    - name: Output plaintext report for operators
-      ansible.builtin.debug:
-        msg: "{{ _web_rca_report_output.stdout_lines }}"
-      become: false
-
-    - name: Remember report publishing settings for Play 2
-      ansible.builtin.set_fact:
-        report_source_hosts: "{{ ansible_play_hosts_all }}"
-        report_publish_enabled: "{{ report_publish_enabled }}"
-        report_text_path: "{{ web_service_rca_report_text_path }}"
-      run_once: true
-      delegate_to: localhost
-      delegate_facts: true
-
-- name: Publish reports to archive host
-  ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
-  vars:
-    report_generation_namespace: "{{ web_service_rca_report_namespace | default('httpd_rca') }}"
-  when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

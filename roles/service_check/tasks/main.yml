@@ -35,13 +35,13 @@
     - validation
     - always
 
-- name: Validate service_check_report_base_path parameter
+- name: Validate service_check_report_dir parameter
   ansible.builtin.assert:
     that:
-      - service_check_report_base_path is defined
-      - service_check_report_base_path | length > 0
-    fail_msg: "service_check_report_base_path must be a valid directory path"
-    success_msg: "Report base path validated: {{ service_check_report_base_path }}"
+      - service_check_report_dir is defined
+      - service_check_report_dir | length > 0
+    fail_msg: "service_check_report_dir must be a valid directory path"
+    success_msg: "Report directory validated: {{ service_check_report_dir }}"
   tags:
     - validation
     - always
@@ -51,8 +51,7 @@
     msg:
       - "Services to check: {{ service_check_critical_services_list | join(', ') }}"
       - "Total services: {{ service_check_critical_services_list | length }}"
-      - "Report base path: {{ service_check_report_base_path }}"
-      - "Collection destination: {{ service_check_collection_dest_path }}"
+      - "Report path: {{ service_check_report_path }}"
   tags:
     - validation
     - debug
@@ -60,14 +59,13 @@
 # ========================================================================
 # OS Compatibility Validation
 # ========================================================================
-- name: Validate OS compatibility (RHEL/CentOS 7/8/9 only)
+- name: Validate OS compatibility (RHEL 7/8/9/10)
   ansible.builtin.assert:
     that:
       - ansible_facts['os_family'] == "RedHat"
-      - ansible_facts['distribution'] in ['RedHat', 'CentOS']
-      - ansible_facts['distribution_major_version'] in ['7', '8', '9']
+      - ansible_facts['distribution_major_version'] in ['7', '8', '9', '10']
     fail_msg: >-
-      Unsupported operating system. This playbook is only available for RHEL 7/8/9 and CentOS 7/8/9.
+      Unsupported operating system. This role supports RHEL-family 7/8/9/10.
       Current OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}
     success_msg: "OS compatibility check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}"
   tags:
@@ -90,7 +88,7 @@
 # ========================================================================
 - name: Ensure local report directory exists
   ansible.builtin.file:
-    path: "{{ service_check_report_local_dir }}"
+    path: "{{ service_check_report_dir }}"
     state: directory
     mode: "0755"
   tags:
@@ -99,7 +97,7 @@
 
 - name: Define report file path
   ansible.builtin.set_fact:
-    service_check_report_file_path: "{{ service_check_report_text_path }}"
+    service_check_report_file_path: "{{ service_check_report_path }}"
   tags:
     - report
     - always
@@ -270,6 +268,21 @@
       - "Host: {{ inventory_hostname }}"
       - "Services checked: {{ service_check_critical_services_list | length }}"
       - "Report location: {{ service_check_report_file_path }}"
+  tags:
+    - summary
+    - always
+
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ service_check_report_path }}"
+  register: __service_check_report_slurp
+  tags:
+    - summary
+    - always
+
+- name: Show service check report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__service_check_report_slurp.content | b64decode).splitlines() }}"
   tags:
     - summary
     - always

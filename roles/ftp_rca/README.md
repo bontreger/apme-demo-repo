@@ -1,7 +1,7 @@
 # Role: `ftp_rca`
 
 **Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
-**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
 
 Performs root cause analysis diagnostics on the vsftpd FTP service, including server-side checks, client connectivity tests, and generates a text diagnosis report.
 
@@ -22,10 +22,8 @@ Performs root cause analysis diagnostics on the vsftpd FTP service, including se
 | `ftp_rca_attempt_service_start` | `false` | Whether to attempt starting the service during diagnosis |
 | `ftp_rca_ping_count` | `2` | Number of ICMP pings for client connectivity tests |
 | `ftp_rca_test_timeout` | `5` | Timeout in seconds for TCP connectivity tests |
-| `ftp_rca_report_namespace` | `ftp_rca` | Namespace used for report file organization |
-| `ftp_rca_report_local_dir` | `/var/lib/ansible-reports/ftp_rca` | Local directory for storing diagnosis reports |
-| `ftp_rca_report_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report file name |
-| `ftp_rca_report_text_path` | `<report_local_dir>/<hostname>-<job_id>.txt` | Full path for the generated text report |
+| `ftp_rca_report_dir` | `/var/lib/ansible-reports` | Directory on the managed host for the report |
+| `ftp_rca_report_path` | `{{ ftp_rca_report_dir }}/ftp_rca-{{ inventory_hostname }}.txt` | Plaintext report path |
 
 ## Dependencies
 

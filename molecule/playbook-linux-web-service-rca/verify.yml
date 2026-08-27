@@ -4,10 +4,8 @@
   become: true
   gather_facts: false
   vars:
-    # Role defaults are not loaded outside the role; mirror the pinned path
-    # from inventory (web_service_rca_report_job_id: molecule).
     web_rca_report_path: >-
-      /var/lib/ansible-reports/httpd_rca/{{ inventory_hostname }}-molecule.txt
+      /var/lib/ansible-reports/web_service_rca-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the diagnosis report
       ansible.builtin.stat:
