@@ -47,7 +47,7 @@
           - "'acl_test_baseos' in repolist.stdout"
           - "'acl_test_appstream' in repolist.stdout"
 
-    - name: Re-apply role to confirm idempotency
+    - name: Re-apply present file repos after converge
       ansible.builtin.include_role:
         name: yum_repo_client
       vars:
@@ -72,8 +72,8 @@
               - nonexistent-pkg-*
             sslverify: false
 
-    # Pair with a second `molecule converge` during iteration and confirm
-    # changed=0 in the log (test plan M2).
+    # M2 is a second `molecule converge` (configure changed=0), not this
+    # include_role.
 
     - name: Remove metalink-shaped repo via state absent
       ansible.builtin.include_role:

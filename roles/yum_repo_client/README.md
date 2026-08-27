@@ -1,7 +1,7 @@
 # Role: `yum_repo_client`
 
 **Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux  
-**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
+**Supported OS:** RHEL 8/9/10
 
 Configures yum/dnf repository entries on RHEL client hosts by looping a
 caller-supplied list of dicts through `ansible.builtin.yum_repository`.
@@ -19,13 +19,15 @@ concern belongs in a separate server role if needed.
 ## Role Variables
 
 These are the only variables this role defines. Supply them via play
-`vars`, extra vars, survey, or inventory/`group_vars`.
+`vars`, extra vars, or inventory/`group_vars`. The AAP job template uses
+extra vars at launch (no survey); a default empty list is a successful
+no-op.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `yum_repo_client_repositories` | `[]` | List of repo dicts passed 1:1 to `yum_repository`. Empty list is a successful no-op. |
 | `yum_repo_client_clean_metadata` | `true` | After configure, run `dnf`/`yum clean all` (`changed_when: false`). |
-| `yum_repo_client_verify` | `true` | After configure, assert each enabled present repo id appears as a leading column in `repolist --enabled`. Runs with `check_mode: false` so `--check` still validates against the live repolist. |
+| `yum_repo_client_verify` | `true` | After configure, assert each enabled present repo id appears as a leading column in `repolist --enabled`. Skipped when Ansible is in check mode so `--check` does not assert unapplied live state. |
 
 There are no role-only keys on repository dicts today. Every key on each
 entry must be a valid `ansible.builtin.yum_repository` argument; unknown
@@ -72,7 +74,7 @@ for choices and full descriptions):
 | `sslverify` | bool | Verify SSL certificates/hosts |
 | `sslcacert` | str | CA certificate path/dir |
 | `sslclientcert` | str | Client certificate path |
-| `sslclientkey` | str | Client key path |
+| `sslclientkey` | str | Client key path (alias `client_key`; secret — see below) |
 | `ssl_check_cert_permissions` | bool | Check cert path permissions |
 | `priority` | str | Repo priority 1–99 (needs yum-plugin-priorities where applicable) |
 | `cost` | str | Relative cost of accessing this repo |
@@ -107,14 +109,16 @@ for choices and full descriptions):
 | `seuser` / `serole` / `setype` / `selevel` | str | SELinux context parts |
 | `unsafe_writes` | bool | Allow non-atomic writes |
 
-Secret values (`password`, `proxy_password`) must come from Ansible Vault
-or AAP credentials — never commit them in defaults or example inventory.
-When any entry defines those keys, the configure task enables `no_log`.
+Secret values (`password`, `proxy_password`, `sslclientkey` /
+`client_key`) must come from Ansible Vault or AAP credentials — never
+commit them in defaults or example inventory. When any entry defines
+those keys, the configure task enables `no_log` for the whole loop.
 
 ## Tags
 
 | Tag | Scope |
 |-----|-------|
+| `always` | OS, list, and per-entry asserts (so `--tags yum_repo_client_configure` still validates) |
 | `yum_repo_client` | Entire role |
 | `yum_repo_client_validate` | Asserts |
 | `yum_repo_client_configure` | `yum_repository` loop |
@@ -168,8 +172,7 @@ None.
 
 Or use the thin entry-point playbook
 `playbooks/linux-yum-repo-client.yml` and supply
-`yum_repo_client_repositories` via survey, extra vars, or inventory
-`group_vars`.
+`yum_repo_client_repositories` via extra vars or inventory `group_vars`.
 
 ## Migration from `yum_repo_config`
 
