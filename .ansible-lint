@@ -10,6 +10,7 @@ exclude_paths:
   - collections/
   - molecule/
   - .config/molecule/
+  - hack/
 
 offline: false
 

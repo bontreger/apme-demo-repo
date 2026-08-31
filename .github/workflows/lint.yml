@@ -30,19 +30,29 @@ jobs:
       - name: Create stubs for subscription-only collections
         # redhat.rhel_system_roles, infra.convert2rhel, and infra.leapp require
         # a Red Hat subscription and are not available on public Galaxy.
-        # mock_roles in .ansible-lint creates stubs in .cache/ but Ansible
+        # mock_roles in .ansible-lint only creates stubs in .cache/; Ansible
         # resolves collection-namespaced roles from the collections path, so
-        # we pre-create minimal stub directories here instead.
+        # we pre-create minimal stub collections here instead. Each stub needs
+        # a galaxy.yml so Ansible recognises the directory as a valid collection
+        # before resolving roles inside it.
         run: |
-          for col_path in \
+          for ns_name in "redhat/rhel_system_roles" "infra/convert2rhel" "infra/leapp"; do
+            col_root="collections/ansible_collections/${ns_name}"
+            namespace=$(echo "${ns_name}" | cut -d/ -f1)
+            name=$(echo "${ns_name}" | cut -d/ -f2)
+            mkdir -p "${col_root}"
+            printf -- "namespace: %s\nname: %s\nversion: 0.0.1\n" \
+              "${namespace}" "${name}" > "${col_root}/galaxy.yml"
+          done
+          for role_path in \
             "redhat/rhel_system_roles/roles/network" \
             "infra/convert2rhel/roles/analysis" \
             "infra/convert2rhel/roles/convert" \
             "infra/leapp/roles/analysis" \
             "infra/leapp/roles/upgrade" \
             "infra/leapp/roles/remediate"; do
-            mkdir -p "collections/ansible_collections/${col_path}/tasks"
-            printf -- '---\n' > "collections/ansible_collections/${col_path}/tasks/main.yml"
+            mkdir -p "collections/ansible_collections/${role_path}/tasks"
+            printf -- '---\n' > "collections/ansible_collections/${role_path}/tasks/main.yml"
           done
 
       - name: ansible-lint
@@ -54,6 +64,7 @@ jobs:
           --exclude execution_environments/
           --exclude molecule/
           --exclude .config/molecule/
+          --exclude hack/
 
   gitleaks:
     runs-on: ubuntu-latest
