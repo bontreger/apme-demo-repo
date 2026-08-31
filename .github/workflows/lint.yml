@@ -27,6 +27,24 @@ jobs:
       - name: Install collections
         run: ansible-galaxy collection install -r collections/requirements.yml -p collections
 
+      - name: Create stubs for subscription-only collections
+        # redhat.rhel_system_roles, infra.convert2rhel, and infra.leapp require
+        # a Red Hat subscription and are not available on public Galaxy.
+        # mock_roles in .ansible-lint creates stubs in .cache/ but Ansible
+        # resolves collection-namespaced roles from the collections path, so
+        # we pre-create minimal stub directories here instead.
+        run: |
+          for col_path in \
+            "redhat/rhel_system_roles/roles/network" \
+            "infra/convert2rhel/roles/analysis" \
+            "infra/convert2rhel/roles/convert" \
+            "infra/leapp/roles/analysis" \
+            "infra/leapp/roles/upgrade" \
+            "infra/leapp/roles/remediate"; do
+            mkdir -p "collections/ansible_collections/${col_path}/tasks"
+            printf -- '---\n' > "collections/ansible_collections/${col_path}/tasks/main.yml"
+          done
+
       - name: ansible-lint
         run: >
           ansible-lint --profile production
@@ -34,6 +52,8 @@ jobs:
           --exclude collections/
           --exclude controller_config/
           --exclude execution_environments/
+          --exclude molecule/
+          --exclude .config/molecule/
 
   gitleaks:
     runs-on: ubuntu-latest

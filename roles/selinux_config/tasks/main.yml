@@ -100,7 +100,9 @@
     - name: Display current configuration
       ansible.builtin.debug:
         msg: >-
-          Current SELINUX setting: {{ selinux_config_current_content.content | b64decode | regex_search('^SELINUX=(.*)$', multiline=True) | default('Not found') }}
+          Current SELINUX setting:
+          {{ selinux_config_current_content.content | b64decode
+          | regex_search('^SELINUX=(.*)$', multiline=True) | default('Not found') }}
       when: selinux_config_file_stat.stat.exists | default(false)
 
     - name: Set SELinux runtime state
