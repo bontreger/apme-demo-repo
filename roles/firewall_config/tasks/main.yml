@@ -132,14 +132,10 @@
       ansible.builtin.systemd:
         name: firewalld
         state: reloaded
-      register: firewall_config_firewall_reload
+      notify: Confirm firewall reloaded
       when:
         - firewall_config_firewall_service_available
         - (firewall_config_tcp_ports_result | default({}) is changed) or (firewall_config_udp_ports_result | default({}) is changed)
-    - name: Display firewall reload result # noqa: no-handler
-      ansible.builtin.debug:
-        msg: "Firewall configuration reloaded"
-      when: firewall_config_firewall_reload is changed
   rescue:
     - name: Handle firewall reload failure
       ansible.builtin.debug:
