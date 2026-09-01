@@ -1,6 +1,6 @@
 ---
 # Firewall ports configuration
-firewall_ports:
+firewall_ports: # noqa: var-naming[no-role-prefix]
   - 50051
   - 53
   - 80

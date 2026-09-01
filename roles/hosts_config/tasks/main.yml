@@ -3,14 +3,18 @@
 # Standardizes /etc/hosts file from template server
 - name: Backup current hosts file
   block:
+    - name: Check for an existing backup
+      ansible.builtin.stat:
+        path: /etc/hosts.ansible.backup
+      register: hosts_config_hosts_backup_stat
     - name: Backup hosts file
       ansible.builtin.copy:
         src: /etc/hosts
-        dest: "/etc/hosts.backup.{{ ansible_date_time.epoch }}"
+        dest: /etc/hosts.ansible.backup
         remote_src: true
         mode: "0644"
-        backup: "{{ backup.enabled | default(true) }}"
       register: hosts_config_hosts_backup
+      when: not hosts_config_hosts_backup_stat.stat.exists
     - name: Display backup result
       ansible.builtin.debug:
         msg: "Hosts file backup completed"
@@ -20,7 +24,7 @@
         msg: "Failed to backup hosts file"
 - name: Initialize hosts template path
   ansible.builtin.set_fact:
-    hosts_config_hosts_template_local_path: "/tmp/hosts.template.{{ ansible_date_time.epoch }}"
+    hosts_config_hosts_template_local_path: "/tmp/hosts.template.{{ inventory_hostname }}"
     hosts_config_hosts_template_fetched: false
 - name: Fetch hosts file from template server
   block:
@@ -53,6 +57,7 @@
       ansible.builtin.stat:
         path: "{{ hosts_config_hosts_template_local_path }}"
       delegate_to: localhost
+      become: false
       run_once: true
       register: hosts_config_hosts_template_stat
     - name: Copy template to remote location
@@ -103,13 +108,25 @@
       ansible.builtin.stat:
         path: /tmp/hosts.remote
       register: hosts_config_hosts_remote_stat
-    - name: Copy template hosts file to /etc/hosts
-      ansible.builtin.copy:
+    - name: Read the template hosts file
+      ansible.builtin.slurp:
         src: /tmp/hosts.remote
+      register: hosts_config_hosts_template_content
+      when: hosts_config_hosts_remote_stat.stat.exists
+    # One deterministic write. Copying the template over /etc/hosts and then
+    # re-appending the local entry meant both tasks reported changed forever,
+    # because the template cannot contain this host's own address.
+    - name: Write /etc/hosts from the template plus this host's entry
+      ansible.builtin.copy:
+        content: |
+          {{ hosts_config_merged_hosts }}
+          {{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}
         dest: /etc/hosts
-        remote_src: true
         mode: "0644"
         backup: "{{ backup.enabled | default(true) }}"
+      vars:
+        hosts_config_merged_hosts: "{{ (hosts_config_hosts_template_content.content | b64decode).split('\n')
+          | reject('search', hosts_config_local_ip) | join('\n') | trim }}"
       register: hosts_config_hosts_merge
       when: hosts_config_hosts_remote_stat.stat.exists
     - name: Display merge result
@@ -125,6 +142,7 @@
       ansible.builtin.debug:
         msg: "Warning: Failed to merge hosts file. Please check template server connectivity."
 - name: Add local entry to hosts file
+  when: not hosts_config_hosts_remote_stat.stat.exists
   block:
     - name: Check if local entry exists
       ansible.builtin.command: grep -q "{{ hosts_config_local_ip }}" /etc/hosts
@@ -136,6 +154,7 @@
         path: /etc/hosts
         line: "{{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}"
         state: present
+        backup: "{{ backup.enabled | default(true) }}"
       when: hosts_config_local_entry_exists.rc != 0
       register: hosts_config_local_entry_added
     - name: Display local entry result
@@ -158,24 +177,6 @@
     - name: Handle verification failure
       ansible.builtin.debug:
         msg: "Warning: Hosts file verification encountered issues (non-critical)"
-- name: Cleanup temporary files
-  block:
-    - name: Remove remote temporary files
-      ansible.builtin.file:
-        path: "/tmp/hosts.remote"
-        state: absent
-      failed_when: false
-    - name: Remove local template file
-      ansible.builtin.file:
-        path: "{{ hosts_config_hosts_template_local_path }}"
-        state: absent
-      delegate_to: localhost
-      run_once: true
-      failed_when: false
-  rescue:
-    - name: Handle cleanup failure
-      ansible.builtin.debug:
-        msg: "Warning: Cleanup encountered issues (non-critical)"
 - name: Report hosts configuration summary
   block:
     - name: Display hosts configuration summary

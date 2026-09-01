@@ -83,7 +83,9 @@
 - name: Port listening verification
   block:
     - name: Check port listening status
-      ansible.builtin.shell: set -o pipefail && "ss -tlnp | grep -E '({{ firewall_ports | join('|') }})' || true"
+      ansible.builtin.shell: >-
+        set -o pipefail &&
+        ss -tlnp | grep -E '({{ firewall_ports | join('|') }})' || true
       register: verification_port_listening
       changed_when: false
       failed_when: false

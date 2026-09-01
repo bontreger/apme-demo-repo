@@ -1,17 +1,33 @@
 # Role: `user_management`
 
-Creates an administrator user with passwordless sudo privileges and enables systemd user session persistence.
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
+**Supported OS:** RHEL 9 only
+
+Creates an administrator user with passwordless sudo privileges and enables session lingering so the user's systemd instance persists after logout.
 
 ## Requirements
 
-- No special requirements beyond ansible-core 2.15+.
+- ansible-core 2.15+.
+- A password hashing backend on the **controller** for `password_hash`:
+  libxcrypt, Python's `crypt`, or `passlib`. Python 3.13 removed `crypt`, so on
+  a current controller `passlib` must be installed or user creation fails.
 
 ## Role Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `admin_user` | `admin` | Username for the administrator account to create |
-| `admin_password` | `redhat` | Password for the administrator account (hashed with sha512 at runtime) |
+| `admin_password` | `redhat` | Password for the administrator account (hashed with sha512 at runtime). **Override this** — the default is a publicly known value on an account with passwordless sudo |
+
+## Behaviour
+
+- **The password is only set when the account is created** (`update_password:
+  on_create`). Re-running does not reset a password changed since, and the task
+  no longer reports `changed` on every run — `password_hash` salts randomly, so
+  comparing hashes always differed before.
+- **Session persistence is `loginctl enable-linger`.** The systemd user
+  template unit is keyed by UID, so the previous `user@<name>.service` could
+  never resolve.
 
 ## Dependencies
 

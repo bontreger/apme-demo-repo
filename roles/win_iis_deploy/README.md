@@ -1,5 +1,7 @@
 # Role: `win_iis_deploy`
 
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:windows,tech:iis
+
 Installs IIS Web Server on Windows, configures firewall rules for HTTP/HTTPS, starts the W3SVC service, and deploys a default index page.
 
 ## Requirements

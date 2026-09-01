@@ -1,11 +1,17 @@
 # Role: `firewall_config`
 
-Ensures firewalld is running and opens a configurable list of TCP and UDP ports, with service reload and verification.
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
+**Supported OS:** RHEL 9 only
+
+Installs firewalld, ensures it is running, and opens a configurable list of TCP and UDP ports, with service reload and verification.
 
 ## Requirements
 
 - No special requirements beyond ansible-core 2.15+.
 - `ansible.posix` (for `firewalld` module)
+- Package repositories reachable from the host; the role installs the
+  `firewalld` package if it is absent, as `chrony_config` does for chrony.
+  Without it the role has nothing to configure and skips every port.
 
 ## Role Variables
 

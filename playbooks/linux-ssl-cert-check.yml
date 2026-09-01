@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: SSL Certificate Expiry Check and Report
+# ============================================================================
+#
+# Description:
+#   Check remote SSL/TLS certificate expiry on localhost and optionally publish
+#   a Markdown report to an archive host (multi-play; see reporting vars).
+#
+# Tags: pillar:security,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:ssl,context:multi-play,context:localhost
+#
+# Supported OS:
+#   Any (runs on controller localhost)
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: SSL certificate expiry check and report
   hosts: localhost

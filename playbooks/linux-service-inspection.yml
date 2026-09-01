@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Critical Service Inspection
+# ============================================================================
+#
+# Description:
+#   Inspect critical Linux systemd service status and generate per-host reports;
+#   optionally publish to an archive host (multi-play).
+#
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Inspect critical Linux service status and generate reports
   hosts: all_rhel

@@ -1,5 +1,8 @@
 # Role: `traffic_capture`
 
+**Tags:** pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
+**Supported OS:** RHEL/CentOS 7/8/9
+
 Captures network traffic using tcpdump on a specified interface, automatically installing tcpdump if needed, and saves the pcap file for offline analysis.
 
 ## Requirements

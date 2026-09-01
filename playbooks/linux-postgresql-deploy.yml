@@ -1,3 +1,19 @@
+# ============================================================================
+# Playbook: Simple PostgreSQL Deployment
+# ============================================================================
+#
+# Description:
+#   Install and configure a minimal PostgreSQL server using the
+#   postgresql_server role.
+#
+# Tags: pillar:db,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:postgresql
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Simple PostgreSQL deployment
   hosts: postgres_servers

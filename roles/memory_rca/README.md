@@ -1,5 +1,8 @@
 # Role: `memory_rca`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Performs memory root cause analysis for high utilization or OOM events by collecting system memory data, hardware info, and virtual memory statistics, then generates a diagnostic report.
 
 ## Requirements

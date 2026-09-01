@@ -1,5 +1,8 @@
 # Role: `unbound_caching_dns`
 
+**Tags:** pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:unbound  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Deploy and configure an Unbound caching DNS resolver with template-based configuration, service management, and optional firewalld integration.
 
 ## Requirements

@@ -1,5 +1,8 @@
 # Role: `vnc_config`
 
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Installs and configures TigerVNC server with user mapping, desktop session selection, password setup, and firewall rules on RHEL systems.
 
 ## Requirements

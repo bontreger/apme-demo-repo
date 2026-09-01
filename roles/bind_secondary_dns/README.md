@@ -1,5 +1,8 @@
 # Role: `bind_secondary_dns`
 
+**Tags:** pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:bind  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Deploys and configures a BIND secondary (slave) DNS server with named.conf, service management, and optional firewalld rules.
 
 ## Requirements

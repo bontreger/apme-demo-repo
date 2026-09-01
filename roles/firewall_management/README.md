@@ -1,5 +1,8 @@
 # Role: `firewall_management`
 
+**Tags:** pillar:security,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:firewall  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Manages the firewalld service lifecycle (start, stop, or check status) with validation and status reporting.
 
 ## Requirements

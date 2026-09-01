@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Web Service Root Cause Analysis
+# ============================================================================
+#
+# Description:
+#   Diagnose failed httpd or nginx web services and generate a plaintext RCA
+#   report; optionally publish to an archive host (multi-play).
+#
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 8/9/10
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Web service fault diagnosis (httpd/nginx)
   hosts: all_rhel

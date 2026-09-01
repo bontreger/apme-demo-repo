@@ -1,5 +1,8 @@
 # Role: `selinux_config`
 
+**Tags:** pillar:security,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:selinux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Configures SELinux runtime mode and persistent state on RHEL systems, with input validation, automatic rollback on failure, and a post-change reboot notification.
 
 ## Requirements

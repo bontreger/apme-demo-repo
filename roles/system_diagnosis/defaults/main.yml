@@ -1,13 +1,13 @@
 ---
 # Diagnosis threshold configuration
-diagnosis_thresholds:
+diagnosis_thresholds: # noqa: var-naming[no-role-prefix]
   error_packets: 10
   dropped_packets: 5
   overrun_packets: 3
   tcp_retransmit_rate: 0.1
 
 # System log keywords to search for
-log_keywords:
+log_keywords: # noqa: var-naming[no-role-prefix]
   - "bnx2x"
   - "e1000"
   - "igb"
@@ -18,11 +18,11 @@ log_keywords:
   - "carrier"
 
 # Performance configuration
-performance:
+performance: # noqa: var-naming[no-role-prefix]
   max_log_lines: 1000
   timeout_seconds: 30
   retry_attempts: 3
 
 # Cleanup configuration
-cleanup_temp_files: true
-backup_original_files: true
+cleanup_temp_files: true # noqa: var-naming[no-role-prefix]
+backup_original_files: true # noqa: var-naming[no-role-prefix]

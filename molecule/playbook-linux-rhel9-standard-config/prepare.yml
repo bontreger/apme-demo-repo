@@ -1,0 +1,11 @@
+---
+- name: Prepare the template server
+  hosts: template_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Add a marker entry the target should inherit
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 192.0.2.10 template-marker.example.com template-marker
+        state: present

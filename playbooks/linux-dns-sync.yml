@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Synchronize DNS Resolver Configuration
+# ============================================================================
+#
+# Description:
+#   Synchronize DNS resolver configuration (resolv.conf) from the control
+#   node to RHEL targets using the dns_sync role.
+#
+# Tags: pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:bind
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Synchronize DNS configuration files across network
   hosts: all_rhel

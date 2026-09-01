@@ -1,5 +1,8 @@
 # Role: `system_diagnosis`
 
+**Tags:** pillar:network,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
+**Supported OS:** RHEL/CentOS 7/8/9
+
 Performs system-level diagnostics including TCP connection statistics, network-related log analysis, system load, and memory usage as part of network latency troubleshooting.
 
 ## Requirements

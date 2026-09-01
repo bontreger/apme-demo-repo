@@ -1,6 +1,6 @@
 ---
 # Traffic capture configuration
-traffic_capture:
+traffic_capture: # noqa: var-naming[no-role-prefix]
   enabled: true
   duration: 30
   packet_count: 1000

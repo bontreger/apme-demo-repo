@@ -1,5 +1,8 @@
 # Role: `verification`
 
+**Tags:** pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux,context:rhel9-only  
+**Supported OS:** RHEL 9 only
+
 Verifies post-configuration state of a RHEL system including user accounts, network connectivity, service health, listening ports, and time synchronization.
 
 ## Requirements

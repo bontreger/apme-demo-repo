@@ -1,5 +1,8 @@
 # Role: `dhcp_server`
 
+**Tags:** pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:dhcp  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+
 Deploys and configures a DHCPv4 and DHCPv6 server with package installation, configuration file deployment, service management, and optional firewalld rules.
 
 ## Requirements

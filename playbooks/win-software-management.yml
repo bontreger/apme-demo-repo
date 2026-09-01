@@ -1,3 +1,19 @@
+# ============================================================================
+# Playbook: Windows Software Management
+# ============================================================================
+#
+# Description:
+#   Install or remove Windows software packages (MSI/EXE) using the
+#   win_software_management role.
+#
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:windows
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Manage Windows software packages
   hosts: all_windows

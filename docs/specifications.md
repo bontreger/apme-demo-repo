@@ -12,6 +12,7 @@ consumers of the content library.
 |----------|-------|-----------|
 | ACL category | **Starter pack** | Content is basic, ready-to-implement automation -- not multi-week engagements |
 | Repository name | `acl-ready-to-implement-content` | Follows ACL naming: `acl-<content-type>` |
+| Catalog scope | **Subset of the Use Case Maturity Catalog** | Mostly `maturity:l2-process-oriented`, `lifecycle:day1` and `lifecycle:day2`; other ACL repositories may cover day0, L3/L4, and ADUC-scale content |
 | Excluded as ADUC | Scenarios 200 (VMware + OCP-V), 301 (Convert2RHEL) | Too complex for "ready-to-implement"; each warrants its own ADUC-level repository |
 
 ## 2. Repository Layout
@@ -66,6 +67,134 @@ Key layout rules:
 - **No `import_playbook` across scenarios.** Each playbook is self-contained
   (may call shared utility roles like `report_publish`).
 
+### Playbook file header (comment block)
+
+Every file under `playbooks/` must begin with a **YAML comment header** placed
+**before** the document start marker (`---`). The header is catalog metadata for
+contributors, operators, and cross-repository discovery. It does **not** replace
+role `README.md` files and is **not** the same as Ansible runtime `tags:` on
+tasks (see below).
+
+#### Use Case Maturity Catalog (classification model)
+
+Playbook and role metadata is anchored to the **Automation Use Cases Maturity
+Catalog** (lifecycle × maturity matrix). That catalog is **broader** than this
+repository: other ACL repos may populate different pillars, lifecycle stages, and
+maturity levels. Tags describe **where a use case sits in the program catalog**,
+not everything this repo must implement today.
+
+Each artifact carries **three required classification tags** (prefixed), plus
+optional extras:
+
+| Axis | Tag prefix | Required | Meaning |
+|------|------------|:--------:|---------|
+| **Pillar** | `pillar:` | Yes | Technology domain |
+| **Lifecycle** | `lifecycle:` | Yes | Day 0 / Day 1 / Day 2 stage |
+| **Maturity** | `maturity:` | Yes | Automation maturity level (L1–L4) |
+
+Optional extras (same `# Tags:` line): `platform:`, `tech:`, `context:` — see
+vocabulary below. **Phase 1** uses the matrix only; free-form keyword / tag
+clouds are deferred to a later catalog phase.
+
+**Required header fields**
+
+| Field | Required | Notes |
+|-------|:--------:|-------|
+| Playbook title | Yes | Short human title (banner line) |
+| `Description:` | Yes | 1–3 lines: purpose and notable behaviour |
+| `Tags:` | Yes | Prefixed tags; must include exactly one `pillar:`, `lifecycle:`, `maturity:` |
+| `Supported OS:` | When restricted | Include when a `pre_task` assert restricts OS; omit otherwise |
+| `Author:` | Yes | `Ansible Services Platform Team, Red Hat` |
+| `Version:` | Yes | Semantic content version; start at `1.0.0` |
+| `Date:` | Yes | `YYYY-MM-DD` — header added or last meaningful content change |
+| `License:` | Yes | `Apache-2.0` unless a bundled role specifies otherwise |
+
+**Canonical template**
+
+```yaml
+# ============================================================================
+# Playbook: <Human title>
+# ============================================================================
+#
+# Description:
+#   <What this playbook does; key roles or side effects in 1–3 lines.>
+#
+# Tags: pillar:<pillar>,lifecycle:<stage>,maturity:<level>,platform:<linux|windows>
+#
+# Supported OS:
+#   <e.g. RHEL 7/8/9 — only when a pre_task assert restricts OS>
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: YYYY-MM-DD
+# License: Apache-2.0
+#
+# ============================================================================
+---
+```
+
+**Examples**
+
+`linux-dns-primary.yml`:
+
+```yaml
+# Tags: pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:bind
+```
+
+`linux-cve-patching.yml`:
+
+```yaml
+# Tags: pillar:os,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:patching
+```
+
+**Controlled vocabulary**
+
+Tags are lowercase, comma-separated **without** spaces. New values require a
+spec update (PR).
+
+| Prefix | Allowed values |
+|--------|----------------|
+| `pillar:` | `os`, `cloud`, `network`, `db`, `security`, `ops` |
+| `lifecycle:` | `day0`, `day1`, `day2` |
+| `maturity:` | `l1-task-focus`, `l2-process-oriented`, `l3-event-driven`, `l4-ai-driven` |
+| `platform:` (optional) | `linux`, `windows` |
+| `tech:` (optional) | `bind`, `unbound`, `dhcp`, `mariadb`, `postgresql`, `nfs`, `firewall`, `selinux`, `kdump`, `pcp`, `ssl`, `systemd`, `iis`, `chocolatey`, `patching`, … — add via spec PR |
+| `context:` (optional) | `localhost`, `multi-play`, `rhel9-only` |
+
+**Classification rules**
+
+- Assign **one** `pillar:`, **one** `lifecycle:`, and **one** `maturity:` per
+  playbook (primary classification). Use `Description:` for nuance (e.g. bundles
+  that span day1 and day2 tasks).
+- **This repository** content is expected to be mostly `maturity:l2-process-oriented` and
+  `lifecycle:day1` or `lifecycle:day2`. Use `day0`, `l3`, or `l4` only when
+  the use case genuinely belongs in that catalog cell.
+- **Building blocks** (roles, thin playbooks) are tagged at their own maturity.
+  Future **collections** that compose mixed blocks carry their own matrix tags;
+  do not force a single maturity across every included role.
+- **RCA / inspection** playbooks: primary pillar is usually `ops` unless the
+  use case is clearly scoped to one domain (e.g. network fault → `pillar:network`).
+
+**Header `Tags:` vs Ansible runtime tags**
+
+| | Header `# Tags:` | Ansible `tags:` on tasks/plays |
+|--|------------------|--------------------------------|
+| Purpose | Catalog classification (pillar / lifecycle / maturity) | Runtime selection (`--tags`, AAP job slicing) |
+| Scope | Entire playbook file | Individual tasks or plays |
+| This spec | Required on all playbooks | Unchanged |
+
+**Do not mirror header tags into Ansible runtime tags.** Header tags exist for
+catalog alignment, grep, and future tooling. They are not copied to play- or
+task-level `tags:` unless a separate change explicitly requires runtime tag
+filtering (out of scope for header rollout). Existing runtime tags (e.g.
+`always`, role-specific tags) stay as-is.
+
+**Rollout (playbooks)**
+
+Existing playbooks may use legacy banner styles or omit headers. New and
+updated playbooks must conform. Bulk playbook header additions are tracked in
+batched PRs; this section is the source of truth for format and vocabulary.
+
 ## 5. Role Design
 
 - **Self-contained.** Each role includes `tasks/`, `defaults/main.yml`,
@@ -81,6 +210,44 @@ Key layout rules:
     (e.g. `__web_service_rca_profile`, not `_web_rca_profile`).
 - **Scenario `group_vars` absorbed.** Any `group_vars/` from legacy scenarios
   are merged into `roles/<role>/defaults/main.yml` during migration.
+
+### Role README metadata
+
+Roles ship in this repository alongside playbooks and are documented in
+`roles/<role>/README.md` (GPA). Use the **same catalog classification** as
+playbook headers (§4 — pillar / lifecycle / maturity), as **Markdown**
+immediately under the `# Role:` title — not as a YAML comment block in
+`tasks/main.yml`.
+
+**Required lines** (when adding or updating a role README):
+
+| Line | Required | Notes |
+|------|:--------:|-------|
+| `**Tags:**` | Yes | Prefixed tags; must include `pillar:`, `lifecycle:`, `maturity:` |
+| `**Supported OS:**` | When restricted | Same rule as playbooks — include when assert or role scope restricts OS |
+| Body | Yes | Existing GPA sections (Requirements, Role Variables, Example Playbook, etc.) |
+
+**Example** (top of `roles/bind_primary_dns/README.md`):
+
+```markdown
+# Role: `bind_primary_dns`
+
+**Tags:** pillar:network,lifecycle:day1,maturity:l2-process-oriented,platform:linux,tech:bind
+**Supported OS:** RHEL/CentOS 7/8/9
+
+Deploy and configure a BIND primary DNS server...
+```
+
+Playbook and role tags may differ slightly: the playbook header describes the
+**entry point** (inventory, multi-play); the role README describes **role
+behaviour**. One playbook may invoke several roles — each role documents itself
+at its own matrix classification.
+
+**Rollout (roles)**
+
+Bulk README metadata additions follow playbook header batches (same PR or the
+next). New and updated roles must include Tags (and Supported OS when
+applicable) in README.
 
 ## 6. Consolidation Decisions
 

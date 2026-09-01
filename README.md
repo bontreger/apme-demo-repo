@@ -102,8 +102,6 @@ Run each playbook from the repository root so `ansible.cfg` resolves `roles_path
 | [linux-kdump-config.yml](playbooks/linux-kdump-config.yml) | Configure kdump kernel crash dump service |
 | [linux-cve-patching.yml](playbooks/linux-cve-patching.yml) | Install security patches based on CVE ID |
 | [linux-networkmanager.yml](playbooks/linux-networkmanager.yml) | Manage NetworkManager connections and devices |
-| [linux-openstack-vm-lifecycle.yml](playbooks/linux-openstack-vm-lifecycle.yml) | OpenStack VM lifecycle operations (create, power, resize, delete) |
-
 ### Linux — Inspection, reporting, and troubleshooting
 
 | Playbook | Description |

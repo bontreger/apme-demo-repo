@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Configure TigerVNC Server
+# ============================================================================
+#
+# Description:
+#   Install and configure TigerVNC server with user mapping, desktop session,
+#   password setup, and optional firewalld rules.
+#
+# Tags: pillar:os,lifecycle:day1,maturity:l2-process-oriented,platform:linux
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Configure TigerVNC server
   hosts: all_rhel

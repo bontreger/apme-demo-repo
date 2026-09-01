@@ -1,5 +1,8 @@
 # Role: `chronyd_rca`
 
+**Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
+
 Performs root cause analysis diagnostics on the chronyd NTP service, collecting system facts, configuration validation, connectivity tests, and generating a text report.
 
 ## Requirements

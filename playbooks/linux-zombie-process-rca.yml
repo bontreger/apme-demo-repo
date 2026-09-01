@@ -1,3 +1,22 @@
+# ============================================================================
+# Playbook: Zombie Process Root Cause Analysis
+# ============================================================================
+#
+# Description:
+#   Investigate zombie processes and generate JSON and plaintext RCA reports;
+#   optionally publish to an archive host (multi-play).
+#
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
+#
+# Supported OS:
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#
+# Author: Ansible Services Platform Team, Red Hat
+# Version: 1.0.0
+# Date: 2026-08-25
+# License: Apache-2.0
+#
+# ============================================================================
 ---
 - name: Zombie process root cause analysis
   hosts: all_rhel
