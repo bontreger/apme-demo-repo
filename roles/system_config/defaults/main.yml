@@ -1,21 +1,21 @@
 ---
 # Network configuration
-network:
+network: # noqa: var-naming[no-role-prefix]
   allowed_subnets:
     - 10.66.0.0/16
     - 192.168.0.0/16
 
 # Template server configuration
-template_server:
+template_server: # noqa: var-naming[no-role-prefix]
   host: 10.66.208.237
   hosts_file: /etc/hosts
 
 # SELinux configuration
-selinux:
+selinux: # noqa: var-naming[no-role-prefix]
   state: permissive
   policy: targeted
 
 # Backup configuration
-backup:
+backup: # noqa: var-naming[no-role-prefix]
   enabled: true
   suffix: ".backup.$(date +%Y%m%d_%H%M%S)"

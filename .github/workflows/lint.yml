@@ -1,0 +1,87 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible-lint
+        run: pip install "ansible-lint==25.1.3" "ansible-core>=2.16.0,<2.19.0"
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r collections/requirements.yml -p collections
+
+      - name: Create stubs for subscription-only collections
+        # redhat.rhel_system_roles, infra.convert2rhel, and infra.leapp require
+        # a Red Hat subscription and are not available on public Galaxy.
+        # mock_roles in .ansible-lint only creates stubs in .cache/; Ansible
+        # resolves collection-namespaced roles from the collections path, so
+        # we pre-create minimal stub collections here instead. Each stub needs
+        # a galaxy.yml so Ansible recognises the directory as a valid collection
+        # before resolving roles inside it.
+        run: |
+          for ns_name in "redhat/rhel_system_roles" "infra/convert2rhel" "infra/leapp"; do
+            col_root="collections/ansible_collections/${ns_name}"
+            namespace=$(echo "${ns_name}" | cut -d/ -f1)
+            name=$(echo "${ns_name}" | cut -d/ -f2)
+            mkdir -p "${col_root}"
+            printf -- "namespace: %s\nname: %s\nversion: 0.0.1\nreadme: README.md\nauthors:\n  - stub\n" \
+              "${namespace}" "${name}" > "${col_root}/galaxy.yml"
+            touch "${col_root}/README.md"
+          done
+          for role_path in \
+            "redhat/rhel_system_roles/roles/network" \
+            "infra/convert2rhel/roles/analysis" \
+            "infra/convert2rhel/roles/convert" \
+            "infra/leapp/roles/analysis" \
+            "infra/leapp/roles/upgrade" \
+            "infra/leapp/roles/remediate"; do
+            mkdir -p "collections/ansible_collections/${role_path}/tasks"
+            printf -- '---\n' > "collections/ansible_collections/${role_path}/tasks/main.yml"
+          done
+
+      - name: ansible-lint
+        run: >
+          ansible-lint --profile production
+          --exclude .github/
+          --exclude collections/
+          --exclude controller_config/
+          --exclude execution_environments/
+          --exclude molecule/
+          --exclude .config/molecule/
+          --exclude hack/
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # CLI (not gitleaks-action) so fork PRs do not need GITLEAKS_LICENSE.
+      - name: Install gitleaks
+        run: |
+          curl -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+
+      - name: gitleaks
+        run: gitleaks detect --source . --verbose --redact

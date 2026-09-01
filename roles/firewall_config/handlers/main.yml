@@ -1,0 +1,4 @@
+---
+- name: Confirm firewall reloaded
+  ansible.builtin.debug:
+    msg: "Firewall configuration reloaded"

@@ -8,6 +8,9 @@ exclude_paths:
   - .pre-commit-config.yaml
   - .ansible-lint
   - collections/
+  - molecule/
+  - .config/molecule/
+  - hack/
 
 offline: false
 

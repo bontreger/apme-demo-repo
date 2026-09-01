@@ -125,7 +125,8 @@
         mode: "0644"
         backup: "{{ backup.enabled | default(true) }}"
       vars:
-        hosts_config_merged_hosts: "{{ (hosts_config_hosts_template_content.content | b64decode).split('\n') | reject('search', hosts_config_local_ip) | join('\n') | trim }}"
+        hosts_config_merged_hosts: "{{ (hosts_config_hosts_template_content.content | b64decode).split('\n')
+          | reject('search', hosts_config_local_ip) | join('\n') | trim }}"
       register: hosts_config_hosts_merge
       when: hosts_config_hosts_remote_stat.stat.exists
     - name: Display merge result
