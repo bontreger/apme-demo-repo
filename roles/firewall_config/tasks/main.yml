@@ -64,7 +64,7 @@
         permanent: true
         state: enabled
         immediate: true
-      loop: "{{ firewall_ports }}"
+      loop: "{{ firewall_config_ports }}"
       register: firewall_config_tcp_ports_result
       failed_when: false
       when: firewall_config_firewall_service_available
@@ -80,11 +80,11 @@
     - name: Mark all TCP ports as failed when firewalld is not available
       ansible.builtin.set_fact:
         firewall_config_firewall_failed_ports: "{{ firewall_config_firewall_failed_ports + [item | string + '/tcp'] }}"
-      loop: "{{ firewall_ports }}"
+      loop: "{{ firewall_config_ports }}"
       when: not firewall_config_firewall_service_available
     - name: Display TCP ports configuration result
       ansible.builtin.debug:
-        msg: "TCP ports opened: {{ firewall_ports | join(', ') }}"
+        msg: "TCP ports opened: {{ firewall_config_ports | join(', ') }}"
       when: firewall_config_firewall_service_available and firewall_config_tcp_ports_result.results | selectattr('failed', 'equalto', false) | list | length > 0
   rescue:
     - name: Handle TCP ports configuration failure
@@ -98,7 +98,7 @@
         permanent: true
         state: enabled
         immediate: true
-      loop: "{{ firewall_ports }}"
+      loop: "{{ firewall_config_ports }}"
       register: firewall_config_udp_ports_result
       failed_when: false
       when: firewall_config_firewall_service_available
@@ -114,11 +114,11 @@
     - name: Mark all UDP ports as failed when firewalld is not available
       ansible.builtin.set_fact:
         firewall_config_firewall_failed_ports: "{{ firewall_config_firewall_failed_ports + [item | string + '/udp'] }}"
-      loop: "{{ firewall_ports }}"
+      loop: "{{ firewall_config_ports }}"
       when: not firewall_config_firewall_service_available
     - name: Display UDP ports configuration result
       ansible.builtin.debug:
-        msg: "UDP ports opened: {{ firewall_ports | join(', ') }}"
+        msg: "UDP ports opened: {{ firewall_config_ports | join(', ') }}"
       when: firewall_config_firewall_service_available and firewall_config_udp_ports_result.results | selectattr('failed', 'equalto', false) | list | length > 0
   rescue:
     - name: Handle UDP ports configuration failure

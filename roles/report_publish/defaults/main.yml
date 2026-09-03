@@ -13,9 +13,9 @@
 # Hosts that generated reports in Play 1 (set by playbooks via localhost fact).
 report_publish_source_hosts: "{{ hostvars['localhost'].report_source_hosts | default([]) }}"
 
-report_publish_namespace: "{{ report_namespace | default('') }}"
+report_publish_namespace: "{{ report_generation_namespace | default('') }}"
 
-report_publish_job_id: "{{ report_job_id | default(awx_job_id | default(ansible_date_time.epoch)) }}"
+report_publish_job_id: "{{ report_generation_job_id | default(awx_job_id | default(ansible_date_time.epoch)) }}"
 
 report_publish_archive_host: "{{ report_archive_host }}"
 

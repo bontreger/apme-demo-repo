@@ -14,7 +14,7 @@
 - name: Check network interface status
   block:
     - name: Check network interface status
-      ansible.builtin.command: ip link show {{ network_interface }}
+      ansible.builtin.command: ip link show {{ network_interface_name }}
       register: network_interface_interface_status
       failed_when: false
       changed_when: false
@@ -25,7 +25,7 @@
       when: network_interface_interface_status.rc == 0
     - name: Display interface status check result
       ansible.builtin.debug:
-        msg: "Network interface {{ network_interface }} status check {{ 'succeeded' if network_interface_interface_status.rc == 0 else 'failed' }}"
+        msg: "Network interface {{ network_interface_name }} status check {{ 'succeeded' if network_interface_interface_status.rc == 0 else 'failed' }}"
   rescue:
     - name: Record interface status check failure
       ansible.builtin.set_fact:
@@ -36,7 +36,7 @@
 - name: Get interface statistics
   block:
     - name: Get interface statistics
-      ansible.builtin.command: ethtool -S {{ network_interface }}
+      ansible.builtin.command: ethtool -S {{ network_interface_name }}
       register: network_interface_interface_stats
       failed_when: false
       changed_when: false
@@ -76,7 +76,7 @@
 - name: Get IP address information
   block:
     - name: Get IP address information
-      ansible.builtin.command: ip addr show {{ network_interface }}
+      ansible.builtin.command: ip addr show {{ network_interface_name }}
       register: network_interface_ip_info
       failed_when: false
       changed_when: false
@@ -102,7 +102,7 @@
   ansible.builtin.debug:
     msg:
       - "=== Network Interface Check Summary ==="
-      - "Interface: {{ network_interface }}"
+      - "Interface: {{ network_interface_name }}"
       - "{% if network_interface_interface_up %}✅ Interface Status: UP{% else %}❌ Interface Status: DOWN or Unknown{% endif %}"
       - "MTU: {{ interface_mtu }}"
       - "IP Address: {{ network_interface_interface_ip }}"

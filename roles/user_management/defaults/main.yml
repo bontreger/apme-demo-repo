@@ -1,4 +1,4 @@
 ---
 # Administrator user configuration
-admin_user: admin # noqa: var-naming[no-role-prefix]
-admin_password: redhat # noqa: var-naming[no-role-prefix]
+user_management_admin_user: admin
+user_management_admin_password: redhat

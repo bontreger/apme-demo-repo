@@ -13,12 +13,12 @@ Generates a network latency analysis report from collected diagnostic data using
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `report_namespace` | `network_diagnosis` | Namespace used to organize reports by category |
-| `report_local_dir` | `/var/lib/ansible-reports/{{ report_namespace }}` | Local directory on the target host where reports are stored |
-| `report_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report (AAP job ID or epoch timestamp) |
-| `report_text_path` | `{{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt` | Full path to the generated text report file |
-| `report_output_dir` | `{{ report_local_dir }}` | Directory where the rendered report file is written |
-| `report_filename` | `{{ inventory_hostname }}-{{ report_job_id }}.txt` | Filename of the generated report |
+| `report_generation_namespace` | `network_diagnosis` | Namespace used to organize reports by category |
+| `report_generation_local_dir` | `/var/lib/ansible-reports/{{ report_generation_namespace }}` | Local directory on the target host where reports are stored |
+| `report_generation_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report (AAP job ID or epoch timestamp) |
+| `report_generation_text_path` | `{{ report_generation_local_dir }}/{{ inventory_hostname }}-{{ report_generation_job_id }}.txt` | Full path to the generated text report file |
+| `report_generation_output_dir` | `{{ report_generation_local_dir }}` | Directory where the rendered report file is written |
+| `report_generation_filename` | `{{ inventory_hostname }}-{{ report_generation_job_id }}.txt` | Filename of the generated report |
 
 ## Dependencies
 

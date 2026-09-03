@@ -9,7 +9,7 @@
   block:
     - name: Ensure local report directory exists
       ansible.builtin.file:
-        path: "{{ report_local_dir }}"
+        path: "{{ report_generation_local_dir }}"
         state: directory
         mode: "0755"
       register: report_generation_report_dir
@@ -29,7 +29,7 @@
     - name: Generate network latency analysis report
       ansible.builtin.template:
         src: network_analysis_report.j2
-        dest: "{{ report_output_dir }}/{{ report_filename }}"
+        dest: "{{ report_generation_output_dir }}/{{ report_generation_filename }}"
         mode: "0644"
       register: report_generation_report_file
       failed_when: false
@@ -51,10 +51,10 @@
   block:
     - name: Display report location
       ansible.builtin.debug:
-        msg: "Network latency analysis report generated: {{ report_output_dir }}/{{ report_filename }}"
+        msg: "Network latency analysis report generated: {{ report_generation_output_dir }}/{{ report_generation_filename }}"
       when: report_generation_report_created
     - name: Display report content preview
-      ansible.builtin.command: head -20 "{{ report_output_dir }}/{{ report_filename }}"
+      ansible.builtin.command: head -20 "{{ report_generation_output_dir }}/{{ report_generation_filename }}"
       register: report_generation_report_preview
       failed_when: false
       changed_when: false
@@ -72,7 +72,7 @@
     msg:
       - "=== Report Generation Summary ==="
       - "{% if report_generation_report_created %}✅ Report generated successfully{% else %}❌ Report generation failed{% endif %}"
-      - "{% if report_generation_report_created %}Report Location: {{ report_output_dir }}/{{ report_filename }}{% endif %}"
+      - "{% if report_generation_report_created %}Report Location: {{ report_generation_output_dir }}/{{ report_generation_filename }}{% endif %}"
       - >-
         {% if report_generation_errors | length > 0 %}
         ⚠️  Errors encountered: {{ report_generation_errors | join('; ') }}

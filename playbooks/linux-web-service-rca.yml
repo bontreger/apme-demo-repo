@@ -65,5 +65,5 @@
 - name: Publish reports to archive host
   ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
   vars:
-    report_namespace: "{{ web_service_rca_report_namespace | default('httpd_rca') }}"
+    report_generation_namespace: "{{ web_service_rca_report_namespace | default('httpd_rca') }}"
   when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

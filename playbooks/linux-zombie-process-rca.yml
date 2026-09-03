@@ -40,5 +40,5 @@
 - name: Publish reports to archive host
   ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
   vars:
-    report_namespace: zombie_process_rca
+    report_generation_namespace: zombie_process_rca
   when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

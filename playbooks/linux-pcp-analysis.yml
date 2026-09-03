@@ -56,10 +56,10 @@
   vars_files:
     - ../inventory/group_vars/all/reporting.yml
   vars:
-    report_namespace: os_pcp
-    report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
+    report_generation_namespace: os_pcp
+    report_generation_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
     pcp_analysis_report_dest_dir: >-
-      {{ report_publish_web_root | default('/var/www/ansible-reports') }}/{{ report_namespace }}/{{ report_job_id }}
+      {{ report_publish_web_root | default('/var/www/ansible-reports') }}/{{ report_generation_namespace }}/{{ report_generation_job_id }}
     pcp_analysis_report_filename: "integrated_pcp_report_{{ ansible_date_time.date }}.md"
     report_publish_skip_collect: true
     report_publish_source_hosts: []

@@ -38,5 +38,5 @@
 - name: Publish reports to archive host
   ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
   vars:
-    report_namespace: xfs_check
+    report_generation_namespace: xfs_check
   when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

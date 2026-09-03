@@ -39,7 +39,7 @@
         owner: root
         group: root
         mode: "0644"
-        backup: "{{ backup.enabled | default(true) }}"
+        backup: "{{ system_config_backup.enabled | default(true) }}"
       register: chrony_config_chrony_config
       failed_when: false
       when: chrony_config_chrony_installed

@@ -48,16 +48,16 @@
       when: system_config_selinux_status is succeeded
     - name: Set SELinux state temporarily
       ansible.posix.selinux:
-        state: "{{ selinux.state }}"
-        policy: "{{ selinux.policy }}"
+        state: "{{ system_config_selinux.state }}"
+        policy: "{{ system_config_selinux.policy }}"
       register: system_config_selinux_temp_set
       failed_when: false
     - name: Configure SELinux permanently
       ansible.builtin.lineinfile:
         path: /etc/selinux/config
         regexp: "^SELINUX="
-        line: "SELINUX={{ selinux.state }}"
-        backup: "{{ backup.enabled | default(true) }}"
+        line: "SELINUX={{ system_config_selinux.state }}"
+        backup: "{{ system_config_backup.enabled | default(true) }}"
       register: system_config_selinux_config
       failed_when: false
     - name: Update SELinux configuration status
@@ -66,7 +66,7 @@
       when: system_config_selinux_config is succeeded
     - name: Display SELinux configuration result
       ansible.builtin.debug:
-        msg: "SELinux configured to: {{ selinux.state }}"
+        msg: "SELinux configured to: {{ system_config_selinux.state }}"
       when: system_config_selinux_config is succeeded
     - name: Verify SELinux configuration
       ansible.builtin.command: grep SELINUX /etc/selinux/config
@@ -91,7 +91,9 @@
         msg:
           - "=== System Configuration Summary ==="
           - "✅ Hostname validation completed"
-          - "{% if system_config_selinux_configured %}✅ SELinux configured to {{ selinux.state }}{% else %}❌ Failed to configure SELinux{% endif %}"
+          - >-
+            {% if system_config_selinux_configured %}✅ SELinux configured to {{ system_config_selinux.state }}
+            {% else %}❌ Failed to configure SELinux{% endif %}
           - >-
             {% if system_config_errors | length > 0 %}
             ⚠️  Errors encountered: {{ system_config_errors | join('; ') }}

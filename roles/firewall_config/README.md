@@ -17,7 +17,7 @@ Installs firewalld, ensures it is running, and opens a configurable list of TCP 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `firewall_ports` | `[50051, 53, 80, 443, 5432, 6379, 27199, 9000, 9001, 9002, 9003]` | List of ports to open in firewalld (both TCP and UDP) |
+| `firewall_config_ports` | `[50051, 53, 80, 443, 5432, 6379, 27199, 9000, 9001, 9002, 9003]` | List of ports to open in firewalld (both TCP and UDP) |
 
 ## Dependencies
 
@@ -33,7 +33,7 @@ None.
   roles:
     - role: firewall_config
       vars:
-        firewall_ports:
+        firewall_config_ports:
           - 80
           - 443
           - 8080

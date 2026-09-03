@@ -16,9 +16,9 @@ This role does not define variables in `defaults/main.yml`. It relies on the fol
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `template_server.hosts_file` | *(required)* | Path to the hosts template file on the template server |
-| `template_server.host` | *(required)* | Hostname of the template server (fallback if group is empty) |
-| `backup.enabled` | `true` | Whether to create backups before modifying files |
+| `system_config_template_server.hosts_file` | *(required)* | Path to the hosts template file on the template server |
+| `system_config_template_server.host` | *(required)* | Hostname of the template server (fallback if group is empty) |
+| `system_config_backup.enabled` | `true` | Whether to create backups before modifying files |
 
 ## Behaviour
 

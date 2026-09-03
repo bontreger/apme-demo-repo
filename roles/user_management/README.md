@@ -16,8 +16,8 @@ Creates an administrator user with passwordless sudo privileges and enables sess
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `admin_user` | `admin` | Username for the administrator account to create |
-| `admin_password` | `redhat` | Password for the administrator account (hashed with sha512 at runtime). **Override this** — the default is a publicly known value on an account with passwordless sudo |
+| `user_management_admin_user` | `admin` | Username for the administrator account to create |
+| `user_management_admin_password` | `redhat` | Password for the administrator account (hashed with sha512 at runtime). **Override this** — the default is a publicly known value on an account with passwordless sudo |
 
 ## Behaviour
 
@@ -43,8 +43,8 @@ None.
   roles:
     - role: user_management
       vars:
-        admin_user: sysadmin
-        admin_password: "{{ vault_admin_password }}"
+        user_management_admin_user: sysadmin
+        user_management_admin_password: "{{ vault_admin_password }}"
 ```
 
 ## License

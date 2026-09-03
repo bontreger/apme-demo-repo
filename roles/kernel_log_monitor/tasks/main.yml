@@ -286,7 +286,7 @@
 
 - name: Ensure local report directory exists
   ansible.builtin.file:
-    path: "{{ report_local_dir }}"
+    path: "{{ kernel_log_monitor_report_local_dir }}"
     state: directory
     mode: "0755"
   tags:
@@ -296,7 +296,7 @@
 - name: Generate plaintext kernel log report
   ansible.builtin.template:
     src: kernel_report_summary.j2
-    dest: "{{ report_text_path }}"
+    dest: "{{ kernel_log_monitor_report_text_path }}"
     mode: "0644"
   tags:
     - report
@@ -307,7 +307,7 @@
     - name: Generate HTML report
       ansible.builtin.template:
         src: kernel_report.html.j2
-        dest: "{{ report_html_path }}"
+        dest: "{{ kernel_log_monitor_report_html_path }}"
         mode: "0644"
       when: generate_html | bool
       register: kernel_log_monitor_report_generation
@@ -317,7 +317,7 @@
     - name: Display HTML report generation success
       ansible.builtin.debug:
         msg:
-          - "HTML report generated: {{ report_html_path }}"
+          - "HTML report generated: {{ kernel_log_monitor_report_html_path }}"
       when: generate_html | bool
       tags:
         - report

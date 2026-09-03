@@ -1,6 +1,6 @@
 ---
 # NTP servers configuration
-ntp_servers: # noqa: var-naming[no-role-prefix]
+chrony_config_ntp_servers:
   - ntp.aliyun.com
   - ntp1.aliyun.com
   - ntp2.aliyun.com

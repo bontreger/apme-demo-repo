@@ -13,8 +13,8 @@
         path: /etc/security/limits.conf
         line: "{{ item }}"
         state: present
-        backup: "{{ backup.enabled | default(true) }}"
-      loop: "{{ system_limits }}"
+        backup: "{{ system_config_backup.enabled | default(true) }}"
+      loop: "{{ system_optimization_limits }}"
       register: system_optimization_limits_config
       failed_when: false
     - name: Update limits configuration status
@@ -46,7 +46,7 @@
         sysctl_set: true
         sysctl_file: /etc/sysctl.d/99-ansible.conf
         reload: true
-      loop: "{{ sysctl_params | dict2items }}"
+      loop: "{{ system_optimization_sysctl_params | dict2items }}"
       register: system_optimization_sysctl_config
       failed_when: false
     - name: Update sysctl configuration status
@@ -98,7 +98,7 @@
   block:
     - name: Verify sysctl parameters
       ansible.builtin.command: "sysctl {{ item.key }}"
-      loop: "{{ sysctl_params | dict2items }}"
+      loop: "{{ system_optimization_sysctl_params | dict2items }}"
       register: system_optimization_sysctl_verification
       changed_when: false
     - name: Display sysctl verification results

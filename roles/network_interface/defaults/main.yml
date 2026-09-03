@@ -1,4 +1,4 @@
 ---
 # Network interface configuration
-network_interface: "ens192" # noqa: var-naming[no-role-prefix]
-network_interface_backup: "eth0" # noqa: var-naming[no-role-prefix]
+network_interface_name: "ens192"
+network_interface_backup_name: "eth0"

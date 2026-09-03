@@ -40,5 +40,5 @@
 - name: Publish reports to archive host
   ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
   vars:
-    report_namespace: disk_io_pressure_rca
+    report_generation_namespace: disk_io_pressure_rca
   when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

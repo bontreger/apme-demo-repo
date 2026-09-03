@@ -1,0 +1,52 @@
+---
+- name: Verify
+  hosts: all_rhel
+  become: true
+  gather_facts: false
+  vars:
+    nfs_server_shared_directory: /srv/myshare
+    nfs_server_exports_filename: ansible-share.exports
+  tasks:
+    - name: Check nfs-server systemd unit
+      ansible.builtin.systemd:
+        name: nfs-server
+      register: nfs_server_unit
+      changed_when: false
+
+    - name: Assert nfs-server is active and enabled
+      ansible.builtin.assert:
+        that:
+          - nfs_server_unit.status.ActiveState == 'active'
+          - nfs_server_unit.status.UnitFileState in ['enabled', 'static']
+
+    - name: Stat NFS shared directory
+      ansible.builtin.stat:
+        path: "{{ nfs_server_shared_directory }}"
+      register: nfs_share_dir
+
+    - name: Assert NFS shared directory exists
+      ansible.builtin.assert:
+        that:
+          - nfs_share_dir.stat.exists
+          - nfs_share_dir.stat.isdir
+
+    - name: Stat NFS exports drop-in file
+      ansible.builtin.stat:
+        path: "/etc/exports.d/{{ nfs_server_exports_filename }}"
+      register: nfs_exports_file
+
+    - name: Assert NFS exports file exists
+      ansible.builtin.assert:
+        that:
+          - nfs_exports_file.stat.exists
+          - nfs_exports_file.stat.isreg
+
+    - name: List active NFS exports
+      ansible.builtin.command: exportfs -v
+      register: nfs_exportfs
+      changed_when: false
+
+    - name: Assert shared path is exported
+      ansible.builtin.assert:
+        that:
+          - nfs_server_shared_directory in (nfs_exportfs.stdout + nfs_exportfs.stderr)
