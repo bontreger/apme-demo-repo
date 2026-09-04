@@ -1,3 +1,14 @@
 ---
 # Inherits create/destroy, Linux inventory, and roles_path from
-# .config/molecule/config.yml — do not duplicate base config here.
+# .config/molecule/config.yml. Restate the full sequence so idempotence
+# (second converge, expect changed=0) is part of `molecule test`.
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy

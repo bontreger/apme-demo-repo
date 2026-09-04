@@ -12,6 +12,7 @@
       OS compatibility check passed:
       {{ ansible_distribution }} {{ ansible_distribution_major_version }}
   tags:
+    - always
     - yum_repo_client
     - yum_repo_client_validate
 
@@ -24,6 +25,7 @@
       yum_repo_client_repositories must be a list of repository dicts,
       got {{ yum_repo_client_repositories | type_debug }}.
   tags:
+    - always
     - yum_repo_client
     - yum_repo_client_validate
 
@@ -35,12 +37,14 @@
     verbosity: 1
   when: yum_repo_client_repositories | length == 0
   tags:
+    - always
     - yum_repo_client
     - yum_repo_client_validate
 
 - name: Validate each repository entry
   when: yum_repo_client_repositories | length > 0
   tags:
+    - always
     - yum_repo_client
     - yum_repo_client_validate
   block:
@@ -91,6 +95,7 @@
   when:
     - yum_repo_client_repositories | length > 0
     - yum_repo_client_verify | bool
+    - not ansible_check_mode
   tags:
     - yum_repo_client
     - yum_repo_client_verify

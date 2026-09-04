@@ -15,6 +15,16 @@
        | selectattr('proxy_password', 'defined')
        | list
        | length > 0)
+      or
+      (yum_repo_client_repositories
+       | selectattr('sslclientkey', 'defined')
+       | list
+       | length > 0)
+      or
+      (yum_repo_client_repositories
+       | selectattr('client_key', 'defined')
+       | list
+       | length > 0)
     }}
   tags:
     - yum_repo_client
