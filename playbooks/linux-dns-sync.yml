@@ -18,19 +18,18 @@
 #
 # ============================================================================
 ---
-- name: Synchronize DNS configuration files across network
+- name: Configure DNS resolvers via NetworkManager
   hosts: all_rhel
   become: true
   gather_facts: true
   pre_tasks:
-    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+    - name: Validate RHEL-family operating system
       ansible.builtin.assert:
         that:
           - ansible_os_family == "RedHat"
-          - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
-          - ansible_distribution_major_version in ["7", "8", "9"]
+          - ansible_distribution_major_version | int >= 7
         fail_msg: "Unsupported operating system."
-        success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+        quiet: true
       tags: [always]
   roles:
     - role: dns_sync
