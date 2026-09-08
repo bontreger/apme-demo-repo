@@ -13,11 +13,11 @@ Captures network traffic using tcpdump on a specified interface, automatically i
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `traffic_capture.enabled` | `true` | Whether to perform traffic capture |
-| `traffic_capture.duration` | `30` | Maximum capture duration in seconds |
-| `traffic_capture.packet_count` | `1000` | Maximum number of packets to capture |
-| `traffic_capture.output_dir` | `/var/tmp` | Directory where pcap files are saved |
-| `traffic_capture.filename_prefix` | `packet_capture` | Prefix for the generated pcap filename |
+| `traffic_capture_config.enabled` | `true` | Whether to perform traffic capture |
+| `traffic_capture_config.duration` | `30` | Maximum capture duration in seconds |
+| `traffic_capture_config.packet_count` | `1000` | Maximum number of packets to capture |
+| `traffic_capture_config.output_dir` | `/var/tmp` | Directory where pcap files are saved |
+| `traffic_capture_config.filename_prefix` | `packet_capture` | Prefix for the generated pcap filename |
 
 ## Dependencies
 
@@ -36,7 +36,7 @@ None.
     - role: system_diagnosis
     - role: traffic_capture
       vars:
-        traffic_capture:
+        traffic_capture_config:
           enabled: true
           duration: 60
           packet_count: 5000

@@ -5,18 +5,22 @@
   ansible.builtin.set_fact:
     report_generation_errors: []
     report_generation_report_created: false
+
 - name: Create report directory
   block:
     - name: Ensure local report directory exists
       ansible.builtin.file:
-        path: "{{ report_local_dir }}"
+        path: "{{ report_generation_report_dir }}"
         state: directory
         mode: "0755"
-      register: report_generation_report_dir
+      register: report_generation_report_dir_result
       failed_when: false
     - name: Display directory creation result
       ansible.builtin.debug:
-        msg: "Report directory {{ 'created' if report_generation_report_dir is succeeded else 'creation failed' }}"
+        msg: >-
+          Report directory {{ 'created'
+          if report_generation_report_dir_result is succeeded
+          else 'creation failed' }}
   rescue:
     - name: Record directory creation failure
       ansible.builtin.set_fact:
@@ -24,12 +28,13 @@
     - name: Display directory creation failure warning
       ansible.builtin.debug:
         msg: "Warning: Failed to create report directory. Continuing with report generation."
+
 - name: Generate network latency analysis report
   block:
     - name: Generate network latency analysis report
       ansible.builtin.template:
         src: network_analysis_report.j2
-        dest: "{{ report_output_dir }}/{{ report_filename }}"
+        dest: "{{ report_generation_report_path }}"
         mode: "0644"
       register: report_generation_report_file
       failed_when: false
@@ -47,35 +52,27 @@
     - name: Display report generation failure warning
       ansible.builtin.debug:
         msg: "Warning: Failed to generate report. Please check template and permissions."
-- name: Display report location
+
+- name: Read and show report
+  when: report_generation_report_created | bool
   block:
-    - name: Display report location
+    - name: Read plaintext report for job output
+      ansible.builtin.slurp:
+        src: "{{ report_generation_report_path }}"
+      register: __report_generation_report_slurp
+    - name: Show network diagnosis report in job output
       ansible.builtin.debug:
-        msg: "Network latency analysis report generated: {{ report_output_dir }}/{{ report_filename }}"
-      when: report_generation_report_created
-    - name: Display report content preview
-      ansible.builtin.command: head -20 "{{ report_output_dir }}/{{ report_filename }}"
-      register: report_generation_report_preview
-      failed_when: false
-      changed_when: false
-      when: report_generation_report_created
-    - name: Output report preview
-      ansible.builtin.debug:
-        msg: "{{ report_generation_report_preview.stdout_lines }}"
-      when: report_generation_report_created and report_generation_report_preview is succeeded
-  rescue:
-    - name: Handle report preview failure
-      ansible.builtin.debug:
-        msg: "Warning: Failed to preview report content (non-critical)"
+        msg: "{{ (__report_generation_report_slurp.content | b64decode).splitlines() }}"
+
 - name: Report generation summary
   ansible.builtin.debug:
     msg:
       - "=== Report Generation Summary ==="
-      - "{% if report_generation_report_created %}✅ Report generated successfully{% else %}❌ Report generation failed{% endif %}"
-      - "{% if report_generation_report_created %}Report Location: {{ report_output_dir }}/{{ report_filename }}{% endif %}"
+      - "{% if report_generation_report_created %}Report generated successfully{% else %}Report generation failed{% endif %}"
+      - "{% if report_generation_report_created %}Report location: {{ report_generation_report_path }}{% endif %}"
       - >-
         {% if report_generation_errors | length > 0 %}
-        ⚠️  Errors encountered: {{ report_generation_errors | join('; ') }}
+        Errors encountered: {{ report_generation_errors | join('; ') }}
         {% else %}
-        ✅ Report generation tasks completed
+        Report generation tasks completed
         {% endif %}

@@ -14,12 +14,12 @@ Validates hostname resolution (localhost and FQDN) and configures SELinux state 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `network.allowed_subnets` | `["10.66.0.0/16", "192.168.0.0/16"]` | Allowed network subnets |
-| `template_server.host` | `10.66.208.237` | Template server IP address |
-| `template_server.hosts_file` | `/etc/hosts` | Path to the hosts file on the template server |
-| `selinux.state` | `permissive` | Desired SELinux state (`enforcing`, `permissive`, or `disabled`) |
-| `selinux.policy` | `targeted` | SELinux policy type |
-| `backup.enabled` | `true` | Whether to create backups before modifying configuration files |
+| `system_config_network.allowed_subnets` | `["10.66.0.0/16", "192.168.0.0/16"]` | Allowed network subnets |
+| `system_config_template_server.host` | `10.66.208.237` | Template server IP address |
+| `system_config_template_server.hosts_file` | `/etc/hosts` | Path to the hosts file on the template server |
+| `system_config_selinux.state` | `permissive` | Desired SELinux state (`enforcing`, `permissive`, or `disabled`) |
+| `system_config_selinux.policy` | `targeted` | SELinux policy type |
+| `system_config_backup.enabled` | `true` | Whether to create backups before modifying configuration files |
 | `backup.suffix` | `.backup.$(date +%Y%m%d_%H%M%S)` | Suffix appended to backup filenames |
 
 ## Dependencies

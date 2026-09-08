@@ -64,8 +64,7 @@ Key layout rules:
   Operators narrow scope at launch time using AAP's **limit** field
   (`ask_limit_on_launch: true` on all templates). No Jinja2 indirection in
   the `hosts:` directive.
-- **No `import_playbook` across scenarios.** Each playbook is self-contained
-  (may call shared utility roles like `report_publish`).
+- **No `import_playbook` across scenarios.** Each playbook is self-contained.
 
 ### Playbook file header (comment block)
 
@@ -345,13 +344,14 @@ needed on the workstation running the CaC playbook, not inside the EE.
 
 ## 10. Reporting Standard
 
-Playbooks that produce diagnostic or audit reports follow the pattern defined
-in `docs/reporting-standard.md`:
+Playbooks that produce diagnostic or audit reports follow
+`docs/reporting-standard.md`:
 
-- Reports are generated into a local directory on the target host.
-- The `report_publish` shared role optionally collects and publishes reports.
-- Reporting is toggled via `report_publish_enabled` in
-  `inventory/group_vars/all/reporting.yml` (default: `false`).
+- Each reporting role writes plaintext under `/var/lib/ansible-reports/` on
+  the managed host (overwrite each run) and prints the same body with
+  `debug` so the AAP job log is the primary delivery mechanism.
+- Variables are role-prefixed. There is no shared archive-publish role and
+  no repo-wide `report_publish_enabled` toggle.
 
 ## 11. Content Scope
 

@@ -38,9 +38,9 @@
     - name: Check system logs for network-related keywords
       ansible.builtin.shell: |
         set -o pipefail
-        journalctl --since "1 hour ago" | grep -i "{{ item }}" | tail -{{ performance.max_log_lines | default(1000) }}
+        journalctl --since "1 hour ago" | grep -i "{{ item }}" | tail -{{ system_diagnosis_performance.max_log_lines | default(1000) }}
       register: system_diagnosis_system_logs
-      loop: "{{ log_keywords | default([]) }}"
+      loop: "{{ system_diagnosis_log_keywords | default([]) }}"
       failed_when: false
       changed_when: false
     - name: Aggregate system log information

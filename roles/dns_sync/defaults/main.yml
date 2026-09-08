@@ -1,7 +1,15 @@
 ---
-dns_sync_source_file_path: "/etc/resolv.conf"
-dns_sync_dest_file_path: "/etc/resolv.conf"
-dns_sync_backup_enabled: true
-dns_sync_file_owner: "root"
-dns_sync_file_group: "root"
-dns_sync_file_mode: "0644"
+# List of DNS nameserver IPs to configure.
+# Example: ["10.0.0.1", "10.0.0.2"]
+dns_sync_nameservers: []
+
+# List of DNS search domains (optional).
+# Example: ["example.com", "corp.local"]
+dns_sync_search_domains: []
+
+# NetworkManager connection to configure.
+# When empty the role auto-detects the first active connection.
+dns_sync_connection: ""
+
+# Restart the NetworkManager connection after applying changes.
+dns_sync_restart_connection: true

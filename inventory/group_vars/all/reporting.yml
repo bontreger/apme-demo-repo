@@ -1,5 +1,0 @@
----
-# Repo-wide reporting toggles (Set 1). Survey and job extra vars override these.
-# See docs/reporting-standard.md for the variable hierarchy.
-generate_html: false
-report_publish_enabled: false

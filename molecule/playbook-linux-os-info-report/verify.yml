@@ -4,8 +4,7 @@
   become: true
   gather_facts: false
   vars:
-    # job_id pinned to "molecule"; namespace os_info is the role default.
-    os_info_report_path: /var/lib/ansible-reports/os_info/{{ inventory_hostname }}-molecule.txt
+    os_info_report_path: /var/lib/ansible-reports/os_info_report-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

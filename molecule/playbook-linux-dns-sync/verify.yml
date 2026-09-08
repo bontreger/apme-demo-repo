@@ -3,29 +3,28 @@
   hosts: all_rhel
   become: true
   gather_facts: false
-  vars:
-    dns_sync_dest_file_path: /tmp/molecule-dns-sync-resolv.conf
   tasks:
-    - name: Stat deployed resolver file
-      ansible.builtin.stat:
-        path: "{{ dns_sync_dest_file_path }}"
-      register: resolv_dest
-
-    - name: Assert resolver file was deployed
-      ansible.builtin.assert:
-        that:
-          - resolv_dest.stat.exists
-          - resolv_dest.stat.isreg
-
-    - name: Read deployed resolver file
+    - name: Read /etc/resolv.conf
       ansible.builtin.slurp:
-        src: "{{ dns_sync_dest_file_path }}"
+        src: /etc/resolv.conf
       register: resolv_content
 
-    - name: Assert nameserver from molecule source is present
+    - name: Assert configured nameserver is present
       ansible.builtin.assert:
         that:
-          - (resolv_content.content | b64decode) is search('nameserver 10.77.0.2')
+          - >-
+            (resolv_content.content | b64decode)
+            is search('nameserver 10.77.0.2')
         fail_msg: >-
-          Expected nameserver 10.77.0.2 in {{ dns_sync_dest_file_path }}; got:
+          Expected nameserver 10.77.0.2 in /etc/resolv.conf; got:
+          {{ resolv_content.content | b64decode | truncate(200) }}
+
+    - name: Assert search domain is present
+      ansible.builtin.assert:
+        that:
+          - >-
+            (resolv_content.content | b64decode)
+            is search('search.*molecule\.test')
+        fail_msg: >-
+          Expected search domain molecule.test in /etc/resolv.conf; got:
           {{ resolv_content.content | b64decode | truncate(200) }}

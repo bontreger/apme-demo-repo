@@ -1,12 +1,12 @@
 ---
 # System optimization parameters
-system_limits: # noqa: var-naming[no-role-prefix]
+system_optimization_limits:
   - "prometheus soft nofile 65536"
   - "prometheus hard nofile 65536"
   - "* soft nofile 65536"
   - "* hard nofile 65536"
 
-sysctl_params: # noqa: var-naming[no-role-prefix]
+system_optimization_sysctl_params:
   net.core.somaxconn: 65535
   net.ipv4.tcp_max_syn_backlog: 65535
   vm.max_map_count: 262144

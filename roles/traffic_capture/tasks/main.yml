@@ -42,11 +42,11 @@
   block:
     - name: Create traffic capture directory
       ansible.builtin.file:
-        path: "{{ traffic_capture.output_dir | default('/var/tmp') }}"
+        path: "{{ traffic_capture_config.output_dir | default('/var/tmp') }}"
         state: directory
         mode: "0755"
       register: traffic_capture_capture_dir
-      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed
+      when: traffic_capture_config.enabled | default(false) and traffic_capture_tcpdump_installed
       failed_when: false
     - name: Display directory creation result
       ansible.builtin.debug:
@@ -60,34 +60,34 @@
         msg: "Warning: Failed to create traffic capture directory. Continuing without traffic capture."
 - name: Start traffic capture
   block:
+    - name: Build capture file path
+      ansible.builtin.set_fact:
+        traffic_capture_capture_file_path: >-
+          {{ traffic_capture_config.output_dir | default('/var/tmp') }}/{{
+          traffic_capture_config.filename_prefix | default('packet_capture') }}_{{
+          inventory_hostname }}_{{ ansible_date_time.epoch }}.pcap
+      when: traffic_capture_config.enabled | default(false) and traffic_capture_tcpdump_installed
     - name: Start traffic capture
       ansible.builtin.shell: |2
 
-        timeout {{ traffic_capture.duration | default(30) }} \
-          tcpdump -i {{ network_interface }} \
-          -w {{ traffic_capture.output_dir | default('/var/tmp') }}/{{ traffic_capture.filename_prefix | default('packet_capture') }}_{{ inventory_hostname
-          }}_{{ ansible_date_time.epoch }}.pcap \
-          -c {{ traffic_capture.packet_count | default(1000) }}
+        timeout {{ traffic_capture_config.duration | default(30) }} \
+          tcpdump -i {{ network_interface_name }} \
+          -w {{ traffic_capture_capture_file_path }} \
+          -c {{ traffic_capture_config.packet_count | default(1000) }}
       register: traffic_capture_capture_result
-      async: "{{ (traffic_capture.duration | default(30)) + 10 }}"
+      async: "{{ (traffic_capture_config.duration | default(30)) + 10 }}"
       poll: 0
-      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed
+      when: traffic_capture_config.enabled | default(false) and traffic_capture_tcpdump_installed
       failed_when: false
       changed_when: false
-    - name: Store capture file path
-      ansible.builtin.set_fact:
-        traffic_capture_capture_file_path: >-
-          {{ traffic_capture.output_dir | default('/var/tmp') }}/{{ traffic_capture.filename_prefix | default('packet_capture') }}_{{ inventory_hostname }}_{{
-          ansible_date_time.epoch }}.pcap
-      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed and traffic_capture_capture_result is succeeded
     - name: Wait for traffic capture to complete
       ansible.builtin.async_status:
         jid: "{{ traffic_capture_capture_result.ansible_job_id }}"
       register: traffic_capture_capture_status
       until: traffic_capture_capture_status.finished
-      retries: "{{ performance.retry_attempts | default(3) }}"
+      retries: "{{ system_diagnosis_performance.retry_attempts | default(3) }}"
       delay: 5
-      when: traffic_capture.enabled | default(false) and traffic_capture_tcpdump_installed and traffic_capture_capture_result is succeeded
+      when: traffic_capture_config.enabled | default(false) and traffic_capture_tcpdump_installed and traffic_capture_capture_result is succeeded
       failed_when: false
     - name: Display traffic capture result
       ansible.builtin.debug:
@@ -103,7 +103,7 @@
   ansible.builtin.debug:
     msg:
       - "=== Traffic Capture Summary ==="
-      - "{% if traffic_capture.enabled | default(false) %}Traffic Capture: Enabled{% else %}Traffic Capture: Disabled{% endif %}"
+      - "{% if traffic_capture_config.enabled | default(false) %}Traffic Capture: Enabled{% else %}Traffic Capture: Disabled{% endif %}"
       - "{% if traffic_capture_tcpdump_installed %}✅ tcpdump installed{% else %}❌ tcpdump not installed{% endif %}"
       - "{% if traffic_capture_capture_file_path != '' %}Capture File: {{ traffic_capture_capture_file_path }}{% else %}No capture file generated{% endif %}"
       - >-

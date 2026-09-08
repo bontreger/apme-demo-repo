@@ -149,14 +149,23 @@
 
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ chronyd_rca_report_local_dir }}"
+    path: "{{ chronyd_rca_report_dir }}"
     state: directory
     mode: "0755"
 
 - name: Render chronyd diagnosis report
   ansible.builtin.template:
     src: chronyd_diagnosis_report.j2
-    dest: "{{ chronyd_rca_report_text_path }}"
+    dest: "{{ chronyd_rca_report_path }}"
     owner: root
     group: root
     mode: "0644"
+
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ chronyd_rca_report_path }}"
+  register: __chronyd_rca_report_slurp
+
+- name: Show chronyd RCA report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__chronyd_rca_report_slurp.content | b64decode).splitlines() }}"

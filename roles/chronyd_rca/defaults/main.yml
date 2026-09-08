@@ -8,9 +8,6 @@ chronyd_rca_run_dir: /run/chrony
 chronyd_rca_collect_journal_lines: 200
 chronyd_rca_attempt_service_start: false
 
-# Reporting
-chronyd_rca_report_namespace: chronyd_rca
-chronyd_rca_report_local_dir: "/var/lib/ansible-reports/{{ chronyd_rca_report_namespace }}"
-chronyd_rca_report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
-chronyd_rca_report_text_path: >-
-  {{ chronyd_rca_report_local_dir }}/{{ inventory_hostname }}-{{ chronyd_rca_report_job_id }}.txt
+chronyd_rca_report_dir: /var/lib/ansible-reports
+chronyd_rca_report_path: >-
+  {{ chronyd_rca_report_dir }}/chronyd_rca-{{ inventory_hostname }}.txt

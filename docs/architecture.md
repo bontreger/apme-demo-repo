@@ -69,7 +69,7 @@ apply issue #25 role consolidation — that is future Step 5 / follow-on work.
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| Playbook `vars:` | `playbooks/<slug>/` | Scenario-specific constants (e.g. `report_namespace`) |
+| Playbook `vars:` | `playbooks/` | Scenario-specific constants when needed |
 | Inventory | `inventory/`, `playbooks/<slug>/group_vars/` | Operator toggles, site config |
 | Role defaults | `roles/<name>/defaults/` | Sensible defaults, prefixed per GPA |
 | Surveys / extra vars | AAP job template | Runtime overrides (highest priority for operators) |

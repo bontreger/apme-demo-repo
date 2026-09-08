@@ -30,10 +30,10 @@
   block:
     - name: Fetch hosts file from template server
       ansible.builtin.fetch:
-        src: "{{ template_server.hosts_file }}"
+        src: "{{ system_config_template_server.hosts_file }}"
         dest: "{{ hosts_config_hosts_template_local_path }}"
         flat: true
-      delegate_to: "{{ groups['template_servers'][0] | default(template_server.host) }}"
+      delegate_to: "{{ groups['template_servers'][0] | default(system_config_template_server.host) }}"
       run_once: true
       register: hosts_config_fetch_result
     - name: Update fetch status
@@ -123,7 +123,7 @@
           {{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}
         dest: /etc/hosts
         mode: "0644"
-        backup: "{{ backup.enabled | default(true) }}"
+        backup: "{{ system_config_backup.enabled | default(true) }}"
       vars:
         hosts_config_merged_hosts: "{{ (hosts_config_hosts_template_content.content | b64decode).split('\n')
           | reject('search', hosts_config_local_ip) | join('\n') | trim }}"
@@ -154,7 +154,7 @@
         path: /etc/hosts
         line: "{{ hosts_config_local_ip }} {{ local_fqdn }} {{ local_hostname }}"
         state: present
-        backup: "{{ backup.enabled | default(true) }}"
+        backup: "{{ system_config_backup.enabled | default(true) }}"
       when: hosts_config_local_entry_exists.rc != 0
       register: hosts_config_local_entry_added
     - name: Display local entry result

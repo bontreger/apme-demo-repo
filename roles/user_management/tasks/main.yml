@@ -11,8 +11,8 @@
   block:
     - name: Create admin user
       ansible.builtin.user:
-        name: "{{ admin_user }}"
-        password: "{{ admin_password | password_hash('sha512') }}"
+        name: "{{ user_management_admin_user }}"
+        password: "{{ user_management_admin_password | password_hash('sha512') }}"
         update_password: on_create
         shell: /bin/bash
         create_home: true
@@ -24,20 +24,20 @@
         user_management_user_created: true
     - name: Display user creation result
       ansible.builtin.debug:
-        msg: "Admin user '{{ admin_user }}' {{ 'created' if user_management_user_creation.changed else 'already exists' }}"
+        msg: "Admin user '{{ user_management_admin_user }}' {{ 'created' if user_management_user_creation.changed else 'already exists' }}"
   rescue:
     - name: Record user creation failure
       ansible.builtin.set_fact:
-        user_management_errors: "{{ user_management_errors + ['Failed to create admin user: ' + admin_user] }}"
+        user_management_errors: "{{ user_management_errors + ['Failed to create admin user: ' + user_management_admin_user] }}"
     - name: Display user creation failure warning
       ansible.builtin.debug:
-        msg: "Warning: Failed to create admin user: {{ admin_user }}. Continuing with other configurations."
+        msg: "Warning: Failed to create admin user: {{ user_management_admin_user }}. Continuing with other configurations."
 - name: Configure sudo privileges
   block:
     - name: Add sudo rule for admin user
       ansible.builtin.lineinfile:
-        path: /etc/sudoers.d/{{ admin_user }}
-        line: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+        path: /etc/sudoers.d/{{ user_management_admin_user }}
+        line: "{{ user_management_admin_user }} ALL=(ALL) NOPASSWD: ALL"
         state: present
         create: true
         mode: "0440"
@@ -50,23 +50,23 @@
       when: user_management_sudo_config is succeeded
     - name: Display sudo configuration result
       ansible.builtin.debug:
-        msg: "Sudo privileges {{ 'configured' if user_management_sudo_config.changed else 'already configured' }} for user '{{ admin_user }}'"
+        msg: "Sudo privileges {{ 'configured' if user_management_sudo_config.changed else 'already configured' }} for user '{{ user_management_admin_user }}'"
       when: user_management_sudo_config is succeeded
   rescue:
     - name: Record sudo configuration failure
       ansible.builtin.set_fact:
-        user_management_errors: "{{ user_management_errors + ['Failed to configure sudo privileges for user: ' + admin_user] }}"
+        user_management_errors: "{{ user_management_errors + ['Failed to configure sudo privileges for user: ' + user_management_admin_user] }}"
     - name: Display sudo configuration failure warning
       ansible.builtin.debug:
-        msg: "Warning: Failed to configure sudo privileges for user: {{ admin_user }}. Continuing with other configurations."
+        msg: "Warning: Failed to configure sudo privileges for user: {{ user_management_admin_user }}. Continuing with other configurations."
 - name: Enable user session persistence
   block:
     - name: Check whether lingering is already enabled
       ansible.builtin.stat:
-        path: /var/lib/systemd/linger/{{ admin_user }}
+        path: /var/lib/systemd/linger/{{ user_management_admin_user }}
       register: user_management_linger_stat
     - name: Enable session lingering for the admin user
-      ansible.builtin.command: loginctl enable-linger {{ admin_user }}
+      ansible.builtin.command: loginctl enable-linger {{ user_management_admin_user }}
       register: user_management_linger_result
       changed_when: true
       failed_when: false
@@ -86,13 +86,13 @@
 - name: Verify user creation
   block:
     - name: Check user existence
-      ansible.builtin.command: id {{ admin_user }}
+      ansible.builtin.command: id {{ user_management_admin_user }}
       register: user_management_user_check
       changed_when: false
       failed_when: false
     - name: Display user information
       ansible.builtin.debug:
-        msg: "User '{{ admin_user }}' verification: {{ user_management_user_check.stdout }}"
+        msg: "User '{{ user_management_admin_user }}' verification: {{ user_management_user_check.stdout }}"
       when: user_management_user_check is succeeded
   rescue:
     - name: Handle verification failure

@@ -13,8 +13,8 @@ Checks a network interface's link status, IP address, MTU, and error/drop statis
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `network_interface` | `"ens192"` | Primary network interface name to inspect |
-| `network_interface_backup` | `"eth0"` | Backup network interface name |
+| `network_interface_name` | `"ens192"` | Primary network interface name to inspect |
+| `network_interface_backup_name` | `"eth0"` | Backup network interface name |
 
 ## Dependencies
 
@@ -31,7 +31,7 @@ None.
   roles:
     - role: network_interface
       vars:
-        network_interface: "ens192"
+        network_interface_name: "ens192"
 ```
 
 ## License

@@ -4,10 +4,7 @@
   become: true
   gather_facts: false
   vars:
-    # Report job id is pinned to "molecule" in inventory, so the path is
-    # deterministic. Namespace xfs_check comes from the role's default
-    # xfs_health_check_namespace.
-    xfs_report_path: /var/lib/ansible-reports/xfs_check/{{ inventory_hostname }}-molecule.txt
+    xfs_report_path: /var/lib/ansible-reports/xfs_health_check-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the health report
       ansible.builtin.stat:

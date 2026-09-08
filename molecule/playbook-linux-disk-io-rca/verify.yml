@@ -4,11 +4,9 @@
   become: true
   gather_facts: false
   vars:
-    # Report job id is pinned to "molecule" in inventory. Namespace
-    # disk_io_pressure_rca comes from the role's namespace_map for disk_io.
-    disk_io_rca_report_dir: /var/lib/ansible-reports/disk_io_pressure_rca
-    disk_io_rca_text_path: "{{ disk_io_rca_report_dir }}/{{ inventory_hostname }}-molecule.txt"
-    disk_io_rca_json_path: "{{ disk_io_rca_report_dir }}/{{ inventory_hostname }}-molecule.json"
+    disk_io_rca_report_dir: /var/lib/ansible-reports
+    disk_io_rca_text_path: "{{ disk_io_rca_report_dir }}/linux_diagnostic_rca-disk_io-{{ inventory_hostname }}.txt"
+    disk_io_rca_json_path: "{{ disk_io_rca_report_dir }}/linux_diagnostic_rca-disk_io-{{ inventory_hostname }}.json"
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

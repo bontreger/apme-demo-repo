@@ -3,68 +3,49 @@
 # ============================================================================
 #
 # Description:
-#   Install PCP on RHEL targets, collect performance metrics, and generate or
-#   publish an integrated report (multi-play; localhost report generation).
+#   Install PCP on RHEL targets, collect performance metrics, and write a
+#   per-host report on pcp_servers (also printed in the job log).
 #
 # Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:pcp,context:multi-play
 #
 # Supported OS:
-#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-08-25
+# Date: 2026-08-27
 # License: Apache-2.0
 #
 # ============================================================================
 ---
-- name: "Install and configure PCP"
+- name: Install and configure PCP
   hosts: all_rhel
   become: true
   gather_facts: true
-  vars_files:
-    - ../inventory/group_vars/all/reporting.yml
-
   pre_tasks:
-    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+    - name: Validate OS compatibility (RHEL 7/8/9/10)
       ansible.builtin.assert:
         that:
           - ansible_os_family == "RedHat"
           - ansible_distribution in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
-          - ansible_distribution_major_version in ["7", "8", "9"]
+          - ansible_distribution_major_version in ["7", "8", "9", "10"]
         fail_msg: "Unsupported operating system. This playbook is not available for the current OS."
         success_msg: "OS compatibility check passed: {{ ansible_distribution }} {{ ansible_distribution_major_version }}"
       tags: [always]
-
   roles:
     - role: pcp_analysis
 
-- name: "Collect PCP performance data"
+- name: Collect PCP performance data and write report
   hosts: pcp_servers
   become: true
-  gather_facts: false
+  gather_facts: true
   tasks:
     - name: Run PCP data collection
       ansible.builtin.include_role:
         name: pcp_analysis
         tasks_from: collect.yml
 
-- name: "Generate and publish PCP performance report"
-  hosts: localhost
-  connection: local
-  gather_facts: true
-  vars_files:
-    - ../inventory/group_vars/all/reporting.yml
-  vars:
-    report_namespace: os_pcp
-    report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}"
-    pcp_analysis_report_dest_dir: >-
-      {{ report_publish_web_root | default('/var/www/ansible-reports') }}/{{ report_namespace }}/{{ report_job_id }}
-    pcp_analysis_report_filename: "integrated_pcp_report_{{ ansible_date_time.date }}.md"
-    report_publish_skip_collect: true
-    report_publish_source_hosts: []
-  tasks:
-    - name: Generate and publish PCP report
+    - name: Generate PCP performance report
       ansible.builtin.include_role:
         name: pcp_analysis
         tasks_from: report.yml

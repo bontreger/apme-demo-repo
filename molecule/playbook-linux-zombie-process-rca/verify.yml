@@ -4,12 +4,9 @@
   become: true
   gather_facts: false
   vars:
-    # Report job id is pinned to "molecule" in inventory, so the paths are
-    # deterministic. Namespace zombie_process_rca comes from the role's
-    # namespace_map for check_type zombie_process.
-    zombie_rca_report_dir: /var/lib/ansible-reports/zombie_process_rca
-    zombie_rca_text_path: "{{ zombie_rca_report_dir }}/{{ inventory_hostname }}-molecule.txt"
-    zombie_rca_json_path: "{{ zombie_rca_report_dir }}/{{ inventory_hostname }}-molecule.json"
+    zombie_rca_report_dir: /var/lib/ansible-reports
+    zombie_rca_text_path: "{{ zombie_rca_report_dir }}/linux_diagnostic_rca-zombie_process-{{ inventory_hostname }}.txt"
+    zombie_rca_json_path: "{{ zombie_rca_report_dir }}/linux_diagnostic_rca-zombie_process-{{ inventory_hostname }}.json"
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

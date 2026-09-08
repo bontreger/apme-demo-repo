@@ -3,12 +3,12 @@ RHEL Network Latency Diagnosis Report
 ========================================
 Analysis Time: {{ analysis_start_time | default('N/A') }}
 Hostname: {{ inventory_hostname }}
-Network Interface: {{ network_interface | default('N/A') }}
+Network Interface: {{ network_interface_name | default('N/A') }}
 Analysis Duration: {{ analysis_duration | default('N/A') }} seconds
 
 1. Network Interface Status Check
 ========================================
-Interface Name: {{ network_interface | default('N/A') }}
+Interface Name: {{ network_interface_name | default('N/A') }}
 Interface Status: {{ 'UP' if interface_up | default(false) else 'DOWN' }}
 MTU Setting: {{ interface_mtu | default('N/A') }}
 IP Address: {{ interface_ip | default('N/A') }}
@@ -29,10 +29,10 @@ Memory Usage:
 
 4. Problem Diagnosis Conclusions
 ========================================
-{% if (rx_errors | default(0) | int) > (diagnosis_thresholds.error_packets | default(10) | int) or (tx_errors | default(0) | int) > (diagnosis_thresholds.error_packets | default(10) | int) %}
+{% if (rx_errors | default(0) | int) > (system_diagnosis_thresholds.error_packets | default(10) | int) or (tx_errors | default(0) | int) > (system_diagnosis_thresholds.error_packets | default(10) | int) %}
 [CRITICAL] Network interface error packets exceed threshold
 {% endif %}
-{% if (rx_dropped | default(0) | int) > (diagnosis_thresholds.dropped_packets | default(5) | int) or (tx_dropped | default(0) | int) > (diagnosis_thresholds.dropped_packets | default(5) | int) %}
+{% if (rx_dropped | default(0) | int) > (system_diagnosis_thresholds.dropped_packets | default(5) | int) or (tx_dropped | default(0) | int) > (system_diagnosis_thresholds.dropped_packets | default(5) | int) %}
 [POTENTIAL ISSUE] Network interface dropped packets exceed threshold
 {% endif %}
 {% if (tcp_retransmit | default(0) | int) > 0 %}
@@ -41,12 +41,12 @@ Memory Usage:
 
 5. Recommended Actions
 ========================================
-{% if (rx_errors | default(0) | int) > (diagnosis_thresholds.error_packets | default(10) | int) or (tx_errors | default(0) | int) > (diagnosis_thresholds.error_packets | default(10) | int) %}
+{% if (rx_errors | default(0) | int) > (system_diagnosis_thresholds.error_packets | default(10) | int) or (tx_errors | default(0) | int) > (system_diagnosis_thresholds.error_packets | default(10) | int) %}
 - Check physical network connection
 - Verify cable quality
 - Consider updating network card driver
 {% endif %}
-{% if (rx_dropped | default(0) | int) > (diagnosis_thresholds.dropped_packets | default(5) | int) or (tx_dropped | default(0) | int) > (diagnosis_thresholds.dropped_packets | default(5) | int) %}
+{% if (rx_dropped | default(0) | int) > (system_diagnosis_thresholds.dropped_packets | default(5) | int) or (tx_dropped | default(0) | int) > (system_diagnosis_thresholds.dropped_packets | default(5) | int) %}
 - Check network congestion
 - Adjust network buffer size
 - Optimize application network usage
@@ -59,7 +59,7 @@ Memory Usage:
 
 6. Traffic Capture Files
 ========================================
-{% if traffic_capture.enabled | default(false) and capture_file_path | default('') != '' %}
+{% if traffic_capture_config.enabled | default(false) and capture_file_path | default('') != '' %}
 Capture File: {{ capture_file_path }}
 Use tools like Wireshark for deep analysis
 {% else %}

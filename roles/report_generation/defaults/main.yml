@@ -1,9 +1,4 @@
 ---
-# Report configuration
-report_namespace: network_diagnosis # noqa: var-naming[no-role-prefix]
-report_local_dir: "/var/lib/ansible-reports/{{ report_namespace }}" # noqa: var-naming[no-role-prefix]
-report_job_id: "{{ awx_job_id | default(ansible_date_time.epoch) }}" # noqa: var-naming[no-role-prefix]
-report_text_path: >- # noqa: var-naming[no-role-prefix]
-  {{ report_local_dir }}/{{ inventory_hostname }}-{{ report_job_id }}.txt
-report_output_dir: "{{ report_local_dir }}" # noqa: var-naming[no-role-prefix]
-report_filename: "{{ inventory_hostname }}-{{ report_job_id }}.txt" # noqa: var-naming[no-role-prefix]
+report_generation_report_dir: /var/lib/ansible-reports
+report_generation_report_path: >-
+  {{ report_generation_report_dir }}/report_generation-{{ inventory_hostname }}.txt

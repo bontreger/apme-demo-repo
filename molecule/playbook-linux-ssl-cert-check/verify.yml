@@ -4,7 +4,7 @@
   connection: local
   gather_facts: false
   vars:
-    ssl_cert_report_path: /tmp/ssl_report_molecule.md
+    ssl_cert_report_path: /tmp/ssl_cert_check-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the SSL certificate report
       ansible.builtin.stat:

@@ -1,7 +1,7 @@
 ---
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ xfs_health_check_local_dir }}"
+    path: "{{ xfs_health_check_report_dir }}"
     state: directory
     mode: "0755"
 
@@ -14,7 +14,7 @@
       Host: {{ ansible_facts['hostname'] }}
       OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
       ==========================================
-    dest: "{{ xfs_health_check_report_text_path }}"
+    dest: "{{ xfs_health_check_report_path }}"
     mode: "0644"
 
 - name: Collect XFS filesystem mount points
@@ -37,7 +37,7 @@
 
 - name: Append kernel log section to report
   ansible.builtin.lineinfile:
-    path: "{{ xfs_health_check_report_text_path }}"
+    path: "{{ xfs_health_check_report_path }}"
     line: |
       ==========================================
       Kernel Log Analysis (dmesg - Last 20 XFS entries)
@@ -69,7 +69,7 @@
 
 - name: Append per-filesystem details to report (with xfs_db)
   ansible.builtin.lineinfile:
-    path: "{{ xfs_health_check_report_text_path }}"
+    path: "{{ xfs_health_check_report_path }}"
     line: |
       ==========================================
       Filesystem: {{ item.item.device }}
@@ -93,7 +93,7 @@
 
 - name: Append per-filesystem details to report (without xfs_db)
   ansible.builtin.lineinfile:
-    path: "{{ xfs_health_check_report_text_path }}"
+    path: "{{ xfs_health_check_report_path }}"
     line: |
       ==========================================
       Filesystem: {{ item.device }}
@@ -116,7 +116,7 @@
 
 - name: Append report footer
   ansible.builtin.lineinfile:
-    path: "{{ xfs_health_check_report_text_path }}"
+    path: "{{ xfs_health_check_report_path }}"
     line: |
       ==========================================
       End of Report
@@ -125,20 +125,10 @@
   failed_when: false
 
 - name: Read plaintext report for job output
-  ansible.builtin.command: cat "{{ xfs_health_check_report_text_path }}"
-  register: xfs_health_check_summary_output
-  become: false
-  changed_when: false
+  ansible.builtin.slurp:
+    src: "{{ xfs_health_check_report_path }}"
+  register: __xfs_health_check_report_slurp
 
-- name: Output plaintext report for operators
+- name: Show XFS health report in job output
   ansible.builtin.debug:
-    msg: "{{ xfs_health_check_summary_output.stdout_lines }}"
-  become: false
-
-- name: Remember report publishing settings for publish play
-  ansible.builtin.set_fact:
-    report_source_hosts: "{{ ansible_play_hosts_all }}"
-    report_publish_enabled: "{{ report_publish_enabled }}"
-  run_once: true
-  delegate_to: localhost
-  delegate_facts: true
+    msg: "{{ (__xfs_health_check_report_slurp.content | b64decode).splitlines() }}"

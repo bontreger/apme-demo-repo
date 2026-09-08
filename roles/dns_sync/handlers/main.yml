@@ -1,0 +1,6 @@
+---
+- name: Restart NetworkManager connection
+  ansible.builtin.command:
+    cmd: "nmcli connection up '{{ dns_sync_connection }}'"
+  changed_when: true
+  when: dns_sync_restart_connection | bool

@@ -14,8 +14,8 @@ Configures system resource limits in `/etc/security/limits.conf` and kernel sysc
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `system_limits` | `["prometheus soft nofile 65536", "prometheus hard nofile 65536", "* soft nofile 65536", "* hard nofile 65536"]` | List of entries to add to `/etc/security/limits.conf` |
-| `sysctl_params` | `{"net.core.somaxconn": 65535, "net.ipv4.tcp_max_syn_backlog": 65535, "vm.max_map_count": 262144}` | Dictionary of sysctl key-value pairs to apply |
+| `system_optimization_limits` | `["prometheus soft nofile 65536", "prometheus hard nofile 65536", "* soft nofile 65536", "* hard nofile 65536"]` | List of entries to add to `/etc/security/limits.conf` |
+| `system_optimization_sysctl_params` | `{"net.core.somaxconn": 65535, "net.ipv4.tcp_max_syn_backlog": 65535, "vm.max_map_count": 262144}` | Dictionary of sysctl key-value pairs to apply |
 
 ## Dependencies
 
@@ -32,10 +32,10 @@ None.
   roles:
     - role: system_optimization
       vars:
-        system_limits:
+        system_optimization_limits:
           - "* soft nofile 65536"
           - "* hard nofile 65536"
-        sysctl_params:
+        system_optimization_sysctl_params:
           net.core.somaxconn: 65535
           vm.max_map_count: 262144
 ```

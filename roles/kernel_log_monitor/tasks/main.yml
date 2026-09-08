@@ -62,7 +62,7 @@
       - "Critical error patterns: {{ kernel_log_monitor_kernel_errors.critical | join(', ') }}"
       - "Severe error patterns: {{ kernel_log_monitor_kernel_errors.severe | join(', ') }}"
       - "Log lines to capture: {{ kernel_log_monitor_log_lines }}"
-      - "Report base path: {{ kernel_log_monitor_report_base_path }}"
+      - "Report path: {{ kernel_log_monitor_report_path }}"
       - "Kernel events log: {{ kernel_log_monitor_kernel_events_log }}"
   tags:
     - validation
@@ -71,14 +71,13 @@
 # ========================================================================
 # OS Compatibility Validation
 # ========================================================================
-- name: Validate OS compatibility (RHEL/CentOS 7/8/9 only)
+- name: Validate OS compatibility (RHEL 7/8/9/10)
   ansible.builtin.assert:
     that:
       - ansible_facts['os_family'] == "RedHat"
-      - ansible_facts['distribution'] in ['RedHat', 'CentOS']
-      - ansible_facts['distribution_major_version'] in ['7', '8', '9']
+      - ansible_facts['distribution_major_version'] in ['7', '8', '9', '10']
     fail_msg: >-
-      Unsupported operating system. This playbook is only available for RHEL 7/8/9 and CentOS 7/8/9.
+      Unsupported operating system. This role supports RHEL-family 7/8/9/10.
       Current OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}
     success_msg: "OS compatibility check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}"
   tags:
@@ -286,7 +285,7 @@
 
 - name: Ensure local report directory exists
   ansible.builtin.file:
-    path: "{{ report_local_dir }}"
+    path: "{{ kernel_log_monitor_report_dir }}"
     state: directory
     mode: "0755"
   tags:
@@ -296,38 +295,23 @@
 - name: Generate plaintext kernel log report
   ansible.builtin.template:
     src: kernel_report_summary.j2
-    dest: "{{ report_text_path }}"
+    dest: "{{ kernel_log_monitor_report_path }}"
     mode: "0644"
   tags:
     - report
     - always
 
-- name: Generate HTML kernel log report
-  block:
-    - name: Generate HTML report
-      ansible.builtin.template:
-        src: kernel_report.html.j2
-        dest: "{{ report_html_path }}"
-        mode: "0644"
-      when: generate_html | bool
-      register: kernel_log_monitor_report_generation
-      tags:
-        - report
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ kernel_log_monitor_report_path }}"
+  register: __kernel_log_monitor_report_slurp
+  tags:
+    - report
+    - always
 
-    - name: Display HTML report generation success
-      ansible.builtin.debug:
-        msg:
-          - "HTML report generated: {{ report_html_path }}"
-      when: generate_html | bool
-      tags:
-        - report
-        - debug
-
-  rescue:
-    - name: Handle HTML report generation errors
-      ansible.builtin.debug:
-        msg: "Error: Failed to generate HTML kernel report."
-      when: generate_html | bool
-      tags:
-        - report
-        - always
+- name: Show kernel log report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__kernel_log_monitor_report_slurp.content | b64decode).splitlines() }}"
+  tags:
+    - report
+    - always

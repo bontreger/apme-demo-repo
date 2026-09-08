@@ -1,31 +1,28 @@
 ---
 - name: Verify PCP analysis results on target hosts
-  hosts: all_rhel
+  hosts: pcp_servers
   become: true
   gather_facts: false
   vars:
-    pcp_report_dir: /var/www/ansible-reports/os_pcp/molecule/aggregated
+    pcp_report_path: /var/lib/ansible-reports/pcp_analysis-{{ inventory_hostname }}.txt
     pcp_report_host_heading: "## Host: {{ inventory_hostname }}"
   tasks:
-    - name: Find integrated PCP markdown reports
-      ansible.builtin.find:
-        paths: "{{ pcp_report_dir }}"
-        patterns: integrated_pcp_report_*.md
-      register: pcp_integrated_reports
+    - name: Stat the PCP report
+      ansible.builtin.stat:
+        path: "{{ pcp_report_path }}"
+      register: pcp_report
 
-    - name: Assert integrated report directory and file exist
+    - name: Assert PCP report was written
       ansible.builtin.assert:
         that:
-          - pcp_integrated_reports.matched | int >= 1
-        fail_msg: >-
-          Expected integrated PCP report under {{ pcp_report_dir }} on
-          {{ inventory_hostname }}. Run converge with the molecule harness play
-          (see converge.yml) and confirm play 2 collection hostvars are present.
+          - pcp_report.stat.exists
+          - pcp_report.stat.isreg
+          - pcp_report.stat.size | int > 0
 
-    - name: Read the integrated report
+    - name: Read the PCP report
       ansible.builtin.slurp:
-        src: "{{ (pcp_integrated_reports.files | sort(attribute='mtime') | last).path }}"
-      register: pcp_integrated_report_content
+        src: "{{ pcp_report_path }}"
+      register: pcp_report_content
 
     - name: Assert report contains expected content
       ansible.builtin.assert:
@@ -34,4 +31,4 @@
           - pcp_report_host_heading in report_text
           - "'System Overview (PCP)' in report_text"
       vars:
-        report_text: "{{ pcp_integrated_report_content.content | b64decode }}"
+        report_text: "{{ pcp_report_content.content | b64decode }}"

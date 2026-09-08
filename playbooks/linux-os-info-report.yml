@@ -4,16 +4,16 @@
 #
 # Description:
 #   Collect comprehensive operating system information from managed hosts and
-#   generate reports; optionally publish to an archive host (multi-play).
+#   generate reports.
 #
-# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,context:multi-play
+# Tags: pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux
 #
 # Supported OS:
-#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+#   RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
 #
 # Author: Ansible Services Platform Team, Red Hat
 # Version: 1.0.0
-# Date: 2026-08-25
+# Date: 2026-08-27
 # License: Apache-2.0
 #
 # ============================================================================
@@ -22,23 +22,15 @@
   hosts: all_rhel
   become: true
   gather_facts: true
-  vars_files:
-    - ../inventory/group_vars/all/reporting.yml
   pre_tasks:
-    - name: Validate OS compatibility (RHEL/CentOS 7/8/9)
+    - name: Validate OS compatibility (RHEL 7/8/9/10)
       ansible.builtin.assert:
         that:
           - ansible_facts['os_family'] == "RedHat"
           - ansible_facts['distribution'] in ["RedHat", "CentOS", "Rocky", "AlmaLinux", "OracleLinux"]
-          - ansible_facts['distribution_major_version'] in ["7", "8", "9"]
+          - ansible_facts['distribution_major_version'] in ["7", "8", "9", "10"]
         fail_msg: "Unsupported operating system."
         success_msg: "OS compatibility check passed: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}"
       tags: [always]
   roles:
     - role: os_info_report
-
-- name: Publish reports to archive host
-  ansible.builtin.import_playbook: ../roles/report_publish/playbooks/publish.yml
-  vars:
-    report_namespace: os_info
-  when: (hostvars['localhost'].report_publish_enabled | default(false)) | bool

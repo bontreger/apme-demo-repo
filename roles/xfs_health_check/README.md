@@ -1,7 +1,7 @@
 # Role: `xfs_health_check`
 
 **Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux  
-**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
 
 Inspects all XFS filesystems on a host by running metadata consistency checks, collecting disk/inode usage, reviewing kernel logs for XFS errors, and generating a plaintext diagnostic report.
 
@@ -14,10 +14,8 @@ Inspects all XFS filesystems on a host by running metadata consistency checks, c
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `xfs_health_check_namespace` | `xfs_check` | Namespace identifier used for report directory naming |
-| `xfs_health_check_local_dir` | `/var/lib/ansible-reports/{{ xfs_health_check_namespace }}` | Directory to store generated report files |
-| `xfs_health_check_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report file name |
-| `xfs_health_check_report_text_path` | `{{ xfs_health_check_local_dir }}/{{ inventory_hostname }}-{{ xfs_health_check_job_id }}.txt` | Full path to the rendered plaintext report |
+| `xfs_health_check_report_dir` | `/var/lib/ansible-reports` | Directory on the managed host for the report |
+| `xfs_health_check_report_path` | `{{ xfs_health_check_report_dir }}/xfs_health_check-{{ inventory_hostname }}.txt` | Plaintext report path |
 
 ## Dependencies
 
