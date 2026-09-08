@@ -127,14 +127,23 @@
 
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ ftp_rca_report_local_dir }}"
+    path: "{{ ftp_rca_report_dir }}"
     state: directory
     mode: "0755"
 
 - name: Render FTP diagnosis report
   ansible.builtin.template:
     src: ftp_diagnosis_report.j2
-    dest: "{{ ftp_rca_report_text_path }}"
+    dest: "{{ ftp_rca_report_path }}"
     owner: root
     group: root
     mode: "0644"
+
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ ftp_rca_report_path }}"
+  register: __ftp_rca_report_slurp
+
+- name: Show FTP RCA report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__ftp_rca_report_slurp.content | b64decode).splitlines() }}"

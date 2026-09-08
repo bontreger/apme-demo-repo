@@ -27,8 +27,7 @@ acl-ready-to-use-content/
 │   ├── job_templates.yml
 │   └── README.md
 ├── inventory/
-│   ├── inventory.example
-│   └── group_vars/all/reporting.yml
+│   └── inventory.example
 ├── docs/
 │   ├── getting-started.md
 │   ├── architecture.md
@@ -44,7 +43,7 @@ acl-ready-to-use-content/
 2. **Inventory and CaC live in AAP** — playbooks stay thin; operator config is in inventory or surveys.
 3. **Minimal configuration** — sensible defaults; survey overrides for site-specific values.
 4. **Supported RHEL targets only** — RHEL in a supportable state (including ELS/EUS).
-5. **Report publishing standard** — see [docs/reporting-standard.md](docs/reporting-standard.md).
+5. **Reporting standard** — plaintext on the managed host plus the AAP job log; see [docs/reporting-standard.md](docs/reporting-standard.md).
 
 ## Getting Started
 

@@ -21,10 +21,8 @@ Performs root cause analysis diagnostics on the chronyd NTP service, collecting 
 | `chronyd_rca_run_dir` | `/run/chrony` | Path to the chrony runtime directory |
 | `chronyd_rca_collect_journal_lines` | `200` | Number of journal lines to collect for diagnostics |
 | `chronyd_rca_attempt_service_start` | `false` | Whether to attempt starting the service during diagnosis |
-| `chronyd_rca_report_namespace` | `chronyd_rca` | Namespace used for report file organization |
-| `chronyd_rca_report_local_dir` | `/var/lib/ansible-reports/chronyd_rca` | Local directory for storing diagnosis reports |
-| `chronyd_rca_report_job_id` | `{{ awx_job_id \| default(ansible_date_time.epoch) }}` | Unique identifier for the report file name |
-| `chronyd_rca_report_text_path` | `<report_local_dir>/<hostname>-<job_id>.txt` | Full path for the generated text report |
+| `chronyd_rca_report_dir` | `/var/lib/ansible-reports` | Directory on the managed host for the report |
+| `chronyd_rca_report_path` | `{{ chronyd_rca_report_dir }}/chronyd_rca-{{ inventory_hostname }}.txt` | Plaintext report path |
 
 ## Dependencies
 

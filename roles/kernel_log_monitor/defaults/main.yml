@@ -15,19 +15,6 @@ kernel_log_monitor_alert_message: >-
 kernel_log_monitor_log_lines: 100
 kernel_log_monitor_kernel_events_log: "/var/log/kernel_events.log"
 
-# -----------------------------------------------------------------------------
-# Report generation variables (repo-wide standard / Set 1)
-# -----------------------------------------------------------------------------
-# Intentionally unprefixed — see docs/reporting-standard.md.
-# generate_html and report_publish_enabled: inventory/group_vars/all/reporting.yml
-kernel_log_monitor_report_namespace: kernel_log_monitor
-kernel_log_monitor_report_local_dir: "/var/lib/ansible-reports/{{ kernel_log_monitor_report_namespace }}"
-kernel_log_monitor_report_job_id: "{{ awx_job_id | default(ansible_facts['date_time'].epoch) }}"
-kernel_log_monitor_report_text_path: >-
-  {{ kernel_log_monitor_report_local_dir }}/{{ inventory_hostname }}-{{ kernel_log_monitor_report_job_id }}.txt
-kernel_log_monitor_report_html_path: >-
-  {{ kernel_log_monitor_report_local_dir }}/{{ inventory_hostname }}-{{ kernel_log_monitor_report_job_id }}.html
-
-# Deprecated aliases used by validation tasks in this role.
-kernel_log_monitor_report_base_path: "{{ kernel_log_monitor_report_local_dir }}"
-kernel_log_monitor_collection_dest_path: ""
+kernel_log_monitor_report_dir: /var/lib/ansible-reports
+kernel_log_monitor_report_path: >-
+  {{ kernel_log_monitor_report_dir }}/kernel_log_monitor-{{ inventory_hostname }}.txt

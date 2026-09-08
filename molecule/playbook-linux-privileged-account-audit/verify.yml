@@ -4,11 +4,9 @@
   become: true
   gather_facts: false
   vars:
-    # job_id pinned to "molecule"; namespace privileged_account_audit comes from
-    # the role's namespace_map for check_type privileged_account.
-    audit_report_dir: /var/lib/ansible-reports/privileged_account_audit
-    audit_text_path: "{{ audit_report_dir }}/{{ inventory_hostname }}-molecule.txt"
-    audit_json_path: "{{ audit_report_dir }}/{{ inventory_hostname }}-molecule.json"
+    audit_report_dir: /var/lib/ansible-reports
+    audit_text_path: "{{ audit_report_dir }}/linux_diagnostic_rca-privileged_account-{{ inventory_hostname }}.txt"
+    audit_json_path: "{{ audit_report_dir }}/linux_diagnostic_rca-privileged_account-{{ inventory_hostname }}.json"
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

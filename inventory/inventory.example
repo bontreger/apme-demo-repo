@@ -29,9 +29,6 @@ remote_user=admin
 [dhcp_servers]
 [dhcp_clients]
 
-# Report publishing (see inventory/group_vars/all/reporting.yml)
-#
-# Survey/extra vars override inventory defaults:
-#   report_archive_host=reports.example.net
-#   report_publish_enabled=true
-#   generate_html=true
+# Reports: diagnostic roles write `/var/lib/ansible-reports/<role>-<hostname>.txt`
+# on each managed host and print the same content in the job log.
+

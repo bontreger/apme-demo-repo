@@ -1,7 +1,7 @@
 # Role: `pcp_analysis`
 
 **Tags:** pillar:ops,lifecycle:day2,maturity:l2-process-oriented,platform:linux,tech:pcp  
-**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9
+**Supported OS:** RHEL/CentOS/Rocky/AlmaLinux/OracleLinux 7/8/9/10
 
 Installs and enables Performance Co-Pilot (PCP) with `pmcd` and `pmlogger` services for system performance data collection and reporting.
 
@@ -15,7 +15,8 @@ Installs and enables Performance Co-Pilot (PCP) with `pmcd` and `pmlogger` servi
 |----------|---------|-------------|
 | `pcp_analysis_packages` | `["pcp", "pcp-system-tools"]` | List of PCP packages to install |
 | `pcp_analysis_services` | `["pmcd", "pmlogger"]` | List of PCP services to start and enable |
-| `pcp_analysis_report_namespace` | `"os_pcp"` | Report namespace for directory structure |
+| `pcp_analysis_report_dir` | `/var/lib/ansible-reports` | Directory on `pcp_servers` for the report |
+| `pcp_analysis_report_path` | `{{ pcp_analysis_report_dir }}/pcp_analysis-{{ inventory_hostname }}.txt` | Per-host plaintext report |
 
 ## Dependencies
 

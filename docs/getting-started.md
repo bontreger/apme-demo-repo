@@ -48,8 +48,9 @@ Populate host groups for the scenario you are testing. Common groups:
 | `dhcp_clients` | DHCP client |
 | `all_rhel` | RHEL9 standard config, network fault diagnosis |
 
-Reporting toggles live in `inventory/group_vars/all/reporting.yml`
-(`report_publish_enabled: false` by default).
+Diagnostic playbooks write plaintext under `/var/lib/ansible-reports/` on
+each managed host and print the same content in the job log. See
+[reporting-standard.md](reporting-standard.md).
 
 ## Run playbooks
 
@@ -96,5 +97,5 @@ pre-commit run --all-files
 - [architecture.md](architecture.md) -- repo layout and migration model
 - [specifications.md](specifications.md) -- all architectural decisions
 - [aap-deployment-guide.md](aap-deployment-guide.md) -- AAP CaC deployment
-- [reporting-standard.md](reporting-standard.md) -- report publishing pattern
+- [reporting-standard.md](reporting-standard.md) -- report file and job-log pattern
 - Per-role READMEs under `roles/<name>/README.md`

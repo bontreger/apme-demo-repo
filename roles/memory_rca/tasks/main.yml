@@ -10,7 +10,7 @@
 
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ memory_rca_report_local_dir }}"
+    path: "{{ memory_rca_report_dir }}"
     state: directory
     owner: root
     group: root
@@ -46,7 +46,16 @@
 - name: Render memory diagnosis report
   ansible.builtin.template:
     src: "{{ memory_rca_mode }}_report.j2"
-    dest: "{{ memory_rca_report_text_path }}"
+    dest: "{{ memory_rca_report_path }}"
     owner: root
     group: root
     mode: "0644"
+
+- name: Read plaintext report for job output
+  ansible.builtin.slurp:
+    src: "{{ memory_rca_report_path }}"
+  register: __memory_rca_report_slurp
+
+- name: Show memory RCA report in job output
+  ansible.builtin.debug:
+    msg: "{{ (__memory_rca_report_slurp.content | b64decode).splitlines() }}"

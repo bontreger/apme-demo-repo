@@ -4,8 +4,7 @@
   become: true
   gather_facts: false
   vars:
-    # job_id pinned to "molecule"; namespace kernel_log_monitor is the role default.
-    kernel_report_path: /var/lib/ansible-reports/kernel_log_monitor/{{ inventory_hostname }}-molecule.txt
+    kernel_report_path: /var/lib/ansible-reports/kernel_log_monitor-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the plaintext report
       ansible.builtin.stat:

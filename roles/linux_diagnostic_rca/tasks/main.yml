@@ -12,7 +12,7 @@
 
 - name: Ensure report directory exists
   ansible.builtin.file:
-    path: "{{ linux_diagnostic_rca_report_local_dir }}"
+    path: "{{ linux_diagnostic_rca_report_dir }}"
     state: directory
     mode: "0755"
 
@@ -29,24 +29,14 @@
 - name: Write plaintext summary report
   ansible.builtin.copy:
     content: "{{ linux_diagnostic_rca_report_text }}"
-    dest: "{{ linux_diagnostic_rca_report_text_path }}"
+    dest: "{{ linux_diagnostic_rca_report_path }}"
     mode: "0644"
 
 - name: Read plaintext report for job output
-  ansible.builtin.command: cat "{{ linux_diagnostic_rca_report_text_path }}"
-  register: linux_diagnostic_rca_summary_output
-  become: false
-  changed_when: false
+  ansible.builtin.slurp:
+    src: "{{ linux_diagnostic_rca_report_path }}"
+  register: __linux_diagnostic_rca_report_slurp
 
-- name: Output plaintext report for operators
+- name: Show diagnostic report in job output
   ansible.builtin.debug:
-    msg: "{{ linux_diagnostic_rca_summary_output.stdout_lines }}"
-  become: false
-
-- name: Remember report publishing settings for publish play
-  ansible.builtin.set_fact:
-    report_source_hosts: "{{ ansible_play_hosts_all }}"
-    report_publish_enabled: "{{ report_publish_enabled }}"
-  run_once: true
-  delegate_to: localhost
-  delegate_facts: true
+    msg: "{{ (__linux_diagnostic_rca_report_slurp.content | b64decode).splitlines() }}"

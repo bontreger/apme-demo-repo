@@ -8,6 +8,8 @@ ansible:
         - --inventory=../utils/inventory/base/
         - --inventory=inventory/
   env:
+    ANSIBLE_ROLES_PATH: ../../roles
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"
     # community.crypto cert extensions can trip strict UTF-8 checks on newer ansible-core
     ANSIBLE_MODULE_STRICT_UTF8_RESPONSE: "0"
 

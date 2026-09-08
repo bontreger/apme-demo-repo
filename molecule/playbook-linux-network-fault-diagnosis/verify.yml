@@ -5,7 +5,7 @@
   gather_facts: false
   vars:
     network_diagnosis_report_path: >-
-      /var/lib/ansible-reports/network_diagnosis/{{ inventory_hostname }}-molecule.txt
+      /var/lib/ansible-reports/report_generation-{{ inventory_hostname }}.txt
   tasks:
     - name: Stat the diagnosis report
       ansible.builtin.stat:
