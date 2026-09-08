@@ -1,5 +1,5 @@
 ---
-# Push ACL ready-to-use content configuration to AAP controller.
+# Push ACL ready-to-implement content configuration to AAP controller.
 #
 # Prerequisites:
 #   1. Copy site_config.yml.example to site_config.yml and fill in your values
@@ -12,7 +12,7 @@
 #     -e @controller_config/site_config.yml \
 #     -e aap_token=YOUR_PAT_HERE
 
-- name: Configure AAP controller for ACL ready-to-use content
+- name: Configure AAP controller for ACL ready-to-implement content
   hosts: localhost
   connection: local
   gather_facts: false

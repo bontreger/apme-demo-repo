@@ -1,5 +1,5 @@
 ---
-# Job templates for ACL ready-to-use content.
+# Job templates for ACL ready-to-implement content.
 # All site-specific values (credentials, inventory, organization) are
 # provided by site_config.yml.
 
@@ -8,7 +8,7 @@ controller_templates:
   - name: ACL_linux_dns_bind_primary
     description: Deploy BIND primary (authoritative) DNS server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dns-primary.yml
     execution_environment: Default execution environment
@@ -21,7 +21,7 @@ controller_templates:
   - name: ACL_linux_dns_bind_secondary
     description: Deploy BIND secondary (slave) DNS server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dns-secondary.yml
     execution_environment: Default execution environment
@@ -34,7 +34,7 @@ controller_templates:
   - name: ACL_linux_dns_unbound_caching
     description: Deploy Unbound caching DNS resolver
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dns-unbound.yml
     execution_environment: Default execution environment
@@ -47,7 +47,7 @@ controller_templates:
   - name: ACL_linux_dns_sync
     description: Synchronize DNS configuration files across hosts
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dns-sync.yml
     execution_environment: Default execution environment
@@ -61,7 +61,7 @@ controller_templates:
   - name: ACL_linux_dhcp_server
     description: Deploy and configure DHCPv4/DHCPv6 server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dhcp-server.yml
     execution_environment: Default execution environment
@@ -74,7 +74,7 @@ controller_templates:
   - name: ACL_linux_dhcp_client
     description: Configure DHCP client (rhel-system-roles.network)
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-dhcp-client.yml
     execution_environment: Default execution environment
@@ -88,7 +88,7 @@ controller_templates:
   - name: ACL_linux_mariadb_server
     description: Deploy and configure MariaDB server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-mariadb-config.yml
     execution_environment: Default execution environment
@@ -101,7 +101,7 @@ controller_templates:
   - name: ACL_linux_postgresql_deploy
     description: Deploy and configure PostgreSQL server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-postgresql-deploy.yml
     execution_environment: Default execution environment
@@ -115,7 +115,7 @@ controller_templates:
   - name: ACL_linux_rhel9_standard_config
     description: RHEL 9 standard configuration bundle
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-rhel9-standard-config.yml
     execution_environment: Default execution environment
@@ -128,7 +128,7 @@ controller_templates:
   - name: ACL_linux_selinux_config
     description: Configure SELinux state (enforcing/permissive/disabled)
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-selinux-config.yml
     execution_environment: Default execution environment
@@ -141,7 +141,7 @@ controller_templates:
   - name: ACL_linux_yum_repo_client
     description: Configure yum/dnf repository entries on RHEL 8/9/10 clients
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-yum-repo-client.yml
     execution_environment: Default execution environment
@@ -156,7 +156,7 @@ controller_templates:
   - name: ACL_linux_firewall_management
     description: Manage firewalld rules and zones
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-firewall-management.yml
     execution_environment: Default execution environment
@@ -169,7 +169,7 @@ controller_templates:
   - name: ACL_linux_nfs_server
     description: Deploy and configure NFS server with exports
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-nfs-server.yml
     execution_environment: Default execution environment
@@ -182,7 +182,7 @@ controller_templates:
   - name: ACL_linux_sshd_troubleshoot
     description: Diagnose and fix SSHD configuration issues
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-sshd-troubleshoot.yml
     execution_environment: Default execution environment
@@ -195,7 +195,7 @@ controller_templates:
   - name: ACL_linux_vnc_config
     description: Configure TigerVNC server for remote desktop
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-vnc-config.yml
     execution_environment: Default execution environment
@@ -208,7 +208,7 @@ controller_templates:
   - name: ACL_linux_kdump_config
     description: Configure kdump crash dump target and settings
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-kdump-config.yml
     execution_environment: Default execution environment
@@ -221,7 +221,7 @@ controller_templates:
   - name: ACL_linux_cve_patching
     description: Query and apply CVE-based security patches
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-cve-patching.yml
     execution_environment: Default execution environment
@@ -234,7 +234,7 @@ controller_templates:
   - name: ACL_linux_networkmanager
     description: Manage NetworkManager connections (add/modify/delete)
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-networkmanager.yml
     execution_environment: Default execution environment
@@ -248,7 +248,7 @@ controller_templates:
   - name: ACL_linux_os_info_report
     description: Collect OS information and generate system report
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-os-info-report.yml
     execution_environment: Default execution environment
@@ -261,7 +261,7 @@ controller_templates:
   - name: ACL_linux_service_inspection
     description: Automated inspection of Linux services
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-service-inspection.yml
     execution_environment: Default execution environment
@@ -274,7 +274,7 @@ controller_templates:
   - name: ACL_linux_filesystem_check
     description: Filesystem health check with HTML/text report
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-filesystem-check.yml
     execution_environment: Default execution environment
@@ -287,7 +287,7 @@ controller_templates:
   - name: ACL_linux_kernel_log_check
     description: Kernel log error monitoring and reporting
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-kernel-log-check.yml
     execution_environment: Default execution environment
@@ -300,7 +300,7 @@ controller_templates:
   - name: ACL_linux_pcp_analysis
     description: PCP performance data collection and analysis
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-pcp-analysis.yml
     execution_environment: Default execution environment
@@ -313,7 +313,7 @@ controller_templates:
   - name: ACL_linux_ssl_cert_check
     description: Check SSL/TLS certificate expiry dates
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-ssl-cert-check.yml
     execution_environment: Default execution environment
@@ -327,7 +327,7 @@ controller_templates:
   - name: ACL_linux_network_fault_diagnosis
     description: Network latency diagnosis and report generation
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-network-fault-diagnosis.yml
     execution_environment: Default execution environment
@@ -341,7 +341,7 @@ controller_templates:
   - name: ACL_linux_web_service_rca
     description: Root cause analysis for httpd/nginx web services
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-web-service-rca.yml
     execution_environment: Default execution environment
@@ -354,7 +354,7 @@ controller_templates:
   - name: ACL_linux_chronyd_rca
     description: Root cause analysis for chronyd/NTP issues
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-chronyd-rca.yml
     execution_environment: Default execution environment
@@ -367,7 +367,7 @@ controller_templates:
   - name: ACL_linux_ftp_rca
     description: Root cause analysis for FTP connectivity issues
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-ftp-rca.yml
     execution_environment: Default execution environment
@@ -380,7 +380,7 @@ controller_templates:
   - name: ACL_linux_memory_rca
     description: Memory utilization or OOM root cause analysis
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-memory-rca.yml
     execution_environment: Default execution environment
@@ -393,7 +393,7 @@ controller_templates:
   - name: ACL_linux_zombie_process_rca
     description: Detect and diagnose zombie/defunct processes
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-zombie-process-rca.yml
     execution_environment: Default execution environment
@@ -406,7 +406,7 @@ controller_templates:
   - name: ACL_linux_disk_io_rca
     description: Disk I/O pressure diagnosis with iostat/pidstat
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-disk-io-rca.yml
     execution_environment: Default execution environment
@@ -419,7 +419,7 @@ controller_templates:
   - name: ACL_linux_systemd_check
     description: Deep inspection of failed systemd units
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-systemd-check.yml
     execution_environment: Default execution environment
@@ -432,7 +432,7 @@ controller_templates:
   - name: ACL_linux_privileged_account_audit
     description: Audit privileged accounts (UID 0, sudoers, empty passwords)
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-privileged-account-audit.yml
     execution_environment: Default execution environment
@@ -445,7 +445,7 @@ controller_templates:
   - name: ACL_linux_xfs_health_check
     description: XFS filesystem metadata and health inspection
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/linux-xfs-health-check.yml
     execution_environment: Default execution environment
@@ -459,7 +459,7 @@ controller_templates:
   - name: ACL_win_service_management
     description: Start/stop/restart Windows services or set start mode
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/win-service-management.yml
     execution_environment: Default execution environment
@@ -472,7 +472,7 @@ controller_templates:
   - name: ACL_win_iis_deploy
     description: Install and configure IIS web server
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/win-iis-deploy.yml
     execution_environment: Default execution environment
@@ -485,7 +485,7 @@ controller_templates:
   - name: ACL_win_software_management
     description: Install or uninstall Windows software packages
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/win-software-management.yml
     execution_environment: Default execution environment
@@ -498,7 +498,7 @@ controller_templates:
   - name: ACL_win_chocolatey
     description: Manage packages via Chocolatey package manager
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/win-chocolatey.yml
     execution_environment: Default execution environment
@@ -511,7 +511,7 @@ controller_templates:
   - name: ACL_win_patch_management
     description: Windows Update -- install all, by KB, or generate report
     organization: "{{ acl_organization | default('Default') }}"
-    project: acl-ready-to-use-content
+    project: acl-ready-to-implement-content
     inventory: "{{ acl_inventory_name | default('acl_lab_inventory') }}"
     playbook: playbooks/win-patch-management.yml
     execution_environment: Default execution environment
