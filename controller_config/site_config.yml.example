@@ -42,10 +42,12 @@ acl_project_scm_credential: ""
 # Credentials (must already exist in AAP)
 # ---------------------------------------------------------------------------
 
-# Machine credential for Linux targets.
+# Machine credential for Linux targets (required).
 acl_linux_credential: acl_machine_credential
 
 # Machine credential for Windows targets.
+# Only required if deploying Windows templates (win-*). Safe to omit for
+# Linux-only deployments -- the playbook checks this conditionally.
 acl_windows_credential: acl_windows_credential
 
 # ---------------------------------------------------------------------------
