@@ -36,13 +36,23 @@ On the workstation where you will run the CaC playbook:
 ansible-galaxy collection install infra.aap_configuration
 ```
 
-If `infra.aap_configuration` requires `ansible.controller` and it is not
-available from Galaxy, install it from Automation Hub:
+`infra.aap_configuration` internally uses `ansible.controller` modules.
+`ansible.controller` is a Red Hat subscription-gated collection and is **not
+available on the public Ansible Galaxy**. Use the open-source equivalent
+`awx.awx` instead and create a namespace symlink so Ansible resolves it
+correctly:
 
 ```bash
-# Configure Automation Hub token in ansible.cfg or environment, then:
-ansible-galaxy collection install ansible.controller
+# Install the open-source equivalent (pin to 23.x for compatibility)
+ansible-galaxy collection install 'awx.awx:==23.9.0'
+
+# Create a namespace symlink so ansible.controller resolves to awx.awx
+mkdir -p collections/ansible_collections/ansible
+ln -s ../awx/awx collections/ansible_collections/ansible/controller
 ```
+
+> **Note:** If you have a Red Hat Automation Hub subscription, you can install
+> `ansible.controller` directly from Hub and skip the symlink step.
 
 ### 4. Clone the repository
 
