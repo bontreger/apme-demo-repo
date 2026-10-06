@@ -189,6 +189,47 @@ updating the repository with new playbooks.
 
 ---
 
+## Deploying a selected subset of templates (optional)
+
+By default, `configure_aap.yml` deploys all available job templates.
+If a customer engagement only requires a specific set of playbooks, you can
+limit deployment to just those templates by adding a `selected_playbooks` list
+to `site_config.yml`.
+
+### Option A — Edit site_config.yml directly
+
+Add the following to your `site_config.yml` (the key is absent by default):
+
+```yaml
+selected_playbooks:
+  - playbooks/linux-dns-primary.yml
+  - playbooks/linux-firewall-management.yml
+  - playbooks/linux-os-info-report.yml
+```
+
+Then run the CaC playbook as normal:
+
+```bash
+ansible-playbook controller_config/configure_aap.yml \
+  -e @controller_config/site_config.yml \
+  -e aap_token=YOUR_PAT_HERE
+```
+
+Only the listed templates will be created in AAP. All other CaC objects
+(inventory, project) are always deployed regardless of this setting.
+
+### Option B — Use the ACL Library Deployment Package Builder
+
+The [Ansible Content Library](https://script.google.com/macros/s/AKfycbxYi897VljbD7frbdwr2sRtgIvq_73Mn_bNFSmtmvrR7mY07EyreCNf_TaH7_V5V-ythw/exec)
+includes a **Deployment Package Builder** that lets you browse and filter all
+available templates, check the ones relevant to the engagement, and generate a
+ready-to-use `site_config.yml` with the `selected_playbooks` list pre-populated.
+
+> **Note:** If `selected_playbooks` is absent or an empty list, all templates
+> are deployed — identical behaviour to before this feature was added.
+
+---
+
 ## Troubleshooting
 
 ### "Project update failed"

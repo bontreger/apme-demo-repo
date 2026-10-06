@@ -40,6 +40,18 @@
           site_config.yml, fill in your values, then run with:
           -e @controller_config/site_config.yml -e aap_token=YOUR_PAT
 
+    - name: Filter job templates to selected subset (optional)
+      ansible.builtin.set_fact:
+        controller_templates: >-
+          {{
+            controller_templates
+            | selectattr('playbook', 'in', selected_playbooks)
+            | list
+          }}
+      when:
+        - selected_playbooks is defined
+        - selected_playbooks | length > 0
+
   roles:
     - role: infra.aap_configuration.controller_inventories
       when: controller_inventories is defined

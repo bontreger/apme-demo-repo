@@ -57,3 +57,16 @@ acl_organization: Default
 
 # Inventory name created by the CaC playbook.
 acl_inventory_name: acl_lab_inventory
+
+# ---------------------------------------------------------------------------
+# Optional: deploy only a selected subset of templates
+# ---------------------------------------------------------------------------
+# By default (when this key is absent or empty) all templates are deployed.
+# To deploy only specific templates, list their playbook paths below.
+# The ACL Library includes a Deployment Package Builder that generates this
+# list automatically from the browse/filter interface.
+#
+# selected_playbooks:
+#   - playbooks/linux-dns-primary.yml
+#   - playbooks/linux-firewall-management.yml
+#   - playbooks/linux-os-info-report.yml
