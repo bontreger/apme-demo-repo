@@ -34,7 +34,6 @@
           - aap_token is defined
           - acl_project_scm_url is defined
           - acl_linux_credential is defined
-          - acl_windows_credential is defined
         fail_msg: >-
           Missing required variables. Copy site_config.yml.example to
           site_config.yml, fill in your values, then run with:
@@ -51,6 +50,16 @@
       when:
         - selected_playbooks is defined
         - selected_playbooks | length > 0
+
+    - name: Validate Windows credential if Windows templates are included
+      ansible.builtin.assert:
+        that:
+          - acl_windows_credential is defined
+        fail_msg: >-
+          One or more Windows templates are selected but acl_windows_credential
+          is not defined. Add it to site_config.yml or remove Windows templates
+          from selected_playbooks.
+      when: controller_templates | selectattr('playbook', 'match', '^playbooks/win-') | list | length > 0
 
   roles:
     - role: infra.aap_configuration.controller_inventories
