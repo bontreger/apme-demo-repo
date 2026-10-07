@@ -38,6 +38,7 @@
           Missing required variables. Copy site_config.yml.example to
           site_config.yml, fill in your values, then run with:
           -e @controller_config/site_config.yml -e aap_token=YOUR_PAT
+      tags: [always]
 
     - name: Filter job templates to selected subset (optional)
       ansible.builtin.set_fact:
@@ -50,6 +51,7 @@
       when:
         - selected_playbooks is defined
         - selected_playbooks | length > 0
+      tags: [always]
 
     - name: Validate Windows credential if Windows templates are included
       ansible.builtin.assert:
@@ -60,6 +62,7 @@
           is not defined. Add it to site_config.yml or remove Windows templates
           from selected_playbooks.
       when: controller_templates | selectattr('playbook', 'match', '^playbooks/win-') | list | length > 0
+      tags: [always]
 
   roles:
     - role: infra.aap_configuration.controller_inventories
