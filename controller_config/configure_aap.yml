@@ -64,7 +64,10 @@
   roles:
     - role: infra.aap_configuration.controller_inventories
       when: controller_inventories is defined
+      tags: [inventory]
     - role: infra.aap_configuration.controller_projects
       when: controller_projects is defined
+      tags: [project]
     - role: infra.aap_configuration.controller_job_templates
       when: controller_templates is defined
+      tags: [templates]
