@@ -25,6 +25,9 @@
   vars:
     aap_configuration_async_retries: 120
     aap_configuration_async_delay: 2
+    controller_host: "{{ aap_hostname }}"
+    controller_oauthtoken: "{{ aap_token }}"
+    controller_validate_certs: "{{ aap_validate_certs | default(false) }}"
 
   pre_tasks:
     - name: Validate required site configuration
@@ -64,10 +67,36 @@
       when: controller_templates | selectattr('playbook', 'match', '^playbooks/win-') | list | length > 0
       tags: [always]
 
-  roles:
-    - role: infra.aap_configuration.controller_inventories
+  tasks:
+    - name: Ensure inventories exist (direct create/update; bypass async inventory role bug)
+      ansible.controller.inventory:
+        controller_host: "{{ controller_host }}"
+        controller_oauthtoken: "{{ controller_oauthtoken }}"
+        validate_certs: "{{ controller_validate_certs }}"
+        name: "{{ item.name }}"
+        description: "{{ item.description | default(omit) }}"
+        organization: "{{ item.organization }}"
+        state: present
+      loop: "{{ controller_inventories | default([]) }}"
       when: controller_inventories is defined
       tags: [inventory]
+
+    - name: Verify inventories are visible via Controller API
+      ansible.builtin.uri:
+        url: "https://{{ aap_hostname }}/api/controller/v2/inventories/?name={{ item.name | urlencode }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ aap_token }}"
+        validate_certs: "{{ aap_validate_certs | default(false) }}"
+      register: _inventory_lookup
+      until: (_inventory_lookup.json.count | default(0) | int) >= 1
+      retries: 30
+      delay: 2
+      loop: "{{ controller_inventories | default([]) }}"
+      when: controller_inventories is defined
+      tags: [inventory]
+
+  roles:
     - role: infra.aap_configuration.controller_projects
       when: controller_projects is defined
       tags: [project]
