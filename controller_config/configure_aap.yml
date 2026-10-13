@@ -25,6 +25,9 @@
   vars:
     aap_configuration_async_retries: 120
     aap_configuration_async_delay: 2
+    controller_host: "{{ aap_hostname }}"
+    controller_oauthtoken: "{{ aap_token }}"
+    controller_validate_certs: "{{ aap_validate_certs | default(false) }}"
 
   pre_tasks:
     - name: Validate required site configuration
@@ -67,6 +70,9 @@
   tasks:
     - name: Ensure inventories exist (direct create/update; bypass async inventory role bug)
       ansible.controller.inventory:
+        controller_host: "{{ controller_host }}"
+        controller_oauthtoken: "{{ controller_oauthtoken }}"
+        controller_validate_certs: "{{ controller_validate_certs }}"
         name: "{{ item.name }}"
         description: "{{ item.description | default(omit) }}"
         organization: "{{ item.organization }}"
