@@ -105,7 +105,7 @@
 - name: Update MariaDB root user passwords
   block:
     - name: Set root password for all root@host variants
-      community.mysql.mysql_user:
+      ansible.mysql.mysql_user:
         name: root
         host: "{{ item }}"
         password: "{{ mariadb_server_mariadb_root_password }}"
@@ -166,7 +166,7 @@
 - name: Remove anonymous user accounts
   block:
     - name: Delete anonymous users
-      community.mysql.mysql_user:
+      ansible.mysql.mysql_user:
         name: ""
         host_all: true
         state: absent
@@ -189,7 +189,7 @@
 - name: Remove test database
   block:
     - name: Delete test database
-      community.mysql.mysql_db:
+      ansible.mysql.mysql_db:
         name: test
         state: absent
       register: mariadb_server_test_db_result
@@ -214,7 +214,7 @@
 - name: Create database
   block:
     - name: Create new database
-      community.mysql.mysql_db:
+      ansible.mysql.mysql_db:
         name: "{{ mariadb_server_mariadb_database_name }}"
         state: present
       register: mariadb_server_db_create_result
@@ -237,7 +237,7 @@
 - name: Create general database user
   block:
     - name: Create general user
-      community.mysql.mysql_user:
+      ansible.mysql.mysql_user:
         name: "{{ mariadb_server_mariadb_general_user_name }}"
         password: "{{ mariadb_server_mariadb_general_user_password }}"
         host: "localhost"
@@ -263,7 +263,7 @@
 - name: Grant database privileges to general user
   block:
     - name: Grant privileges to general user
-      community.mysql.mysql_user:
+      ansible.mysql.mysql_user:
         name: "{{ mariadb_server_mariadb_general_user_name }}"
         priv: "{{ mariadb_server_mariadb_database_name }}.*:ALL"
         host: "localhost"
@@ -299,7 +299,7 @@
       tags: [backup, always]
 
     - name: Dump database to backup file
-      community.mysql.mysql_db:
+      ansible.mysql.mysql_db:
         name: "{{ mariadb_server_mariadb_database_name }}"
         state: dump
         target: "{{ mariadb_server_mariadb_backup_path }}/{{ mariadb_server_mariadb_backup_filename }}"
