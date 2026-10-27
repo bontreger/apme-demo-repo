@@ -9,15 +9,15 @@ collections:
   - name: ansible.posix
     version: ">=2.1.0,<3.0.0"
   - name: ansible.windows
-    version: ">=2.0.0,<3.0.0"
+    version: ">=2.0.0,<4.0.0"
   - name: community.general
-    version: ">=8.0.0,<13.0.0"
+    version: ">=8.0.0,<14.0.0"
   - name: community.crypto
-    version: ">=2.0.0,<3.0.0"
+    version: ">=2.0.0,<4.0.0"
   - name: community.mysql
-    version: ">=3.0.0,<4.0.0"
+    version: ">=3.0.0,<6.0.0"
   - name: community.windows
-    version: ">=2.0.0,<3.0.0"
+    version: ">=2.0.0,<4.0.0"
   - name: chocolatey.chocolatey
     version: ">=1.5.0,<2.0.0"
   # infra.aap_configuration is NOT listed here -- it is only needed on the
