@@ -36,7 +36,6 @@
           - aap_hostname is defined
           - aap_token is defined
           - acl_project_scm_url is defined
-          - acl_linux_credential is defined
         fail_msg: >-
           Missing required variables. Copy site_config.yml.example to
           site_config.yml, fill in your values, then run with:
@@ -65,6 +64,17 @@
           is not defined. Add it to site_config.yml or remove Windows templates
           from selected_playbooks.
       when: controller_templates | selectattr('playbook', 'match', '^playbooks/win-') | list | length > 0
+      tags: [always]
+
+    - name: Validate Linux credential if Linux templates are included
+      ansible.builtin.assert:
+        that:
+          - acl_linux_credential is defined
+        fail_msg: >-
+          One or more Linux templates are selected but acl_linux_credential
+          is not defined. Add it to site_config.yml or remove Linux templates
+          from selected_playbooks.
+      when: controller_templates | rejectattr('playbook', 'match', '^playbooks/win-') | list | length > 0
       tags: [always]
 
   tasks:
